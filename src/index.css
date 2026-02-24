@@ -327,6 +327,11 @@
     transform: scale(0.97);
   }
 
+  .blur-gate h3,
+  .blur-gate .plan-price {
+    filter: blur(14px);
+  }
+
   .glass {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);

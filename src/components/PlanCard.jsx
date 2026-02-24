@@ -80,7 +80,7 @@ export default function PlanCard({ plan, style }) {
         </h3>
 
         {/* ---- Price ---- */}
-        <div className="mt-3 flex items-baseline gap-1">
+        <div className="plan-price mt-3 flex items-baseline gap-1">
           <span className="text-sm font-medium text-text-secondary">{t('planCard.sar')}</span>
           <span className="text-3xl font-heading font-bold text-text-primary">
             {plan.priceSAR}

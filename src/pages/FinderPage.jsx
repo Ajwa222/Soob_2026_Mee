@@ -417,7 +417,7 @@ export default function FinderPage() {
           {!isLoggedIn && recommendations.length > 0 ? (
             <div className="relative" style={{ animation: 'fadeUp 0.5s ease-out both' }}>
               {/* Blurred results underneath */}
-              <div className="blur-[3.5px] pointer-events-none select-none opacity-70">
+              <div className="blur-gate blur-[2px] pointer-events-none select-none opacity-75">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {recommendations.map((rec, i) => {
                     const badge = reasonLabel(rec.label);
