@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72" fill="none">
+  <defs>
+    <linearGradient id="iconGrad" x1="0" y1="72" x2="72" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4338CA"/>
+      <stop offset="45%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#818CF8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon scaled to 64x64, centered vertically -->
+  <g transform="translate(4,4) scale(0.125)">
+    <rect width="512" height="512" rx="128" fill="url(#iconGrad)"/>
+    <rect x="118" y="112" width="56" height="288" rx="28" fill="white"/>
+    <rect x="118" y="112" width="196" height="56" rx="28" fill="white"/>
+    <rect x="118" y="228" width="152" height="56" rx="28" fill="white"/>
+    <rect x="118" y="344" width="228" height="56" rx="28" fill="white"/>
+    <circle cx="372" cy="146" r="32" fill="#FBBF24"/>
+    <circle cx="363" cy="137" r="7" fill="white" opacity="0.65"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="84" y="50" font-family="'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif" font-weight="700" font-size="38" letter-spacing="-1">
+    <tspan fill="#0F172A">ez</tspan><tspan fill="#6366F1">ee</tspan>
+  </text>
+</svg>

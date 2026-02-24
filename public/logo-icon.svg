@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#818CF8"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#4338CA"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle background -->
+  <rect width="512" height="512" rx="128" fill="url(#bg)"/>
+
+  <!-- Bold S lettermark -->
+  <path d="M310 175 C310 132 272 105 232 105 C188 105 155 135 155 172 C155 216 200 238 256 258 C312 278 357 300 357 345 C357 388 320 418 275 418 C230 418 197 388 197 345"
+    stroke="white" stroke-width="52" fill="none" stroke-linecap="round"/>
+
+  <!-- Indigo accent spark -->
+  <circle cx="358" cy="138" r="26" fill="#C7D2FE"/>
+  <circle cx="350" cy="130" r="5.5" fill="white" opacity="0.6"/>
+</svg>
