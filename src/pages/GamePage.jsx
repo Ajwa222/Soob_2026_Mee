@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useReducer } from 'react';
 // All icons now use GameIcon (PNG fantasy icons) — no more lucide-react
 import { useLang } from '../context/LanguageContext';
+import SarSymbol from '../components/SarSymbol';
 
 // ═══════════════════════════════════════════════════════════════
 // GAME ICON — PNG icon component using Raven Fantasy Icons
@@ -1462,7 +1463,7 @@ export default function GamePage() {
           <div className="bg-surface rounded-2xl p-6 mx-4 max-w-xs w-full text-center shadow-2xl border border-border/40" style={{ animation: 'scaleIn 0.3s' }}>
             <div className="text-4xl mb-3"><GameIcon name="coin" size={48} color="#F59E0B" /></div>
             <p className="text-text-secondary text-sm">{t('game.offlineEarnings')}</p>
-            <p className="text-2xl font-heading font-black text-amber-500 my-2">{fmt(offlineAmt)} {t('game.coins')}</p>
+            <p className="text-2xl font-heading font-black text-amber-500 my-2">{fmt(offlineAmt)} <SarSymbol /></p>
             <p className="text-text-tertiary text-xs mb-4">{t('game.whileAway')}</p>
             <button onClick={collectOffline} className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold btn-press">
               {t('game.collect')}
@@ -1766,7 +1767,7 @@ export default function GamePage() {
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/10 text-sm">
             <span className="font-black text-amber-600 dark:text-amber-400">{fmt(state.coins)}</span>
-            <span className="text-amber-600/50 dark:text-amber-400/50 text-xs font-semibold">{t('game.coins')}</span>
+            <SarSymbol className="text-amber-600/50 dark:text-amber-400/50 text-xs font-semibold" />
           </div>
           <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-surface-alt text-[11px] text-text-secondary">
             <span className="font-bold flex items-center gap-0.5"><GameIcon name="sword" size={11} />{fmt(td)}</span>

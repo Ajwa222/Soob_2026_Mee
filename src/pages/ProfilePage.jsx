@@ -29,9 +29,11 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!phone || !password) return;
     login(tab === 'signup' ? name : '', phone);
-    // Redirect back to finder results if user came from blur gate
+    // Redirect to finder — with reveal if user came from blur gate
     if (localStorage.getItem('simba-finder-pending')) {
       navTo('/finder?reveal=1');
+    } else {
+      navTo('/finder');
     }
   };
 

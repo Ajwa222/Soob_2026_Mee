@@ -6,6 +6,7 @@ import {
   Zap, ArrowLeft, ArrowRight, Plane,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
+import SarSymbol from '../components/SarSymbol';
 import { useCompare } from '../context/CompareContext';
 import {
   PLANS_DATA, getCarrierLogo, isValidValue,
@@ -123,7 +124,7 @@ export default function PlanDetailPage() {
 
           {/* Price */}
           <div className="mt-4 flex items-baseline gap-1.5">
-            <span className="text-base text-text-secondary">{t('planCard.sar')}</span>
+            <SarSymbol className="text-base text-text-secondary" />
             <span className="text-4xl md:text-5xl font-heading font-bold text-text-primary">
               {plan.priceSAR}
             </span>

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Sparkles, ArrowRight, ArrowLeft, ChevronRight,
-  Wifi, Phone, Globe2, DollarSign,
+  Wifi, Phone, Globe2,
   RotateCcw, Trophy, Star, ThumbsUp,
   Check, Minus, X,
   MessageCircle, Zap, Shield, Clock, TreePalm, Lock,
@@ -11,6 +11,14 @@ import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { PLANS_DATA, getValueScore, isValidValue } from '../data/plans';
 import PlanCard from '../components/PlanCard';
+import SarSymbol from '../components/SarSymbol';
+
+const SaudiRiyalIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 1124.14 1256.39" className={className} fill="currentColor">
+    <path d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"/>
+    <path d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"/>
+  </svg>
+);
 
 const STEPS = ['internet', 'localCalls', 'intlCalls', 'social', 'budget'];
 const BUDGET_SHORTCUTS = [50, 100, 150, 200, 300, 500, 750, 1000];
@@ -136,6 +144,7 @@ export default function FinderPage() {
   const autoAdvanceTimer = useRef(null);
   const hasRestored = useRef(false);
 
+
   // Restore results after signup redirect
   useEffect(() => {
     if (hasRestored.current) return;
@@ -241,7 +250,7 @@ export default function FinderPage() {
     localCalls: { icon: Phone, title: t('finder.qLocalCalls'), subtitle: t('finder.qLocalCallsSub') },
     intlCalls: { icon: Globe2, title: t('finder.qIntlCalls'), subtitle: t('finder.qIntlCallsSub') },
     social: { icon: MessageCircle, title: t('finder.qSocial'), subtitle: t('finder.qSocialSub') },
-    budget: { icon: DollarSign, title: t('finder.qBudget'), subtitle: t('finder.qBudgetSub') },
+    budget: { icon: SaudiRiyalIcon, title: t('finder.qBudget'), subtitle: t('finder.qBudgetSub') },
   };
 
   const currentStep = stepConfig[STEPS[step]];
@@ -616,9 +625,7 @@ export default function FinderPage() {
                 <span className="font-heading font-bold text-3xl md:text-4xl text-primary">
                   {answers.budget}
                 </span>
-                <span className="text-text-secondary text-sm md:text-base ms-1.5">
-                  {t('finder.sar')}
-                </span>
+                <SarSymbol className="text-text-secondary text-sm md:text-base ms-1.5" />
               </div>
 
               {/* Slider */}
@@ -636,11 +643,14 @@ export default function FinderPage() {
                     [&::-webkit-slider-thumb]:shadow-primary/30 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
                     [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full
                     [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white"
+                  dir="ltr"
                   style={{
+                    direction: 'ltr',
+                    transform: lang === 'ar' ? 'scaleX(-1)' : undefined,
                     background: `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${((answers.budget - BUDGET_MIN) / (BUDGET_MAX - BUDGET_MIN)) * 100}%, var(--color-border) ${((answers.budget - BUDGET_MIN) / (BUDGET_MAX - BUDGET_MIN)) * 100}%, var(--color-border) 100%)`,
                   }}
                 />
-                <div className="flex justify-between text-[10px] text-text-tertiary mt-1 px-0.5">
+                <div className="flex justify-between text-[10px] text-text-tertiary mt-1 px-0.5" dir="ltr">
                   <span>{BUDGET_MIN}</span>
                   <span>{BUDGET_MAX}+</span>
                 </div>
@@ -691,6 +701,7 @@ export default function FinderPage() {
           )}
         </div>
       </section>
+
     </div>
   );
 }

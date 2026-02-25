@@ -31,23 +31,14 @@ export default function PlansPage() {
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
-  /* ---- finder suggestion modal ---- */
+  /* ---- finder suggestion modal — shown once per session ---- */
   const [showFinderModal, setShowFinderModal] = useState(() => {
-    if (localStorage.getItem('simba-hide-finder-modal') === 'true') return false;
-    const lastShown = localStorage.getItem('simba-finder-modal-ts');
-    if (lastShown && Date.now() - parseInt(lastShown) < 5 * 60 * 1000) return false;
-    return true;
+    return !sessionStorage.getItem('simba-finder-modal-dismissed');
   });
-  const [dontShowAgain, setDontShowAgain] = useState(false);
-
   const dismissFinderModal = useCallback(() => {
-    if (dontShowAgain) {
-      localStorage.setItem('simba-hide-finder-modal', 'true');
-    } else {
-      localStorage.setItem('simba-finder-modal-ts', String(Date.now()));
-    }
+    sessionStorage.setItem('simba-finder-modal-dismissed', 'true');
     setShowFinderModal(false);
-  }, [dontShowAgain]);
+  }, []);
 
   /* ---- filter state ---- */
   const [search, setSearch] = useState('');
@@ -481,17 +472,6 @@ export default function PlansPage() {
               </button>
             </div>
 
-            <label className="inline-flex items-center gap-2 mt-4 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={dontShowAgain}
-                onChange={e => setDontShowAgain(e.target.checked)}
-                className="w-4 h-4 rounded accent-primary"
-              />
-              <span className="text-xs text-text-tertiary">
-                {lang === 'ar' ? 'لا تعرض هذا مرة ثانية' : 'Don\'t show this again'}
-              </span>
-            </label>
           </div>
         </>
       )}

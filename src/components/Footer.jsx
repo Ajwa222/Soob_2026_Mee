@@ -60,7 +60,7 @@ export default function Footer() {
                 {t('nav.help')}
               </button>
               <Link to="/about" className="block text-sm text-white/40 hover:text-white transition-colors">
-                {lang === 'ar' ? 'عن سيمبا' : 'About Us'}
+                {lang === 'ar' ? 'نبذة عن سيمبا' : 'About Us'}
               </Link>
             </div>
           </div>

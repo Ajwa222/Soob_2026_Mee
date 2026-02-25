@@ -1,5 +1,6 @@
 import { X, ChevronRight } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
+import SarSymbol from './SarSymbol';
 import { useCompare } from '../context/CompareContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
 import { Link } from 'react-router-dom';
@@ -12,7 +13,7 @@ function shortVal(val) {
 }
 
 const attrs = [
-  { en: 'Price', ar: 'السعر', get: p => `${p.priceSAR}`, unit: 'SAR', compare: 'lowest' },
+  { en: 'Price', ar: 'السعر', get: p => `${p.priceSAR}`, unit: '\xEA', unitClass: 'saudi-riyal', compare: 'lowest' },
   { en: 'Data', ar: 'البيانات', get: p => isValidValue(p.dataGB) ? shortVal(p.dataGB) : '—', unit: 'GB', compare: 'highest' },
   { en: 'Calls', ar: 'مكالمات', get: p => isValidValue(p.localCallMinutes) ? shortVal(p.localCallMinutes) : '—', unit: 'min', compare: 'highest' },
   { en: 'SMS', ar: 'رسائل', get: p => isValidValue(p.sms) ? shortVal(p.sms) : '—', unit: '', compare: 'highest' },
@@ -91,7 +92,7 @@ export default function CompareOverlay() {
                   <p className="font-heading font-bold text-base leading-none" style={{ color }}>
                     {plan.priceSAR}
                   </p>
-                  <span className="text-[9px] text-text-tertiary -mt-1">SAR/{lang === 'ar' ? 'شهر' : 'mo'}</span>
+                  <span className="text-[9px] text-text-tertiary -mt-1 flex items-center gap-0.5"><SarSymbol className="text-[9px]" />/{lang === 'ar' ? 'شهر' : 'mo'}</span>
                 </div>
               );
             })}
@@ -128,7 +129,7 @@ export default function CompareOverlay() {
                         {val === '__unlimited__' ? t('detail.unlimited') : val}
                       </span>
                       {!isDash && val !== '__unlimited__' && attr.unit && (
-                        <span className="text-[10px] text-text-tertiary ms-0.5">{attr.unit}</span>
+                        <span className={`text-[10px] text-text-tertiary ms-0.5 ${attr.unitClass || ''}`}>{attr.unit}</span>
                       )}
                     </div>
                   );

@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useMemo, useState, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
@@ -7,6 +7,16 @@ import PlanCard from '../components/PlanCard';
 
 export default function HomePage() {
   const { t, lang } = useLang();
+  const navigate = useNavigate();
+
+  /* ---- finder suggestion modal — shown once per session ---- */
+  const [showFinderModal, setShowFinderModal] = useState(() => {
+    return !sessionStorage.getItem('simba-finder-modal-dismissed');
+  });
+  const dismissFinderModal = useCallback(() => {
+    sessionStorage.setItem('simba-finder-modal-dismissed', 'true');
+    setShowFinderModal(false);
+  }, []);
 
   const trendingPlans = useMemo(() => {
     return [...PLANS_DATA]
@@ -159,6 +169,49 @@ export default function HomePage() {
         </Link>
       </div>
 
+      {/* ========= FINDER SUGGESTION MODAL ========= */}
+      {showFinderModal && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-50"
+            onClick={dismissFinderModal}
+            style={{ animation: 'fadeIn 0.2s ease-out both' }}
+          />
+          <div
+            className="fixed z-50 top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] max-w-[calc(100vw-2rem)]
+              bg-surface rounded-2xl shadow-2xl border border-border/60 p-6 text-center"
+            style={{ animation: 'scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
+          >
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Sparkles size={22} className="text-primary" />
+            </div>
+            <h3 className="font-heading font-bold text-lg text-text-primary">
+              {lang === 'ar' ? 'مو متأكد وش تبي؟' : 'Not sure what you need?'}
+            </h3>
+            <p className="text-sm text-text-secondary mt-2 leading-relaxed">
+              {lang === 'ar'
+                ? 'المستشار الذكي يختار لك أفضل باقة بـ 30 ثانية بس'
+                : 'Our Smart Advisor picks the best plan for you in just 30 seconds'}
+            </p>
+            <div className="flex flex-col gap-2.5 mt-5">
+              <button
+                onClick={() => { dismissFinderModal(); navigate('/finder'); }}
+                className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm
+                  hover:bg-primary-dark transition-colors btn-press"
+              >
+                {t('finderCta.cta')}
+              </button>
+              <button
+                onClick={dismissFinderModal}
+                className="w-full py-3 rounded-xl bg-surface-alt text-text-secondary font-semibold text-sm
+                  hover:bg-border transition-colors btn-press"
+              >
+                {lang === 'ar' ? 'لا، أبي أتصفح' : 'No thanks, I\'ll browse'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -36,7 +36,8 @@ function App() {
             <Navigation />
             <main className="flex-1">
               <Routes>
-                <Route path="/" element={<HomePage />} />
+                <Route path="/" element={<Navigate to="/finder" replace />} />
+                <Route path="/home" element={<HomePage />} />
                 <Route path="/plans" element={<PlansPage />} />
                 <Route path="/plan/:id" element={<PlanDetailPage />} />
                 <Route path="/finder" element={<FinderPage />} />

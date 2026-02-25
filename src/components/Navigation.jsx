@@ -16,7 +16,7 @@ export default function Navigation() {
   };
 
   const navItems = [
-    { path: '/', label: t('nav.home') },
+    { path: '/home', label: t('nav.home') },
     { path: '/plans', label: t('nav.plans') },
     { path: '/finder', label: t('nav.finder') },
     { path: '/game', label: t('nav.game') },
@@ -24,7 +24,7 @@ export default function Navigation() {
   ];
 
   const mobileNavItems = [
-    { path: '/', label: t('nav.home'), icon: Home },
+    { path: '/home', label: t('nav.home'), icon: Home },
     { path: '/plans', label: t('nav.plans'), icon: Smartphone },
     { path: '/finder', label: t('nav.finder'), icon: Search },
     { path: '/game', label: t('nav.game'), icon: Gamepad2 },

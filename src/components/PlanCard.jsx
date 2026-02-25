@@ -1,5 +1,6 @@
 import { Wifi, Phone, MessageSquare, Plus, Check } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
+import SarSymbol from './SarSymbol';
 import { useCompare } from '../context/CompareContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
 import { Link } from 'react-router-dom';
@@ -81,7 +82,7 @@ export default function PlanCard({ plan, style }) {
 
         {/* ---- Price ---- */}
         <div className="plan-price mt-3 flex items-baseline gap-1">
-          <span className="text-sm font-medium text-text-secondary">{t('planCard.sar')}</span>
+          <SarSymbol className="text-sm font-medium text-text-secondary" />
           <span className="text-3xl font-heading font-bold text-text-primary">
             {plan.priceSAR}
           </span>
