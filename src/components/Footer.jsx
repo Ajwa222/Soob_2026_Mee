@@ -1,9 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Globe, ArrowUpRight } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Footer() {
   const { lang, toggleLang, t } = useLang();
+  const { hasAccount } = useAuth();
+
+  if (!hasAccount) return null;
 
   return (
     <footer className="bg-[#0F0F1A] text-white mt-0">

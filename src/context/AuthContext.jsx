@@ -8,10 +8,13 @@ export function AuthProvider({ children }) {
     return stored ? JSON.parse(stored) : null;
   });
 
+  const hasAccount = !!localStorage.getItem('simba-has-account');
+
   const login = useCallback((name, phone) => {
     const userData = { name: name || phone, phone };
     setUser(userData);
     localStorage.setItem('simba-user', JSON.stringify(userData));
+    localStorage.setItem('simba-has-account', 'true');
   }, []);
 
   const logout = useCallback(() => {
@@ -20,7 +23,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoggedIn: !!user, hasAccount, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

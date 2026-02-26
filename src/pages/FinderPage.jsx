@@ -133,7 +133,7 @@ function scorePlans(answers) {
 
 export default function FinderPage() {
   const { t, lang } = useLang();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, hasAccount } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [started, setStarted] = useState(false);
@@ -269,7 +269,7 @@ export default function FinderPage() {
   // --- Intro / Landing screen ---
   if (!started) {
     return (
-      <div className="pb-24 md:pb-0 min-h-[80vh] flex items-center justify-center">
+      <div className={`pb-24 md:pb-0 flex items-center justify-center ${hasAccount ? 'min-h-[80vh]' : 'min-h-screen'}`}>
         <div className="max-w-[480px] w-full mx-auto px-5 py-8 md:py-12 text-center" style={{ animation: 'fadeUp 0.4s ease-out both' }}>
           {/* Icon */}
           <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
@@ -312,14 +312,16 @@ export default function FinderPage() {
             {lang === 'ar' ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
           </button>
 
-          {/* Browse link */}
-          <Link
-            to="/plans"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-tertiary hover:text-primary transition-colors mt-4"
-          >
-            {t('finder.introSkip')}
-            <ChevronRight size={12} className="rtl:rotate-180" />
-          </Link>
+          {/* Browse link — hidden for first-time users */}
+          {hasAccount && (
+            <Link
+              to="/plans"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-tertiary hover:text-primary transition-colors mt-4"
+            >
+              {t('finder.introSkip')}
+              <ChevronRight size={12} className="rtl:rotate-180" />
+            </Link>
+          )}
         </div>
       </div>
     );
@@ -328,7 +330,7 @@ export default function FinderPage() {
   // --- Thinking animation ---
   if (isThinking) {
     return (
-      <div className="pb-24 md:pb-0 min-h-[80vh] flex items-center justify-center">
+      <div className={`pb-24 md:pb-0 flex items-center justify-center ${hasAccount ? 'min-h-[80vh]' : 'min-h-screen'}`}>
         <div className="text-center px-6" style={{ animation: 'fadeUp 0.4s ease-out both' }}>
           <div className="relative w-16 h-16 mx-auto mb-5">
             <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
@@ -371,16 +373,6 @@ export default function FinderPage() {
                 </p>
               </div>
 
-              <div className="flex items-center justify-center gap-3 mt-6">
-                <button
-                  onClick={restart}
-                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-surface border border-border text-xs md:text-sm
-                    font-semibold text-text-primary hover:border-primary/30 transition-all btn-press"
-                >
-                  <RotateCcw size={14} />
-                  {t('finder.startOver')}
-                </button>
-              </div>
             </div>
           </section>
         ) : (
@@ -408,14 +400,6 @@ export default function FinderPage() {
                     {t('finder.resultsSubtitle')}
                   </p>
                 </div>
-                <button
-                  onClick={restart}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface border border-border text-xs md:text-sm
-                    font-semibold text-text-primary hover:border-primary/30 transition-all btn-press"
-                >
-                  <RotateCcw size={14} />
-                  {t('finder.startOver')}
-                </button>
               </div>
             </div>
           </section>
@@ -446,17 +430,11 @@ export default function FinderPage() {
 
               {/* Overlay CTA */}
               <div className="absolute inset-0 flex items-start justify-center pt-6">
-                <div className="bg-surface rounded-2xl border border-border shadow-xl p-8 max-w-sm w-full mx-4 text-center"
+                <div className="bg-surface rounded-2xl border border-border shadow-xl px-6 py-5 max-w-sm w-full mx-4 text-center"
                      style={{ animation: 'scaleIn 0.3s ease-out 0.2s both' }}>
-                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Lock size={24} className="text-primary" />
-                  </div>
-                  <h3 className="font-heading font-bold text-lg text-text-primary mb-2">
+                  <h3 className="font-heading font-bold text-base text-text-primary mb-4">
                     {t('finder.blurTitle')}
                   </h3>
-                  <p className="text-text-secondary text-sm leading-relaxed mb-6">
-                    {t('finder.blurDesc')}
-                  </p>
                   <button
                     onClick={() => {
                       localStorage.setItem('simba-finder-pending', JSON.stringify({ answers }));
@@ -546,7 +524,7 @@ export default function FinderPage() {
 
   // --- Wizard view ---
   return (
-    <div className="pb-24 md:pb-0 min-h-[80vh] flex flex-col">
+    <div className={`pb-24 md:pb-0 flex flex-col ${hasAccount ? 'min-h-[80vh]' : 'min-h-screen'}`}>
       {/* Progress header — compact */}
       <section className="bg-gradient-to-br from-primary/[0.04] via-bg to-accent/[0.02] border-b border-border/50">
         <div className="max-w-[800px] mx-auto px-4 md:px-8 pt-5 pb-4">

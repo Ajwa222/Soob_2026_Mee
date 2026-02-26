@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { CARRIERS } from '../data/plans';
@@ -95,18 +96,29 @@ function SceneTrust() {
    ONBOARDING — value-driven, shown once on first visit
    ================================================================ */
 export default function Onboarding() {
-  const { lang } = useLang();
+  const { lang, toggleLang } = useLang();
+  const navigate = useNavigate();
   const [visible, setVisible] = useState(() => !localStorage.getItem('simba-onboarded'));
   const [page, setPage] = useState(0);
+  const [langChosen, setLangChosen] = useState(false);
 
   if (!visible) return null;
+
+  const chooseLang = (chosen) => {
+    // Switch language if needed
+    if (chosen !== lang) toggleLang();
+    setLangChosen(true);
+    setPage(1);
+  };
 
   const complete = () => {
     localStorage.setItem('simba-onboarded', 'true');
     setVisible(false);
+    navigate('/finder');
   };
 
   const pages = [
+    { id: 'lang' }, // placeholder for language page
     {
       scene: <SceneCarriers />,
       title: lang === 'ar'
@@ -125,19 +137,53 @@ export default function Onboarding() {
         ? 'قلنا وش تبي. نلقاها لك.'
         : 'Tell us what you need. We find it.',
     },
-    {
-      scene: <SceneTrust />,
-      title: lang === 'ar'
-        ? 'مجاني للأبد. بدون وسطاء.'
-        : 'Free forever. No middlemen.',
-      sub: lang === 'ar'
-        ? 'نوديك للموقع الرسمي. بس.'
-        : 'Straight to the official site. That\u2019s it.',
-    },
   ];
 
   const isLast = page === pages.length - 1;
+  const isLangPage = page === 0;
   const current = pages[page];
+
+  // Language selection screen
+  if (isLangPage) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-bg flex flex-col items-center justify-center px-6">
+        <img
+          src="/logo-icon.svg"
+          alt="Simba"
+          className="w-16 h-16 mb-6 shadow-lg shadow-primary/20"
+          style={{ borderRadius: '25%', animation: 'scaleIn 0.4s ease-out both' }}
+        />
+        <h2
+          className="font-heading font-bold text-[22px] text-text-primary text-center leading-tight mb-2"
+          style={{ animation: 'fadeUp 0.4s ease-out 0.1s both' }}
+        >
+          Choose your language
+        </h2>
+        <p
+          className="text-[15px] text-text-secondary text-center mb-8"
+          style={{ animation: 'fadeUp 0.4s ease-out 0.15s both' }}
+        >
+          اختر لغتك المفضلة
+        </p>
+        <div className="flex gap-3 w-full max-w-xs" style={{ animation: 'fadeUp 0.4s ease-out 0.2s both' }}>
+          <button
+            onClick={() => chooseLang('en')}
+            className="flex-1 py-4 rounded-xl border-2 border-border bg-surface text-base font-bold text-text-primary
+              hover:border-primary hover:bg-primary/5 transition-all active:scale-[0.98]"
+          >
+            English
+          </button>
+          <button
+            onClick={() => chooseLang('ar')}
+            className="flex-1 py-4 rounded-xl border-2 border-border bg-surface text-base font-bold text-text-primary
+              hover:border-primary hover:bg-primary/5 transition-all active:scale-[0.98]"
+          >
+            العربية
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[100] bg-bg flex flex-col">
@@ -169,15 +215,15 @@ export default function Onboarding() {
       </div>
 
       {/* Bottom: dots + next */}
-      <div className="px-6 pb-8 flex items-center justify-between">
-        <div className="flex gap-2">
-          {pages.map((_, i) => (
+      <div className={`px-6 pb-8 flex items-center justify-between ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
+        <div className={`flex gap-2 ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
+          {pages.slice(1).map((_, i) => (
             <div
               key={i}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === page
+                i + 1 === page
                   ? 'w-6 bg-primary'
-                  : i < page
+                  : i + 1 < page
                     ? 'w-1.5 bg-primary/40'
                     : 'w-1.5 bg-border'
               }`}
@@ -195,7 +241,7 @@ export default function Onboarding() {
         >
           {isLast
             ? lang === 'ar' ? 'ابدأ الآن' : 'Get Started'
-            : <ArrowRight size={18} className="rtl:rotate-180" />}
+            : <ArrowRight size={18} />}
         </button>
       </div>
     </div>

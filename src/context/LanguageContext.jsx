@@ -130,7 +130,7 @@ const translations = {
     },
     finder: {
       introTitle: "Smart Plan Finder",
-      introDesc: "Answer 5 quick questions and we'll pick the top 3 plans that match your needs. No jargon, no guesswork.",
+      introDesc: "Answer 5 quick questions and we'll pick the top 3 plans that match your needs.",
       introBullet1: "5 simple yes-or-no questions",
       introBullet2: "Takes less than 30 seconds",
       introBullet3: "155+ plans analyzed for you",
@@ -167,8 +167,8 @@ const translations = {
       ansYes: "Yes",
       ansSometimes: "Sometimes",
       ansNo: "No",
-      blurTitle: "Sign up to see your results",
-      blurDesc: "Create a free account to unlock your personalized plan recommendations.",
+      blurTitle: "Sign up to see the best plans for you",
+      blurDesc: "Create a free account to see the best plans for you.",
       blurCta: "Sign Up — It's Free",
     },
     help: {
@@ -439,12 +439,12 @@ const translations = {
     hero: {
       headline: "اختار باقتك المثالية بثواني",
       subheadline: "قارن أكثر من 155 باقة من كل شركات الاتصالات بالسعودية.",
-      ctaFinder: "اختار لي باقتي",
+      ctaFinder: "رشّح لي باقة",
       ctaBrowse: "تصفح كل الباقات",
       trust: "8 شركات • 155 باقة",
     },
     howItWorks: {
-      title: "كيف يشتغل إيزي؟",
+      title: "كيف يشتغل سيمبا؟",
       step1Title: "حدد إحتياجاتك",
       step1Desc: "جاوب على ٥ أسئلة سريعة عن استخدامك وميزانيتك.",
       step2Title: "عرض الخيارات المناسبة",
@@ -461,7 +461,7 @@ const translations = {
     deals: { title: "العروض الحالية", seeAll: "شوف كل العروض" },
     carriers: { title: "نقارن باقات كل شركات الاتصالات المرخصة" },
     whySimba: {
-      title: "ليش إيزي؟",
+      title: "ليش سيمبا؟",
       card1Title: "ما نبيع شرائح",
       card1Desc: "نحوّلك لموقع الشركة الرسمي. بدون مخاطر وبدون وسطاء.",
       card2Title: "توصيات محايدة",
@@ -481,7 +481,7 @@ const translations = {
     },
     footer: {
       tagline: "اختار باقتك المثالية بثواني",
-      disclaimer: "إيزي منصة مقارنة مستقلة. ما تتبع لأي شركة اتصالات. كل العلامات التجارية ملك لأصحابها.",
+      disclaimer: "سيمبا منصة مقارنة مستقلة. ما تتبع لأي شركة اتصالات. كل العلامات التجارية ملك لأصحابها.",
       madeWith: "صُنع بحب ❤ في السعودية",
     },
     planCard: {
@@ -598,8 +598,8 @@ const translations = {
       ansYes: "نعم",
       ansSometimes: "أحياناً",
       ansNo: "لا",
-      blurTitle: "سجّل عشان تشوف نتائجك",
-      blurDesc: "سوّ حساب مجاني عشان تشوف الباقات اللي تناسبك.",
+      blurTitle: "سجّل عشان تشوف أفضل الباقات لك",
+      blurDesc: "سوّ حساب مجاني عشان تشوف أفضل الباقات لك.",
       blurCta: "سجّل — مجاناً",
     },
     help: {

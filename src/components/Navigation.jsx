@@ -5,8 +5,10 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Navigation() {
   const { lang, t } = useLang();
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, hasAccount } = useAuth();
   const location = useLocation();
+
+  if (!hasAccount) return null;
 
   const handleNav = (e, path) => {
     if (location.pathname === path) {
@@ -20,7 +22,6 @@ export default function Navigation() {
     { path: '/plans', label: t('nav.plans') },
     { path: '/finder', label: t('nav.finder') },
     { path: '/game', label: t('nav.game') },
-    { path: '/chat', label: t('nav.chat') },
   ];
 
   const mobileNavItems = [
@@ -28,7 +29,6 @@ export default function Navigation() {
     { path: '/plans', label: t('nav.plans'), icon: Smartphone },
     { path: '/finder', label: t('nav.finder'), icon: Search },
     { path: '/game', label: t('nav.game'), icon: Gamepad2 },
-    { path: '/chat', label: t('nav.chat'), icon: Users },
   ];
 
   const isActive = (path) => location.pathname === path;

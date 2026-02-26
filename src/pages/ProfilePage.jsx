@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   User, Phone, Lock, Eye, EyeOff,
-  Heart, Bell, Shield, LogOut, MessageCircle,
+  LogOut, MessageCircle,
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext';
@@ -16,12 +16,6 @@ export default function ProfilePage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-
-  const features = [
-    { icon: Heart, title: t('profile.feat1Title'), desc: t('profile.feat1Desc'), color: '#EF4444' },
-    { icon: Bell, title: t('profile.feat2Title'), desc: t('profile.feat2Desc'), color: '#6366F1' },
-    { icon: Shield, title: t('profile.feat3Title'), desc: t('profile.feat3Desc'), color: '#10B981' },
-  ];
 
   const navTo = useNavigate();
 
@@ -215,32 +209,6 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      {/* Why join */}
-      <div className="max-w-[640px] mx-auto px-6 md:px-8 py-10">
-        <h2 className="font-heading font-bold text-lg text-text-primary text-center mb-6">
-          {t('profile.whyJoin')}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {features.map((feat, i) => {
-            const Icon = feat.icon;
-            return (
-              <div
-                key={i}
-                className="text-center p-5 rounded-2xl bg-surface border border-border/60"
-              >
-                <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center mx-auto mb-3"
-                  style={{ backgroundColor: `${feat.color}12` }}
-                >
-                  <Icon size={20} style={{ color: feat.color }} />
-                </div>
-                <h3 className="font-heading font-bold text-sm text-text-primary">{feat.title}</h3>
-                <p className="text-xs text-text-secondary mt-1 leading-relaxed">{feat.desc}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 }
