@@ -36,7 +36,7 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop Nav */}
-      <nav className="hidden md:block sticky top-0 z-50 glass border-b border-border/60">
+      <nav className="hidden md:block sticky top-0 z-50 bg-white border-b border-border/60">
         <div className="w-full max-w-[1280px] mx-auto px-8 flex items-center justify-between h-[72px]">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
@@ -46,8 +46,11 @@ export default function Navigation() {
               className="w-10 h-10 shadow-md shadow-primary/20 group-hover:shadow-lg group-hover:shadow-primary/30 transition-all duration-200"
               style={{ borderRadius: '25%' }}
             />
-            <span className="font-heading font-bold text-[22px] leading-none tracking-tight">
-              <span className="text-text-primary">Sim</span><span className="text-primary">ba</span>
+            <span
+              className="font-heading font-bold text-[22px] leading-none tracking-tight bg-clip-text text-transparent"
+              style={{ backgroundImage: 'linear-gradient(135deg, #6ED7B4, #6DCBCA, #1FA9FF)' }}
+            >
+              Simba
             </span>
           </Link>
 
@@ -135,7 +138,7 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Top Bar */}
-      <div className="md:hidden sticky top-0 z-50 glass border-b border-border/60">
+      <div className="md:hidden sticky top-0 z-50 bg-white border-b border-border/60">
         <div className="flex items-center justify-between px-5 h-[60px]">
           <Link to="/" className="flex items-center gap-2">
             <img
@@ -144,8 +147,11 @@ export default function Navigation() {
               className="w-9 h-9 shadow-sm shadow-primary/20"
               style={{ borderRadius: '25%' }}
             />
-            <span className="font-heading font-bold text-lg tracking-tight">
-              <span className="text-text-primary">Sim</span><span className="text-primary">ba</span>
+            <span
+              className="font-heading font-bold text-lg tracking-tight bg-clip-text text-transparent"
+              style={{ backgroundImage: 'linear-gradient(135deg, #6ED7B4, #6DCBCA, #1FA9FF)' }}
+            >
+              Simba
             </span>
           </Link>
           <div className="flex items-center gap-1">

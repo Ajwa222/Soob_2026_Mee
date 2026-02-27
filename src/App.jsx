@@ -16,6 +16,7 @@ import ProfilePage from './pages/ProfilePage';
 import AboutPage from './pages/AboutPage';
 import GamePage from './pages/GamePage';
 import ChatPage from './pages/ChatPage';
+import GradientBackground from './components/GradientBackground';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -32,7 +33,8 @@ function App() {
       <LanguageProvider>
         <AuthProvider>
         <CompareProvider>
-          <div className="min-h-screen bg-bg flex flex-col">
+          <div className="relative min-h-screen flex flex-col">
+            <GradientBackground />
             <Navigation />
             <main className="flex-1">
               <Routes>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
@@ -102,6 +102,13 @@ export default function Onboarding() {
   const [page, setPage] = useState(0);
   const [langChosen, setLangChosen] = useState(false);
 
+  useEffect(() => {
+    if (visible) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [visible]);
+
   if (!visible) return null;
 
   const chooseLang = (chosen) => {
@@ -146,37 +153,49 @@ export default function Onboarding() {
   // Language selection screen
   if (isLangPage) {
     return (
-      <div className="fixed inset-0 z-[100] bg-bg flex flex-col items-center justify-center px-6">
+      <div className="fixed inset-0 z-[100] backdrop-blur-2xl bg-black/30 flex flex-col items-center justify-center px-6">
         <img
           src="/logo-icon.svg"
           alt="Simba"
-          className="w-16 h-16 mb-6 shadow-lg shadow-primary/20"
+          className="w-16 h-16 mb-5 shadow-lg shadow-black/15"
           style={{ borderRadius: '25%', animation: 'scaleIn 0.4s ease-out both' }}
         />
+        <h1
+          className="font-heading font-bold text-[26px] text-white text-center leading-tight mb-1"
+          style={{ animation: 'fadeUp 0.4s ease-out 0.08s both' }}
+        >
+          Welcome to Simba
+        </h1>
+        <p
+          className="text-[18px] text-white/80 text-center mb-6 font-semibold"
+          style={{ animation: 'fadeUp 0.4s ease-out 0.12s both' }}
+        >
+          حياك في سيمبا
+        </p>
         <h2
-          className="font-heading font-bold text-[22px] text-text-primary text-center leading-tight mb-2"
-          style={{ animation: 'fadeUp 0.4s ease-out 0.1s both' }}
+          className="font-heading font-bold text-[17px] text-white/90 text-center leading-tight mb-2"
+          style={{ animation: 'fadeUp 0.4s ease-out 0.18s both' }}
         >
           Choose your language
         </h2>
         <p
-          className="text-[15px] text-text-secondary text-center mb-8"
-          style={{ animation: 'fadeUp 0.4s ease-out 0.15s both' }}
+          className="font-heading font-bold text-[17px] text-white/90 text-center mb-8"
+          style={{ animation: 'fadeUp 0.4s ease-out 0.22s both' }}
         >
           اختر لغتك المفضلة
         </p>
         <div className="flex gap-3 w-full max-w-xs" style={{ animation: 'fadeUp 0.4s ease-out 0.2s both' }}>
           <button
             onClick={() => chooseLang('en')}
-            className="flex-1 py-4 rounded-xl border-2 border-border bg-surface text-base font-bold text-text-primary
-              hover:border-primary hover:bg-primary/5 transition-all active:scale-[0.98]"
+            className="flex-1 py-4 rounded-xl border-2 border-white bg-white text-base font-bold text-[#213E53]
+              hover:bg-white/90 shadow-md shadow-black/10 transition-all active:scale-[0.98]"
           >
             English
           </button>
           <button
             onClick={() => chooseLang('ar')}
-            className="flex-1 py-4 rounded-xl border-2 border-border bg-surface text-base font-bold text-text-primary
-              hover:border-primary hover:bg-primary/5 transition-all active:scale-[0.98]"
+            className="flex-1 py-4 rounded-xl border-2 border-white bg-white text-base font-bold text-[#213E53]
+              hover:bg-white/90 shadow-md shadow-black/10 transition-all active:scale-[0.98]"
           >
             العربية
           </button>
@@ -186,12 +205,12 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-bg flex flex-col">
+    <div className="fixed inset-0 z-[100] backdrop-blur-2xl bg-black/30 flex flex-col">
       {/* Skip */}
       <div className="flex justify-end px-6 pt-6">
         <button
           onClick={complete}
-          className="text-sm text-text-tertiary font-medium hover:text-text-secondary transition-colors"
+          className="text-sm text-white/60 font-medium hover:text-white transition-colors"
         >
           {lang === 'ar' ? 'تخطي' : 'Skip'}
         </button>
@@ -201,13 +220,13 @@ export default function Onboarding() {
       <div className="flex-1 flex flex-col items-center justify-center px-6" key={page}>
         <div className="mb-10">{current.scene}</div>
         <h2
-          className="font-heading font-bold text-[22px] text-text-primary text-center leading-tight max-w-xs"
+          className="font-heading font-bold text-[22px] text-white text-center leading-tight max-w-xs"
           style={{ animation: 'fadeUp 0.4s ease-out 0.1s both' }}
         >
           {current.title}
         </h2>
         <p
-          className="mt-2.5 text-[15px] text-text-secondary text-center max-w-xs leading-relaxed"
+          className="mt-2.5 text-[15px] text-white/70 text-center max-w-xs leading-relaxed"
           style={{ animation: 'fadeUp 0.4s ease-out 0.2s both' }}
         >
           {current.sub}
@@ -222,10 +241,10 @@ export default function Onboarding() {
               key={i}
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 i + 1 === page
-                  ? 'w-6 bg-primary'
+                  ? 'w-6 bg-white'
                   : i + 1 < page
-                    ? 'w-1.5 bg-primary/40'
-                    : 'w-1.5 bg-border'
+                    ? 'w-1.5 bg-white/40'
+                    : 'w-1.5 bg-white/20'
               }`}
             />
           ))}
@@ -235,8 +254,8 @@ export default function Onboarding() {
           onClick={isLast ? complete : () => setPage((p) => p + 1)}
           className={`h-12 rounded-xl font-bold text-[15px] transition-all duration-200 active:scale-[0.98] ${
             isLast
-              ? 'px-7 bg-gradient-to-r from-primary-dark to-primary text-white shadow-md shadow-primary/15'
-              : 'w-12 bg-primary text-white flex items-center justify-center'
+              ? 'px-7 bg-white text-[#213E53] shadow-md shadow-black/10'
+              : 'w-12 bg-white text-[#213E53] shadow-md shadow-black/10 flex items-center justify-center hover:bg-white/90'
           }`}
         >
           {isLast

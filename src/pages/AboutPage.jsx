@@ -15,17 +15,17 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="pb-24 md:pb-0">
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/[0.04] via-bg to-accent/[0.02]">
+    <div className="relative z-10 pb-24 md:pb-0 flex flex-col">
+      {/* Hero — gradient area */}
+      <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
         <div
-          className="max-w-[800px] mx-auto px-6 md:px-8 pt-12 pb-10 md:pt-16 md:pb-14 text-center"
+          className="max-w-[800px] w-full mx-auto px-6 md:px-8 text-center"
           style={{ animation: 'fadeUp 0.5s ease-out both' }}
         >
-          <h1 className="font-heading font-bold text-3xl md:text-5xl text-text-primary leading-tight">
+          <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight">
             {t('about.title')}
           </h1>
-          <p className="text-text-secondary mt-4 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+          <p className="text-white/70 mt-4 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
             {t('about.subtitle')}
           </p>
 
@@ -35,16 +35,18 @@ export default function AboutPage() {
               const Icon = stat.icon;
               return (
                 <div key={i} className="text-center">
-                  <Icon size={20} className="text-primary mx-auto mb-1.5" />
-                  <p className="font-heading font-bold text-2xl md:text-3xl text-text-primary">{stat.value}</p>
-                  <p className="text-xs text-text-secondary font-medium mt-0.5">{stat.label}</p>
+                  <Icon size={20} className="text-white/80 mx-auto mb-1.5" />
+                  <p className="font-heading font-bold text-2xl md:text-3xl text-white">{stat.value}</p>
+                  <p className="text-xs text-white/60 font-medium mt-0.5">{stat.label}</p>
                 </div>
               );
             })}
           </div>
         </div>
-      </section>
+      </div>
 
+      {/* White area — content */}
+      <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
       <div className="max-w-[900px] mx-auto px-6 md:px-8 py-12 md:py-16">
         {/* Mission */}
         <section className="mb-16">
@@ -119,7 +121,7 @@ export default function AboutPage() {
         {/* CTA */}
         <section className="text-center">
           <div className="relative overflow-hidden rounded-3xl p-8 md:p-12"
-            style={{ background: 'linear-gradient(135deg, #312E81 0%, #4338CA 50%, #6366F1 100%)' }}>
+            style={{ background: 'linear-gradient(135deg, #1890e0 0%, #1FA9FF 50%, #6dcbca 100%)' }}>
             <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
             <div className="relative">
               <h3 className="font-heading font-bold text-2xl md:text-3xl text-white">
@@ -148,6 +150,7 @@ export default function AboutPage() {
             </div>
           </div>
         </section>
+      </div>
       </div>
     </div>
   );

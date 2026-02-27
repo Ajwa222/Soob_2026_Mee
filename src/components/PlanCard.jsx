@@ -6,9 +6,9 @@ import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
 import { Link } from 'react-router-dom';
 
 const typeBadgeStyles = {
-  Prepaid: { bg: '#2563EB12', color: '#2563EB' },
-  Postpaid: { bg: '#F59E0B12', color: '#D97706' },
-  'Data-only': { bg: '#64748B12', color: '#64748B' },
+  Prepaid: { bg: '#10B98118', color: '#059669' },
+  Postpaid: { bg: '#A855F718', color: '#9333EA' },
+  'Data-only': { bg: '#F59E0B18', color: '#D97706' },
 };
 
 export default function PlanCard({ plan, style }) {
@@ -43,7 +43,7 @@ export default function PlanCard({ plan, style }) {
       {selected && (
         <div
           className="absolute top-3 end-3 w-7 h-7 rounded-full flex items-center justify-center z-10"
-          style={{ backgroundColor: '#6366F1', animation: 'scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+          style={{ backgroundColor: '#1FA9FF', animation: 'scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
         >
           <Check size={14} className="text-white" strokeWidth={3} />
         </div>

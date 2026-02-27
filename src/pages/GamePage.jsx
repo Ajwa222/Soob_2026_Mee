@@ -1501,7 +1501,7 @@ export default function GamePage() {
       {showPrestige && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60" style={{ animation: 'fadeIn 0.2s' }}>
           <div className="bg-surface rounded-2xl p-5 mx-4 max-w-xs w-full text-center shadow-2xl border border-border/40" style={{ animation: 'scaleIn 0.25s' }}>
-            <div className="text-3xl mb-2"><GameIcon name="sparkle" size={36} color="#8B5CF6" /></div>
+            <div className="text-3xl mb-2"><GameIcon name="sparkle" size={36} color="#1FA9FF" /></div>
             <h3 className="font-heading font-bold text-lg mb-3">{t('game.runSummary')}</h3>
             <div className="space-y-2 text-sm bg-surface-alt rounded-xl p-3 mb-4">
               {[[t('game.runFloor'), state.floor], [t('game.runBosses'), state.totalBossKills],
@@ -1785,7 +1785,7 @@ export default function GamePage() {
           {state.floor >= 30 ? (
             <button onClick={() => setShowPrestige(true)}
               className="flex items-center gap-1 px-2 py-1 rounded-lg btn-press text-[10px] font-bold text-white"
-              style={{ background: 'linear-gradient(135deg, #8B5CF6, #6366F1)', animation: 'abilityReady 2s ease-in-out infinite' }}>
+              style={{ background: 'linear-gradient(135deg, #6dcbca, #1FA9FF)', animation: 'abilityReady 2s ease-in-out infinite' }}>
               <GameIcon name="portal" size={11} />{t('game.prestige')}
             </button>
           ) : (

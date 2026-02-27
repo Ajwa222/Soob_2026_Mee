@@ -66,7 +66,7 @@ export default function PlanDetailPage() {
   const hasFeatures = isValidValue(plan.specialFeatures);
 
   return (
-    <div className="pb-28 md:pb-0">
+    <div className="relative z-10 pb-28 md:pb-0 backdrop-blur-xl bg-[var(--color-bg)]/80">
       {/* ========= BREADCRUMB ========= */}
       <div className="bg-surface-alt/50 border-b border-border/50">
         <div className="max-w-[1280px] mx-auto px-6 md:px-8 py-3">

@@ -34,25 +34,32 @@ export default function ProfilePage() {
   // Logged-in view
   if (isLoggedIn) {
     return (
-      <div className="pb-24 md:pb-0">
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/[0.04] via-bg to-accent/[0.02]">
+      <div className="relative z-10 pb-24 md:pb-0 flex flex-col">
+        {/* Gradient area — header */}
+        <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
           <div
-            className="max-w-[480px] mx-auto px-6 md:px-8 pt-10 pb-8 md:pt-14 md:pb-10"
+            className="max-w-[480px] w-full mx-auto px-6 text-center"
             style={{ animation: 'fadeUp 0.5s ease-out both' }}
           >
-            <div className="text-center mb-8">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-dark
-                flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/25">
-                <span className="text-2xl font-bold text-white">
-                  {(user.name || user.phone)[0].toUpperCase()}
-                </span>
-              </div>
-              <h1 className="font-heading font-bold text-2xl md:text-3xl text-text-primary">
-                {t('profile.welcome')}, {user.name || user.phone}!
-              </h1>
-              <p className="text-text-secondary mt-1 text-sm" dir="ltr">{user.phone}</p>
+            <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm
+              flex items-center justify-center mx-auto mb-4 shadow-lg shadow-black/10">
+              <span className="text-2xl font-bold text-white">
+                {(user.name || user.phone)[0].toUpperCase()}
+              </span>
             </div>
+            <h1 className="font-heading font-bold text-2xl md:text-3xl text-white">
+              {t('profile.welcome')}, {user.name || user.phone}!
+            </h1>
+            <p className="text-white/70 mt-1 text-sm" dir="ltr">{user.phone}</p>
+          </div>
+        </div>
 
+        {/* White area — content */}
+        <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
+          <div
+            className="max-w-[480px] mx-auto px-6 md:px-8 pt-8 pb-8"
+            style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}
+          >
             <div className="bg-surface rounded-2xl border border-border/60 p-5 shadow-sm space-y-3">
               <Link
                 to="/chat"
@@ -78,35 +85,39 @@ export default function ProfilePage() {
               {t('profile.demoNotice')}
             </p>
           </div>
-        </section>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="pb-24 md:pb-0">
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/[0.04] via-bg to-accent/[0.02]">
+    <div className="relative z-10 pb-24 md:pb-0 flex flex-col">
+      {/* Gradient area — header */}
+      <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
         <div
-          className="max-w-[480px] mx-auto px-6 md:px-8 pt-10 pb-8 md:pt-14 md:pb-10"
+          className="max-w-[480px] w-full mx-auto px-6 text-center"
           style={{ animation: 'fadeUp 0.5s ease-out both' }}
         >
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <User size={28} className="text-primary" />
-            </div>
-            <h1 className="font-heading font-bold text-2xl md:text-3xl text-text-primary">
-              {t('profile.title')}
-            </h1>
-            <p className="text-text-secondary mt-1 text-sm">
-              {t('profile.subtitle')}
-            </p>
+          <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-4">
+            <User size={28} className="text-white" />
           </div>
+          <h1 className="font-heading font-bold text-2xl md:text-3xl text-white">
+            {t('profile.title')}
+          </h1>
+          <p className="text-white/70 mt-1 text-sm">
+            {t('profile.subtitle')}
+          </p>
+        </div>
+      </div>
 
+      {/* White area — form content */}
+      <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
+        <div
+          className="max-w-[480px] mx-auto px-6 md:px-8 pt-8 pb-8"
+          style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}
+        >
           {/* Tab switcher */}
-          <div
-            className="flex bg-surface-alt rounded-xl p-1 mb-6"
-          >
+          <div className="flex bg-surface-alt rounded-xl p-1 mb-6">
             {['signin', 'signup'].map(key => (
               <button
                 key={key}
@@ -207,8 +218,7 @@ export default function ProfilePage() {
             {t('profile.demoNotice')}
           </p>
         </div>
-      </section>
-
+      </div>
     </div>
   );
 }
