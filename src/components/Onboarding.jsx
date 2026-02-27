@@ -155,7 +155,7 @@ export default function Onboarding() {
     return (
       <div className="fixed inset-0 z-[100] backdrop-blur-2xl bg-black/30 flex flex-col items-center justify-center px-6">
         <img
-          src="/logo-icon.svg"
+          src="/icon-512.png"
           alt="Simba"
           className="w-16 h-16 mb-5 shadow-lg shadow-black/15"
           style={{ borderRadius: '25%', animation: 'scaleIn 0.4s ease-out both' }}

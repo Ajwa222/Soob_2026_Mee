@@ -41,7 +41,7 @@ export default function Navigation() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
             <img
-              src="/logo-icon.svg"
+              src="/icon-512.png"
               alt="Simba"
               className="w-10 h-10 shadow-md shadow-primary/20 group-hover:shadow-lg group-hover:shadow-primary/30 transition-all duration-200"
               style={{ borderRadius: '25%' }}
@@ -142,7 +142,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between px-5 h-[60px]">
           <Link to="/" className="flex items-center gap-2">
             <img
-              src="/logo-icon.svg"
+              src="/icon-512.png"
               alt="Simba"
               className="w-9 h-9 shadow-sm shadow-primary/20"
               style={{ borderRadius: '25%' }}

@@ -16,7 +16,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-4">
             <div className="flex items-center gap-2.5 mb-4">
-              <img src="/logo-icon.svg" alt="Simba" className="w-10 h-10" style={{ borderRadius: '25%' }} />
+              <img src="/icon-512.png" alt="Simba" className="w-10 h-10" style={{ borderRadius: '25%' }} />
               <span className="font-heading font-bold text-xl block leading-none tracking-tight">
                 <span className="text-white">Sim</span><span className="text-primary-light">ba</span>
               </span>
