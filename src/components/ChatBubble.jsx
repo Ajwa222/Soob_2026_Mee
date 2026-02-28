@@ -404,10 +404,14 @@ export default function ChatBubble() {
       {/* Chat Panel */}
       {isOpen && (
         <div
-          className="fixed bottom-24 md:bottom-8 end-4 md:end-8 z-50 w-[360px] max-w-[calc(100vw-2rem)]
+          className="fixed end-4 md:end-8 z-50 w-[360px] max-w-[calc(100vw-2rem)]
             bg-surface rounded-3xl shadow-[0_16px_48px_rgba(0,0,0,0.15)] border border-border/60 overflow-hidden
             flex flex-col"
-          style={{ animation: 'scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)', maxHeight: 'min(600px, calc(100vh - 8rem))' }}
+          style={{
+            animation: 'scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            maxHeight: 'min(600px, calc(100dvh - 8rem))',
+            bottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))',
+          }}
         >
           {/* Header */}
           <div className="px-5 py-4 flex items-center justify-between shrink-0"

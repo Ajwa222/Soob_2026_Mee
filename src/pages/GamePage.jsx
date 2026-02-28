@@ -1331,7 +1331,7 @@ export default function GamePage() {
   if (screen === 'menu') {
     const has = state.totalCoins > 0;
     return (
-      <div className="flex flex-col items-center gap-6 w-full max-w-sm mx-auto px-5 py-10 pb-24 md:pb-10" style={{ animation: 'fadeUp 0.4s ease-out' }}>
+      <div className="flex flex-col items-center gap-6 w-full max-w-sm mx-auto px-5 py-10 safe-pb" style={{ animation: 'fadeUp 0.4s ease-out' }}>
         <h1 className="text-3xl font-heading font-bold text-text-primary">{t('game.title')}</h1>
         <p className="text-text-secondary text-center">{t('game.subtitle')}</p>
         <div className="relative w-52 h-52 rounded-2xl overflow-hidden border-2 border-border/40 shadow-xl"
@@ -1429,7 +1429,7 @@ export default function GamePage() {
   const enraged = bossTrait === 'enrage' && hpPct < 30;
 
   return (
-    <div className="flex flex-col pb-[68px] md:pb-0 relative" style={{ height: 'calc(100dvh - 60px)' }}>
+    <div className="flex flex-col game-safe-pb relative" style={{ height: 'calc(100dvh - 60px)' }}>
       {/* Daily reward overlay */}
       {showDaily && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60" style={{ animation: 'fadeIn 0.3s' }}>

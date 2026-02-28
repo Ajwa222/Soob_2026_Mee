@@ -155,7 +155,6 @@ export const PLANS_DATA = [
   // ── Jawwy new plan ──
   { id: 150, provider: "Jawwy", planName: "SIM 60", planType: "Prepaid", priceSAR: 69, dataGB: "5", socialMediaData: "5 GB", localCallMinutes: "500", internationalCallMinutes: "-", sms: "-", roamingDataGB: "", contractTerms: "28 days", specialFeatures: "-", url: "https://www.jawwy.sa/content/jawwy/en/shop/sim-plans.html" },
   // ── Yaqoot new plans ──
-  { id: 151, provider: "Yaqoot", planName: "Yaqoot 120", planType: "Prepaid", priceSAR: 120, dataGB: "95", socialMediaData: "6 Apps Unlimited", localCallMinutes: "Unlimited", internationalCallMinutes: "-", sms: "Unlimited", roamingDataGB: "", contractTerms: "30 days", specialFeatures: "5G enabled", url: "https://yaqoot.sa/en#voice-packages" },
   { id: 152, provider: "Yaqoot", planName: "Yaqoot 200", planType: "Prepaid", priceSAR: 200, dataGB: "Unlimited", socialMediaData: "Unlimited", localCallMinutes: "Unlimited", internationalCallMinutes: "-", sms: "Unlimited", roamingDataGB: "", contractTerms: "30 days", specialFeatures: "5G enabled", url: "https://yaqoot.sa/en#voice-packages" },
   // ── Lebara new plan ──
   { id: 153, provider: "Lebara", planName: "Lebara 95", planType: "Prepaid", priceSAR: 95, dataGB: "35", socialMediaData: "15 GB", localCallMinutes: "-", internationalCallMinutes: "-", sms: "-", roamingDataGB: "", contractTerms: "30 days", specialFeatures: "-", url: "https://lebara.sa/en/number-booking-new/voice-plans?category=prepaid" },

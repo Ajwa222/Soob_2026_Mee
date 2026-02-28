@@ -210,7 +210,7 @@ export default function ChatPage() {
   // ---- Auth Gate ----
   if (phase === 'landing' && !isLoggedIn) {
     return (
-      <div className="min-h-[calc(100vh-72px)] flex items-center justify-center px-4 pb-20 md:pb-0">
+      <div className="min-h-[calc(100dvh-60px)] flex items-center justify-center px-4 safe-pb">
         <div className="max-w-md w-full text-center">
           <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary to-primary-dark
             flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/25">
@@ -268,7 +268,7 @@ export default function ChatPage() {
   // ---- Landing Screen (logged in) ----
   if (phase === 'landing') {
     return (
-      <div className="min-h-[calc(100vh-72px)] flex items-center justify-center px-4 pb-20 md:pb-0">
+      <div className="min-h-[calc(100dvh-60px)] flex items-center justify-center px-4 safe-pb">
         <div className="max-w-md w-full text-center">
           <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary to-primary-dark
             flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/25">
@@ -310,7 +310,7 @@ export default function ChatPage() {
   // ---- Searching Screen ----
   if (phase === 'searching') {
     return (
-      <div className="min-h-[calc(100vh-72px)] flex items-center justify-center px-4 pb-20 md:pb-0">
+      <div className="min-h-[calc(100dvh-60px)] flex items-center justify-center px-4 safe-pb">
         <div className="text-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
             <Loader2 size={32} className="text-primary animate-spin" />
@@ -329,7 +329,7 @@ export default function ChatPage() {
   // ---- Match Preview Screen ----
   if (phase === 'matched' && match) {
     return (
-      <div className="min-h-[calc(100vh-72px)] flex items-center justify-center px-4 pb-20 md:pb-0">
+      <div className="min-h-[calc(100dvh-60px)] flex items-center justify-center px-4 safe-pb">
         <div className="max-w-sm w-full text-center">
           <p className="text-sm font-semibold text-primary mb-6">{t('meetChat.foundMatch')}</p>
 
@@ -369,7 +369,7 @@ export default function ChatPage() {
 
   // ---- Chat Interface ----
   return (
-    <div className="flex flex-col h-[calc(100vh-72px)] md:max-w-2xl md:mx-auto md:my-4 md:h-[calc(100vh-104px)] md:rounded-2xl md:border md:border-border/60 md:overflow-hidden bg-bg">
+    <div className="flex flex-col h-[calc(100dvh-60px)] md:max-w-2xl md:mx-auto md:my-4 md:h-[calc(100dvh-104px)] md:rounded-2xl md:border md:border-border/60 md:overflow-hidden bg-bg">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border/60 bg-surface/80 backdrop-blur-sm shrink-0">
         <div className="flex items-center gap-3">
@@ -393,19 +393,19 @@ export default function ChatPage() {
           </button>
           <button
             onClick={nextPerson}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold
+            className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-xl text-xs font-semibold
               bg-primary/10 text-primary hover:bg-primary/20 transition-colors btn-press"
           >
-            <SkipForward size={14} />
-            {t('meetChat.next')}
+            <SkipForward size={14} className="shrink-0" />
+            <span className="hidden sm:inline">{t('meetChat.next')}</span>
           </button>
           <button
             onClick={endChat}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold
+            className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-xl text-xs font-semibold
               bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors btn-press"
           >
-            <X size={14} />
-            {t('meetChat.endChat')}
+            <X size={14} className="shrink-0" />
+            <span className="hidden sm:inline">{t('meetChat.endChat')}</span>
           </button>
         </div>
       </div>
@@ -458,7 +458,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <div className="shrink-0 px-4 py-3 border-t border-border/60 bg-surface/80 backdrop-blur-sm mb-[68px] md:mb-0">
+      <div className="shrink-0 px-4 py-3 border-t border-border/60 bg-surface/80 backdrop-blur-sm chat-input-spacer">
         <div className="flex items-center gap-2">
           <input
             ref={inputRef}

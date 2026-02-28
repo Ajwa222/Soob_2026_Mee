@@ -110,7 +110,8 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 glass border-t border-border/60">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 glass border-t border-border/60"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div className="flex items-center justify-around h-[68px] px-3">
           {mobileNavItems.map(item => {
             const Icon = item.icon;

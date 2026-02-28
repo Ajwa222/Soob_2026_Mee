@@ -56,6 +56,9 @@
     font-size: 15px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Prevent content from going behind notch/home indicator */
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -316,6 +319,36 @@
 }
 
 @layer utilities {
+  /* Safe bottom padding for pages with mobile bottom nav */
+  .safe-pb {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 768px) {
+    .safe-pb {
+      padding-bottom: 0;
+    }
+  }
+
+  /* Game container safe padding */
+  .game-safe-pb {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 768px) {
+    .game-safe-pb {
+      padding-bottom: 0;
+    }
+  }
+
+  /* Chat input spacer above mobile bottom nav */
+  .chat-input-spacer {
+    margin-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 768px) {
+    .chat-input-spacer {
+      margin-bottom: 0;
+    }
+  }
+
   .card-hover {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }

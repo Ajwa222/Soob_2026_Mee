@@ -25,13 +25,13 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="pb-20 md:pb-0">
+    <div className="safe-pb">
 
       {/* ===================== HERO ===================== */}
       <section className="relative z-10 overflow-hidden">
-        <div className="relative max-w-[1280px] mx-auto px-6 md:px-8 pt-4 pb-6 md:pt-12 md:pb-16">
+        <div className="relative max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-4 pb-6 md:pt-12 md:pb-16">
           <div
-            className="max-w-lg md:max-w-2xl p-6 md:p-8"
+            className="max-w-lg md:max-w-2xl p-5 sm:p-6 md:p-8"
             style={{ animation: 'fadeUp 0.5s ease-out both' }}
           >
             <h1 className="font-heading font-extrabold text-[28px] md:text-[44px] lg:text-[52px] text-white leading-[1.15] tracking-tight">
@@ -89,7 +89,7 @@ export default function HomePage() {
 
       {/* ===================== CARRIER STRIP ===================== */}
       <div className="relative -z-10 mt-4 border-t border-b border-border/60">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-8 py-3 flex flex-col items-center gap-2">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-3 flex flex-col items-center gap-2">
           <span className="relative z-10 text-[10px] text-[#213E53]/50 font-medium">
             {lang === 'ar' ? 'نقارن من' : 'We compare'}
           </span>
@@ -114,7 +114,7 @@ export default function HomePage() {
       </div>
 
       {/* ===================== TRENDING PLANS ===================== */}
-      <div className="max-w-[1280px] mx-auto px-6 md:px-8 pt-10 md:pt-16 pb-10 md:pb-14">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-10 md:pt-16 pb-10 md:pb-14">
         <div className="flex items-end justify-between mb-5 md:mb-7">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#1FA9FF]">
@@ -141,7 +141,7 @@ export default function HomePage() {
       </div>
 
       {/* ===================== PLAN FINDER CTA ===================== */}
-      <div className="max-w-[1280px] mx-auto px-6 md:px-8 pb-10 md:pb-14">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pb-10 md:pb-14">
         <Link
           to="/finder"
           className="relative block overflow-hidden rounded-2xl p-6 md:p-10 group"

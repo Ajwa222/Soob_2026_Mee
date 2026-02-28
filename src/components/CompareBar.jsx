@@ -32,7 +32,8 @@ export default function CompareBar() {
 
       {/* Compare Bar — compact: logos + counter + CTA */}
       {selectedPlans.length > 0 && (
-        <div className="fixed bottom-16 md:bottom-0 inset-x-0 z-40 px-4 pb-4 md:pb-4 pointer-events-none">
+        <div className="fixed bottom-16 md:bottom-0 inset-x-0 z-40 px-4 pb-4 md:pb-4 pointer-events-none"
+          style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}>
           <div
             className="max-w-md mx-auto bg-surface rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-border/80 p-3 pointer-events-auto"
             style={{ animation: 'springUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}

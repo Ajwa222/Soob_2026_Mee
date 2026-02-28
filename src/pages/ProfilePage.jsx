@@ -34,7 +34,7 @@ export default function ProfilePage() {
   // Logged-in view
   if (isLoggedIn) {
     return (
-      <div className="relative z-10 pb-24 md:pb-0 flex flex-col">
+      <div className="relative z-10 safe-pb flex flex-col">
         {/* Gradient area — header */}
         <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
           <div
@@ -91,7 +91,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="relative z-10 pb-24 md:pb-0 flex flex-col">
+    <div className="relative z-10 safe-pb flex flex-col">
       {/* Gradient area — header */}
       <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
         <div

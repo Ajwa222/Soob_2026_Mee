@@ -15,11 +15,11 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="relative z-10 pb-24 md:pb-0 flex flex-col">
+    <div className="relative z-10 safe-pb flex flex-col">
       {/* Hero — gradient area */}
       <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
         <div
-          className="max-w-[800px] w-full mx-auto px-6 md:px-8 text-center"
+          className="max-w-[800px] w-full mx-auto px-4 sm:px-6 md:px-8 text-center"
           style={{ animation: 'fadeUp 0.5s ease-out both' }}
         >
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight">
@@ -47,7 +47,7 @@ export default function AboutPage() {
 
       {/* White area — content */}
       <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
-      <div className="max-w-[900px] mx-auto px-6 md:px-8 py-12 md:py-16">
+      <div className="max-w-[900px] mx-auto px-4 sm:px-6 md:px-8 py-12 md:py-16">
         {/* Mission */}
         <section className="mb-16">
           <h2 className="font-heading font-bold text-2xl text-text-primary mb-4">

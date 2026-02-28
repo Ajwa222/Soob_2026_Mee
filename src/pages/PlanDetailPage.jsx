@@ -66,10 +66,10 @@ export default function PlanDetailPage() {
   const hasFeatures = isValidValue(plan.specialFeatures);
 
   return (
-    <div className="relative z-10 pb-28 md:pb-0 backdrop-blur-xl bg-[var(--color-bg)]/80">
+    <div className="relative z-10 safe-pb backdrop-blur-xl bg-[var(--color-bg)]/80">
       {/* ========= BREADCRUMB ========= */}
       <div className="bg-surface-alt/50 border-b border-border/50">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-8 py-3">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-3">
           <nav className="flex items-center gap-1.5 text-sm text-text-tertiary">
             <Link to="/" className="hover:text-text-primary transition-colors">
               {t('nav.home')}

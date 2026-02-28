@@ -71,7 +71,7 @@ export default function CompareOverlay() {
 
           {/* Plan column headers */}
           <div className="grid border-b border-border bg-surface sticky top-0 z-[5]"
-            style={{ gridTemplateColumns: `72px repeat(${cols}, 1fr)` }}>
+            style={{ gridTemplateColumns: `minmax(56px, 72px) repeat(${cols}, 1fr)` }}>
             <div />
             {selectedPlans.map((plan) => {
               const color = getCarrierColor(plan.provider);
@@ -106,7 +106,7 @@ export default function CompareOverlay() {
                 key={attr.en}
                 className={`grid items-center ${ri % 2 === 0 ? 'bg-surface' : 'bg-surface-alt/40'}
                   ${ri < attrs.length - 1 ? 'border-b border-border/30' : ''}`}
-                style={{ gridTemplateColumns: `72px repeat(${cols}, 1fr)` }}
+                style={{ gridTemplateColumns: `minmax(56px, 72px) repeat(${cols}, 1fr)` }}
               >
                 {/* Label */}
                 <div className="px-3 py-3 text-[11px] font-bold text-text-tertiary uppercase tracking-wide">
@@ -141,7 +141,7 @@ export default function CompareOverlay() {
 
         {/* Footer: Get Plan buttons */}
         <div className="shrink-0 border-t border-border bg-surface">
-          <div className="grid" style={{ gridTemplateColumns: `72px repeat(${cols}, 1fr)` }}>
+          <div className="grid" style={{ gridTemplateColumns: `minmax(56px, 72px) repeat(${cols}, 1fr)` }}>
             <div />
             {selectedPlans.map((plan) => (
                 <div key={plan.id} className="px-2 py-3">

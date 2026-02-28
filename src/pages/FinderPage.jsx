@@ -136,13 +136,17 @@ export default function FinderPage() {
   const { isLoggedIn, hasAccount } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [started, setStarted] = useState(false);
+  // Restore finder results from session (e.g. after navigating back from plan detail)
+  const savedSession = sessionStorage.getItem('simba-finder-session');
+  const restoredState = savedSession ? (() => { try { return JSON.parse(savedSession); } catch { return null; } })() : null;
+
+  const [started, setStarted] = useState(restoredState ? true : false);
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState({ budget: 150 });
-  const [showResults, setShowResults] = useState(false);
+  const [answers, setAnswers] = useState(restoredState?.answers || { budget: 150 });
+  const [showResults, setShowResults] = useState(restoredState ? true : false);
   const [isThinking, setIsThinking] = useState(false);
   const autoAdvanceTimer = useRef(null);
-  const hasRestored = useRef(false);
+  const hasRestored = useRef(!!restoredState);
 
 
   // Restore results after signup redirect
@@ -163,6 +167,13 @@ export default function FinderPage() {
       hasRestored.current = true;
     }
   }, [searchParams, isLoggedIn, setSearchParams]);
+
+  // Persist results to sessionStorage so navigating back restores them
+  useEffect(() => {
+    if (showResults) {
+      sessionStorage.setItem('simba-finder-session', JSON.stringify({ answers }));
+    }
+  }, [showResults, answers]);
 
   const isBudgetStep = STEPS[step] === 'budget';
 
@@ -211,6 +222,7 @@ export default function FinderPage() {
 
   const restart = () => {
     if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+    sessionStorage.removeItem('simba-finder-session');
     setStarted(false);
     setStep(0);
     setAnswers({ budget: 150 });
@@ -269,7 +281,7 @@ export default function FinderPage() {
   // --- Intro / Landing screen ---
   if (!started) {
     return (
-      <div className="relative z-10 pb-24 md:pb-0 flex flex-col" style={{ animation: 'fadeUp 0.4s ease-out both' }}>
+      <div className="relative z-10 safe-pb flex flex-col" style={{ animation: 'fadeUp 0.4s ease-out both' }}>
         {/* Gradient area — content inside */}
         <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
           <div className="max-w-[480px] w-full mx-auto px-5 text-center">
@@ -326,7 +338,7 @@ export default function FinderPage() {
   // --- Thinking animation ---
   if (isThinking) {
     return (
-      <div className={`relative z-10 pb-24 md:pb-0 flex items-center justify-center ${hasAccount ? 'min-h-[80vh]' : 'min-h-screen'}`}>
+      <div className={`relative z-10 safe-pb flex items-center justify-center ${hasAccount ? 'min-h-[80dvh]' : 'min-h-[100dvh]'}`}>
         <div className="text-center px-6" style={{ animation: 'fadeUp 0.4s ease-out both' }}>
           <div className="relative w-16 h-16 mx-auto mb-5">
             <div className="absolute inset-0 rounded-full border-4 border-white/20" />
@@ -352,7 +364,7 @@ export default function FinderPage() {
   // --- Results view ---
   if (showResults) {
     return (
-      <div className="relative z-10 pb-24 md:pb-0 min-h-screen">
+      <div className="relative z-10 safe-pb min-h-[100dvh]">
         {/* All-No easter egg header */}
         {allNo ? (
           <section className="relative overflow-hidden bg-gradient-to-br from-amber-500/[0.06] via-bg to-primary/[0.03]">
@@ -520,7 +532,7 @@ export default function FinderPage() {
 
   // --- Wizard view ---
   return (
-    <div className={`relative z-10 pb-24 md:pb-0 flex flex-col min-h-[calc(100vh-72px)] transition-[backdrop-filter] duration-500 ${step === 3 ? 'backdrop-blur-lg' : ''}`}>
+    <div className={`relative z-10 safe-pb flex flex-col min-h-[calc(100dvh-60px)] md:min-h-[calc(100dvh-72px)] transition-[backdrop-filter] duration-500 ${step === 3 ? 'backdrop-blur-lg' : ''}`}>
       {/* Progress header — compact */}
       <section>
         <div className="max-w-[800px] mx-auto px-4 md:px-8 pt-5 pb-4">

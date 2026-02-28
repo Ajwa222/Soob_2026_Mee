@@ -2,13 +2,15 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Gradient } from '../lib/gradient';
 
+// Use max() to guarantee minimum coverage on small phones
+// while scaling up on larger screens — ensures consistent look
 const PAGE_CONFIG = {
-  '/plans':  { top: '-40vh', height: '85vh' },
-  '/finder': { top: '0', height: '100vh' },
-  '/profile': { top: '-30vh', height: '85vh' },
-  '/about': { top: '-30vh', height: '85vh' },
+  '/plans':  { top: 'max(-320px, -40dvh)', height: 'max(720px, 85dvh)' },
+  '/finder': { top: '0', height: '100dvh' },
+  '/profile': { top: 'max(-260px, -30dvh)', height: 'max(720px, 85dvh)' },
+  '/about': { top: 'max(-260px, -30dvh)', height: 'max(720px, 85dvh)' },
 };
-const DEFAULT_CONFIG = { top: '-36vh', height: '85vh' };
+const DEFAULT_CONFIG = { top: 'max(-300px, -36dvh)', height: 'max(720px, 85dvh)' };
 
 export default function GradientBackground() {
   const canvasRef = useRef(null);

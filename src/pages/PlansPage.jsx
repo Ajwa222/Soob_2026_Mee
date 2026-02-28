@@ -436,7 +436,7 @@ export default function PlansPage() {
   );
 
   return (
-    <div className="pb-24 md:pb-0">
+    <div className="safe-pb">
 
       {/* ========= FINDER SUGGESTION MODAL ========= */}
       {showFinderModal && (
@@ -488,7 +488,7 @@ export default function PlansPage() {
       {/* ========= HEADER ========= */}
       <section className="relative z-10">
         <div
-          className="max-w-[1280px] mx-auto px-6 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10"
+          className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10"
           style={{ animation: 'fadeUp 0.5s ease-out both' }}
         >
           <h1 className="font-heading font-bold text-3xl md:text-4xl text-white">
@@ -598,7 +598,7 @@ export default function PlansPage() {
       </section>
 
       {/* ========= MAIN CONTENT ========= */}
-      <div className="max-w-[1280px] mx-auto px-6 md:px-8 py-8">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-8">
         <div className="flex gap-8">
 
           {/* ---- DESKTOP SIDEBAR FILTERS ---- */}
@@ -843,7 +843,7 @@ export default function PlansPage() {
             style={{ animation: 'fadeIn 0.2s ease-out both' }}
           />
           <div
-            className="fixed inset-x-0 bottom-0 z-50 md:hidden bg-surface rounded-t-3xl max-h-[85vh] overflow-y-auto"
+            className="fixed inset-x-0 bottom-0 z-50 md:hidden bg-surface rounded-t-3xl max-h-[85dvh] overflow-y-auto"
             style={{ animation: 'slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
           >
             <div className="sticky top-0 bg-surface z-10 px-6 pt-4 pb-3 border-b border-border flex items-center justify-between">

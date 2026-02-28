@@ -11,7 +11,7 @@ export default function Footer() {
 
   return (
     <footer className="relative z-10 bg-[#0F0F1A] text-white -mt-10">
-      <div className="max-w-[1280px] mx-auto px-6 md:px-8 py-16">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8">
           {/* Brand */}
           <div className="md:col-span-4">
@@ -89,7 +89,8 @@ export default function Footer() {
         </div>
 
         {/* Disclaimer */}
-        <div className="mt-14 pt-8 pb-8 border-t border-white/10">
+        <div className="mt-14 pt-8 border-t border-white/10"
+          style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}>
           <p className="text-xs text-white/30 text-center max-w-2xl mx-auto leading-relaxed mb-10">
             {t('footer.disclaimer')}
           </p>
