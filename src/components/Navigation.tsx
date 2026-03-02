@@ -11,7 +11,7 @@ export default function Navigation() {
   if (!hasAccount) return null;
 
   const handleNav = (e: React.MouseEvent, path: string) => {
-    if (location.pathname === path) {
+    if (location.pathname === path || (path === '/home' && location.pathname === '/')) {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -28,15 +28,16 @@ export default function Navigation() {
     { path: '/home', label: t('nav.home'), icon: Home },
     { path: '/plans', label: t('nav.plans'), icon: Smartphone },
     { path: '/finder', label: t('nav.finder'), icon: Search },
-    // { path: '/game', label: t('nav.game'), icon: Gamepad2 },
+    { path: '/profile', label: t('nav.profile'), icon: User },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) =>
+    location.pathname === path || (path === '/home' && location.pathname === '/');
 
   return (
     <>
       {/* Desktop Nav */}
-      <nav className="hidden md:block sticky top-0 z-50 bg-white border-b border-border/60">
+      <nav className="hidden md:block sticky top-0 z-50 bg-surface border-b border-border/60">
         <div className="w-full max-w-[1280px] mx-auto px-8 flex items-center justify-between h-[72px]">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
@@ -143,7 +144,7 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Top Bar */}
-      <div className="md:hidden sticky top-0 z-50 bg-white border-b border-border/60">
+      <div className="md:hidden sticky top-0 z-50 bg-surface border-b border-border/60">
         <div className="flex items-center justify-between px-5 h-[60px]">
           <Link to="/" className="flex items-center gap-2">
             <img

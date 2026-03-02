@@ -18,6 +18,7 @@ const PlanDetailPage = lazy(() => import('./pages/PlanDetailPage'));
 const FinderPage = lazy(() => import('./pages/FinderPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -72,7 +73,7 @@ function App() {
                 <Route path="/about" element={<AboutPage />} />
                 {/* <Route path="/game" element={<GamePage />} /> */}
                 {/* <Route path="/chat" element={<ChatPage />} /> */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
               </Suspense>
             </main>

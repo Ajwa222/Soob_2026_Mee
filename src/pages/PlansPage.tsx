@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Search, SlidersHorizontal, X, ChevronDown,
   ArrowRight, Sparkles, ChevronLeft, ChevronRight,
@@ -7,6 +7,7 @@ import {
 import { useLang } from '../context/LanguageContext';
 import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
 import PlanCard from '../components/PlanCard';
+import FinderModal, { useFinderModal } from '../components/FinderModal';
 
 const PLAN_TYPES = ['Prepaid', 'Postpaid', 'Data-only'] as const;
 const PLANS_PER_PAGE = 6;
@@ -34,17 +35,8 @@ function parseData(val: string): number {
 }
 
 export default function PlansPage() {
-  const { t, lang } = useLang();
-  const navigate = useNavigate();
-
-  /* ---- finder suggestion modal — shown once per session ---- */
-  const [showFinderModal, setShowFinderModal] = useState(() => {
-    return !sessionStorage.getItem('simba-finder-modal-dismissed');
-  });
-  const dismissFinderModal = useCallback(() => {
-    sessionStorage.setItem('simba-finder-modal-dismissed', 'true');
-    setShowFinderModal(false);
-  }, []);
+  const { t } = useLang();
+  const { show: showFinderModal, dismiss: dismissFinderModal } = useFinderModal();
 
   /* ---- filter state ---- */
   const [search, setSearch] = useState('');
@@ -59,6 +51,7 @@ export default function PlansPage() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [showSort, setShowSort] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const plansGridRef = useRef<HTMLDivElement>(null);
 
   const toggleCarrier = useCallback((name: string) => {
     setSelectedCarriers(prev =>
@@ -81,7 +74,7 @@ export default function PlansPage() {
     setLocalCallsFilter('any');
     setIntlCallsFilter('any');
     setSocialFilter('any');
-    setSortBy('priceLow');
+    setSortBy('bestValue');
   }, []);
 
   const hasActiveFilters = search || selectedCarriers.length > 0 || selectedTypes.length > 0 ||
@@ -200,7 +193,7 @@ export default function PlansPage() {
 
   const goToPage = useCallback((page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    plansGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
   const activeSort = SORT_OPTIONS.find(s => s.key === sortBy) ?? SORT_OPTIONS[0];
@@ -292,42 +285,68 @@ export default function PlansPage() {
         </div>
       </div>
 
-      {/* Price range */}
+      {/* Price range — dual-thumb slider */}
       <div>
         <p className="text-xs font-bold uppercase tracking-wider text-[#213E53]/70 mb-3">
           {t('browse.priceRange')}
         </p>
-        <div className="flex items-center gap-3">
-          <div className="flex-1">
-            <input
-              type="range"
-              min={0}
-              max={PRICE_MAX}
-              step={10}
-              value={priceRange[0]}
-              onChange={e => {
-                const v = parseInt(e.target.value);
-                setPriceRange(prev => [Math.min(v, prev[1] - 10), prev[1]]);
-              }}
-              className="w-full accent-[#1FA9FF]"
-            />
-          </div>
-          <div className="flex-1">
-            <input
-              type="range"
-              min={0}
-              max={PRICE_MAX}
-              step={10}
-              value={priceRange[1]}
-              onChange={e => {
-                const v = parseInt(e.target.value);
-                setPriceRange(prev => [prev[0], Math.max(v, prev[0] + 10)]);
-              }}
-              className="w-full accent-[#1FA9FF]"
-            />
-          </div>
+        <div className="relative h-6">
+          {/* Track background */}
+          <div className="absolute top-1/2 -translate-y-1/2 inset-x-0 h-1.5 rounded-full bg-border" />
+          {/* Active track */}
+          <div
+            className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-primary"
+            style={{
+              left: `${(priceRange[0] / PRICE_MAX) * 100}%`,
+              right: `${100 - (priceRange[1] / PRICE_MAX) * 100}%`,
+            }}
+          />
+          {/* Min thumb */}
+          <input
+            type="range"
+            min={0}
+            max={PRICE_MAX}
+            step={10}
+            value={priceRange[0]}
+            onChange={e => {
+              const v = parseInt(e.target.value);
+              setPriceRange(prev => [Math.min(v, prev[1] - 10), prev[1]]);
+            }}
+            className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none
+              [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none
+              [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
+              [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer
+              [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none
+              [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white
+              [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+            style={{ zIndex: priceRange[0] > PRICE_MAX - 20 ? 5 : 3 }}
+          />
+          {/* Max thumb */}
+          <input
+            type="range"
+            min={0}
+            max={PRICE_MAX}
+            step={10}
+            value={priceRange[1]}
+            onChange={e => {
+              const v = parseInt(e.target.value);
+              setPriceRange(prev => [prev[0], Math.max(v, prev[0] + 10)]);
+            }}
+            className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none
+              [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none
+              [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full
+              [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
+              [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer
+              [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none
+              [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full
+              [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white
+              [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+            style={{ zIndex: 4 }}
+          />
         </div>
-        <div className="flex justify-between mt-1 text-xs text-[#213E53]/70 font-medium">
+        <div className="flex justify-between mt-2 text-xs text-[#213E53]/70 font-medium">
           <span>SAR {priceRange[0]}</span>
           <span>SAR {priceRange[1] >= PRICE_MAX ? `${PRICE_MAX}+` : priceRange[1]}</span>
         </div>
@@ -438,52 +457,7 @@ export default function PlansPage() {
   return (
     <div className="safe-pb">
 
-      {/* ========= FINDER SUGGESTION MODAL ========= */}
-      {showFinderModal && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-50"
-            onClick={dismissFinderModal}
-            style={{ animation: 'fadeIn 0.2s ease-out both' }}
-          />
-          <div
-            className="fixed z-50 top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] max-w-[calc(100vw-2rem)]
-              bg-surface rounded-2xl shadow-2xl border border-border/60 p-6 text-center"
-            style={{ animation: 'scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
-          >
-            <div className="w-12 h-12 rounded-xl bg-[#1FA9FF]/10 flex items-center justify-center mx-auto mb-4">
-              <Sparkles size={22} className="text-[#1FA9FF]" />
-            </div>
-            <h3 className="font-heading font-bold text-lg text-[#213E53]">
-              {lang === 'ar' ? 'مو متأكد وش تبي؟' : 'Not sure what you need?'}
-            </h3>
-            <p className="text-sm text-[#213E53]/70 mt-2 leading-relaxed">
-              {lang === 'ar'
-                ? 'المستشار الذكي يختار لك أفضل باقة بـ 30 ثانية بس'
-                : 'Our Smart Advisor picks the best plan for you in just 30 seconds'}
-            </p>
-
-            <div className="flex flex-col gap-2.5 mt-5">
-              <button
-                onClick={() => { dismissFinderModal(); navigate('/finder'); }}
-                className="w-full py-3 rounded-xl text-white font-bold text-sm
-                  transition-colors btn-press"
-                style={{ background: 'linear-gradient(135deg, #6ED7B4, #6DCBCA, #1FA9FF)' }}
-              >
-                {t('finderCta.cta')}
-              </button>
-              <button
-                onClick={dismissFinderModal}
-                className="w-full py-3 rounded-xl bg-surface-alt text-[#213E53]/70 font-semibold text-sm
-                  hover:bg-border transition-colors btn-press"
-              >
-                {lang === 'ar' ? 'لا، أبي أتصفح' : 'No thanks, I\'ll browse'}
-              </button>
-            </div>
-
-          </div>
-        </>
-      )}
+      <FinderModal show={showFinderModal} onDismiss={dismissFinderModal} />
 
       {/* ========= HEADER ========= */}
       <section className="relative z-10">
@@ -534,11 +508,11 @@ export default function PlansPage() {
                 <ChevronDown size={16} className={`text-white/60 transition-transform ${showSort ? 'rotate-180' : ''}`} />
               </button>
               {showSort && (
-                <div className="fixed inset-0 z-[70] flex items-end sm:items-start justify-center"
+                <div className="fixed inset-0 z-[70] flex items-end sm:items-start sm:justify-end"
                   onClick={(e) => { if (e.target === e.currentTarget) setShowSort(false); }}>
-                  <div className="absolute inset-0 bg-black/40" />
-                  <div className="relative w-full sm:w-72 bg-surface rounded-t-2xl sm:rounded-2xl
-                    shadow-2xl border border-border sm:mt-48 overflow-hidden"
+                  <div className="absolute inset-0 bg-black/40 sm:bg-transparent" />
+                  <div className="relative w-full sm:absolute sm:top-full sm:end-0 sm:mt-2 sm:w-72 bg-surface rounded-t-2xl sm:rounded-2xl
+                    shadow-2xl border border-border overflow-hidden"
                     style={{ animation: 'springUp 0.25s ease-out both' }}>
 
                     {/* Title */}
@@ -573,7 +547,7 @@ export default function PlansPage() {
                           hover:bg-border/40 active:scale-[0.98] transition-all"
                       >
                         <X size={16} />
-                        {lang === 'ar' ? 'إغلاق' : 'Close'}
+                        {t('common.close')}
                       </button>
                     </div>
                   </div>
@@ -598,7 +572,7 @@ export default function PlansPage() {
       </section>
 
       {/* ========= MAIN CONTENT ========= */}
-      <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
+      <div ref={plansGridRef} className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-8">
         <div className="flex gap-8">
 
@@ -814,7 +788,7 @@ export default function PlansPage() {
           <div className="relative">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-white/90 text-xs font-medium mb-4">
               <Sparkles size={12} />
-              {lang === 'ar' ? '30 ثانية فقط' : 'Just 30 seconds'}
+              {t('home.just30Seconds')}
             </div>
             <h3 className="font-heading font-bold text-2xl md:text-3xl text-white">
               {t('finderCta.title')}
@@ -845,6 +819,9 @@ export default function PlansPage() {
             style={{ animation: 'fadeIn 0.2s ease-out both' }}
           />
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Filters"
             className="fixed inset-x-0 bottom-0 z-50 md:hidden bg-surface rounded-t-3xl max-h-[85dvh] overflow-y-auto"
             style={{ animation: 'slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
           >

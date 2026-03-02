@@ -14,6 +14,7 @@ interface AuthContextValue {
   loginWithGoogle: () => Promise<void>;
   updatePhone: (phone: string) => Promise<void>;
   logout: () => Promise<void>;
+  markOnboarded: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -29,7 +30,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
   const [loading, setLoading] = useState(true);
-  const [hasAccount, setHasAccount] = useState(() => !!localStorage.getItem('simba-has-account'));
+  const [hasAccount, setHasAccount] = useState(() =>
+    !!localStorage.getItem('simba-has-account') || !!localStorage.getItem('simba-onboarded')
+  );
 
   const needsPhone = user?.provider === 'google' && !user?.phone;
 
@@ -61,6 +64,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw error;
     }
   }, [user]);
+
+  // Mark onboarded (so nav shows without auth)
+  const markOnboarded = useCallback(() => {
+    setHasAccount(true);
+  }, []);
 
   // Logout
   const logout = useCallback(async () => {
@@ -133,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loginWithGoogle,
       updatePhone,
       logout,
+      markOnboarded,
     }}>
       {children}
     </AuthContext.Provider>

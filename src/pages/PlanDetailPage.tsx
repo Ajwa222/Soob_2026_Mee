@@ -30,10 +30,10 @@ export default function PlanDetailPage() {
     return (
       <div className="max-w-[1280px] mx-auto px-6 py-24 text-center">
         <h1 className="font-heading font-bold text-2xl text-text-primary">
-          {lang === 'ar' ? 'الباقة غير موجودة' : 'Plan not found'}
+          {t('detail.notFound')}
         </h1>
         <p className="text-text-secondary mt-2">
-          {lang === 'ar' ? 'الباقة اللي تبحث عنها غير متوفرة' : "The plan you're looking for doesn't exist."}
+          {t('detail.notFoundDesc')}
         </p>
         <Link
           to="/plans"
@@ -128,7 +128,7 @@ export default function PlanDetailPage() {
             <span className="text-4xl md:text-5xl font-heading font-bold text-text-primary">
               {plan.priceSAR}
             </span>
-            <span className="text-base text-text-tertiary">/{lang === 'ar' ? 'شهر' : 'mo'}</span>
+            <span className="text-base text-text-tertiary">/{t('compare.perMonth')}</span>
           </div>
         </div>
 

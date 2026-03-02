@@ -23,7 +23,7 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
 
   const perks = [];
   if (isValidValue(plan.socialMediaData) && plan.socialMediaData !== '1') {
-    perks.push(plan.socialMediaData === 'Unlimited' ? 'Unlimited Social' : `${plan.socialMediaData} Social`);
+    perks.push(plan.socialMediaData === 'Unlimited' ? t('planCard.unlimitedSocial') : `${plan.socialMediaData} ${t('planCard.social')}`);
   }
   if (isValidValue(plan.specialFeatures)) {
     perks.push(plan.specialFeatures);
@@ -103,7 +103,7 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
                 ? (plan.dataGB === 'Unlimited' ? t('detail.unlimited') : `${plan.dataGB} GB`)
                 : '—'}
             </p>
-            <p className="text-[11px] text-text-tertiary">Data</p>
+            <p className="text-[11px] text-text-tertiary">{t('planCard.data')}</p>
           </div>
           <div className="flex flex-col items-center gap-1 py-2 px-1 rounded-lg bg-surface-alt/70">
             <Phone size={14} className="text-primary" />
@@ -112,7 +112,7 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
                 ? (plan.localCallMinutes === 'Unlimited' ? t('detail.unlimited') : `${plan.localCallMinutes}`)
                 : '—'}
             </p>
-            <p className="text-[11px] text-text-tertiary">Mins</p>
+            <p className="text-[11px] text-text-tertiary">{t('planCard.mins')}</p>
           </div>
           <div className="flex flex-col items-center gap-1 py-2 px-1 rounded-lg bg-surface-alt/70">
             <MessageSquare size={14} className="text-primary" />
@@ -121,7 +121,7 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
                 ? (plan.sms === 'Unlimited' ? t('detail.unlimited') : plan.sms)
                 : '—'}
             </p>
-            <p className="text-[11px] text-text-tertiary">SMS</p>
+            <p className="text-[11px] text-text-tertiary">{t('planCard.sms')}</p>
           </div>
         </div>
 

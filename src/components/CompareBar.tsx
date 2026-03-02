@@ -5,7 +5,7 @@ import { getCarrierColor, getCarrierLogo } from '../data/plans';
 import CompareOverlay from './CompareOverlay';
 
 export default function CompareBar() {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const { selectedPlans, removePlan, showOverlay, setShowOverlay, toast, setToast } = useCompare();
 
   if (selectedPlans.length === 0 && !toast && !showOverlay) return null;
@@ -81,7 +81,7 @@ export default function CompareBar() {
                   {selectedPlans.length}/3
                 </p>
                 <p className="text-[11px] text-text-tertiary">
-                  {lang === 'ar' ? 'باقات مختارة' : 'selected'}
+                  {t('compareBar.selected')}
                 </p>
               </div>
 
@@ -96,8 +96,8 @@ export default function CompareBar() {
                   }`}
               >
                 {selectedPlans.length >= 2
-                  ? (lang === 'ar' ? 'قارن' : 'Compare')
-                  : (lang === 'ar' ? 'اختر المزيد' : 'Select more')}
+                  ? t('compareBar.compareAction')
+                  : t('compareBar.selectMoreShort')}
               </button>
             </div>
           </div>

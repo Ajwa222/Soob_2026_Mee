@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { CARRIERS } from '../data/plans';
 
 /* ---- Visual: Carrier logos converging into one grid ---- */
@@ -97,6 +98,7 @@ function SceneTrust() {
    ================================================================ */
 export default function Onboarding() {
   const { lang, toggleLang } = useLang();
+  const { markOnboarded } = useAuth();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(() => !localStorage.getItem('simba-onboarded'));
   const [page, setPage] = useState(0);
@@ -120,6 +122,7 @@ export default function Onboarding() {
 
   const complete = () => {
     localStorage.setItem('simba-onboarded', 'true');
+    markOnboarded();
     setVisible(false);
     navigate('/finder');
   };
