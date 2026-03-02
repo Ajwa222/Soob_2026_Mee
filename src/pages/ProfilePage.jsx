@@ -35,13 +35,8 @@ export default function ProfilePage() {
     redirectAfterLogin();
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      await loginWithGoogle();
-      redirectAfterLogin();
-    } catch (error) {
-      console.error('Google sign-in failed:', error);
-    }
+  const handleGoogleSignIn = () => {
+    loginWithGoogle();
   };
 
   const handlePhoneSubmit = async (e) => {
