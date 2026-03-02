@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../lib/firebase';
 
@@ -20,9 +20,18 @@ export function AuthProvider({ children }) {
   const hasAccount = !!localStorage.getItem('simba-has-account');
   const needsPhone = user?.provider === 'google' && !user?.phone;
 
-  // Google Sign-In
+  // Google Sign-In (popup with redirect fallback)
   const loginWithGoogle = useCallback(async () => {
-    await signInWithPopup(auth, googleProvider);
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      if (error.code === 'auth/popup-blocked') {
+        localStorage.setItem('simba-auth-redirect', 'pending');
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+      throw error;
+    }
   }, []);
 
   // Save phone number to Firestore (for Google users)
@@ -43,6 +52,13 @@ export function AuthProvider({ children }) {
 
   // Firebase auth state listener
   useEffect(() => {
+    // Handle redirect result (fallback from popup-blocked)
+    getRedirectResult(auth).catch((error) => {
+      if (error?.code) {
+        console.error('Redirect sign-in error:', error.code, error.message);
+      }
+    });
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const { displayName, email, photoURL, uid } = firebaseUser;

@@ -3,6 +3,7 @@ export function trackPageView(path) {
     window.gtag('event', 'page_view', {
       page_path: path,
       page_title: document.title,
+      page_location: window.location.href,
     });
   }
 }

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { trackPageView } from './lib/analytics';
-import { LanguageProvider } from './context/LanguageContext';
+import { LanguageProvider, useLang } from './context/LanguageContext';
 import { CompareProvider } from './context/CompareContext';
 import { AuthProvider } from './context/AuthContext';
 import Navigation from './components/Navigation';
@@ -28,10 +28,22 @@ function ScrollToTop() {
 }
 
 function AnalyticsTracker() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  const { t } = useLang();
   useEffect(() => {
-    trackPageView(pathname);
-  }, [pathname]);
+    // Set dynamic page title based on route
+    let pageTitle = 'Simba';
+    if (pathname === '/' || pathname === '/home') pageTitle = `${t('pageTitles.home')} | Simba`;
+    else if (pathname === '/plans') pageTitle = `${t('pageTitles.plans')} | Simba`;
+    else if (pathname.startsWith('/plan/')) pageTitle = `${t('pageTitles.planDetail')} | Simba`;
+    else if (pathname === '/finder') pageTitle = `${t('pageTitles.finder')} | Simba`;
+    else if (pathname === '/profile') pageTitle = `${t('pageTitles.profile')} | Simba`;
+    else if (pathname === '/about') pageTitle = `${t('pageTitles.about')} | Simba`;
+    document.title = pageTitle;
+
+    // Track page view with full path (including query params)
+    trackPageView(pathname + search);
+  }, [pathname, search, t]);
   return null;
 }
 
@@ -39,8 +51,8 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <AnalyticsTracker />
       <LanguageProvider>
+      <AnalyticsTracker />
         <AuthProvider>
         <CompareProvider>
           <div className="relative min-h-screen flex flex-col">

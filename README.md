@@ -1,16 +1,66 @@
-# React + Vite
+# Simba
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Compare 155+ telecom plans from all licensed Saudi carriers. Find your perfect plan in seconds.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Smart Plan Finder** — Answer 5 quick questions and get top 3 plan recommendations
+- **Browse & Filter** — Search, sort, and filter all plans by carrier, price, data, calls, and more
+- **Side-by-Side Compare** — Compare up to 3 plans at once
+- **Google Sign-In** — Firebase Authentication with popup and redirect fallback
+- **Bilingual** — Full English and Arabic support with RTL layout
+- **Analytics** — Google Analytics 4 with dynamic page titles, query param tracking, and custom events
+- **Responsive** — Mobile-first design with bottom tab navigation and desktop sidebar
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **React 19** + **Vite 7**
+- **Tailwind CSS 4**
+- **Firebase** (Auth + Firestore)
+- **React Router 7**
+- **Lucide React** icons
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+# Install dependencies
+npm install
+
+# Copy env template and fill in your keys
+cp .env.example .env
+
+# Start dev server
+npm run dev
+```
+
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `VITE_GA_MEASUREMENT_ID` | Google Analytics 4 measurement ID (`G-XXXXXXXXXX`) |
+| `VITE_FIREBASE_API_KEY` | Firebase API key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase auth domain |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase project ID |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID |
+| `VITE_FIREBASE_APP_ID` | Firebase app ID |
+
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview production build locally |
+| `npm run lint` | Run ESLint |
+
+## Project Structure
+
+```
+src/
+├── components/       # Shared UI (Navigation, Footer, CompareBar, etc.)
+├── context/          # React contexts (Auth, Language, Compare)
+├── lib/              # Utilities (Firebase config, analytics)
+├── pages/            # Route pages (Home, Plans, Finder, Profile, About)
+└── App.jsx           # Root component with routing
+```
