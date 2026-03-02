@@ -40,18 +40,19 @@ export default function ProfilePage() {
       await loginWithGoogle();
       trackEvent('login', { method: 'google' });
       redirectAfterLogin();
-    } catch (err) {
-      console.error('Google sign-in failed:', err);
+    } catch (err: unknown) {
+      if (import.meta.env.DEV) console.error('Google sign-in failed:', err);
+      const code = (err as { code?: string })?.code;
       // User cancelled or popup was replaced — no error needed
-      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return;
       // Popup blocked is handled in AuthContext via redirect fallback
-      if (err.code === 'auth/popup-blocked') return;
+      if (code === 'auth/popup-blocked') return;
 
-      if (err.code === 'auth/network-request-failed') {
+      if (code === 'auth/network-request-failed') {
         setError(lang === 'ar' ? 'خطأ في الاتصال. تحقق من الإنترنت وحاول مرة ثانية.' : 'Network error. Check your connection and try again.');
-      } else if (err.code === 'auth/user-disabled') {
+      } else if (code === 'auth/user-disabled') {
         setError(lang === 'ar' ? 'هذا الحساب معطّل. تواصل مع الدعم.' : 'This account has been disabled. Contact support.');
-      } else if (err.code === 'auth/account-exists-with-different-credential') {
+      } else if (code === 'auth/account-exists-with-different-credential') {
         setError(lang === 'ar' ? 'يوجد حساب بهذا الإيميل بطريقة تسجيل مختلفة.' : 'An account already exists with this email using a different sign-in method.');
       } else {
         setError(lang === 'ar' ? 'فشل تسجيل الدخول. حاول مرة ثانية.' : 'Sign-in failed. Please try again.');
@@ -59,7 +60,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handlePhoneSubmit = async (e) => {
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     const cleaned = phoneInput.replace(/\s/g, '');
@@ -72,7 +73,7 @@ export default function ProfilePage() {
       trackEvent('phone_saved');
       redirectAfterLogin();
     } catch (err) {
-      console.error('Phone update failed:', err);
+      if (import.meta.env.DEV) console.error('Phone update failed:', err);
       setError(lang === 'ar' ? 'فشل حفظ الرقم. حاول مرة ثانية.' : 'Failed to save phone number. Please try again.');
     }
   };
@@ -100,13 +101,13 @@ export default function ProfilePage() {
         <div className="md:hidden relative flex items-center justify-center pt-24 pb-10">
           <div className="max-w-[480px] w-full mx-auto px-6 text-center"
             style={{ animation: 'fadeUp 0.5s ease-out both' }}>
-            {user.photoURL ? (
+            {user?.photoURL ? (
               <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 shadow-lg shadow-black/10" referrerPolicy="no-referrer" />
             ) : (
               <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm
                 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-black/10">
                 <span className="text-2xl font-bold text-white">
-                  {(user.name || '?')[0].toUpperCase()}
+                  {(user?.name || '?')[0].toUpperCase()}
                 </span>
               </div>
             )}
@@ -128,13 +129,13 @@ export default function ProfilePage() {
             {/* Desktop header (hidden on mobile) */}
             <div className="hidden md:block text-center px-10 pt-10 pb-2"
               style={{ animation: 'fadeUp 0.5s ease-out both' }}>
-              {user.photoURL ? (
+              {user?.photoURL ? (
                 <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 shadow-md shadow-black/5" referrerPolicy="no-referrer" />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-primary/10
                   flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl font-bold text-primary">
-                    {(user.name || '?')[0].toUpperCase()}
+                    {(user?.name || '?')[0].toUpperCase()}
                   </span>
                 </div>
               )}
@@ -192,21 +193,21 @@ export default function ProfilePage() {
         <div className="md:hidden relative flex items-center justify-center pt-24 pb-10">
           <div className="max-w-[480px] w-full mx-auto px-6 text-center"
             style={{ animation: 'fadeUp 0.5s ease-out both' }}>
-            {user.photoURL ? (
+            {user?.photoURL ? (
               <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 shadow-lg shadow-black/10" referrerPolicy="no-referrer" />
             ) : (
               <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm
                 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-black/10">
                 <span className="text-2xl font-bold text-white">
-                  {(user.name || user.phone || '?')[0].toUpperCase()}
+                  {(user?.name || user?.phone || '?')[0].toUpperCase()}
                 </span>
               </div>
             )}
             <h1 className="font-heading font-bold text-2xl text-white">
-              {t('profile.welcome')}, {user.name || user.phone}!
+              {t('profile.welcome')}, {user?.name || user?.phone}!
             </h1>
-            {user.phone && <p className="text-white/70 mt-1 text-sm" dir="ltr">{user.phone}</p>}
-            {user.email && <p className="text-white/70 mt-1 text-sm">{user.email}</p>}
+            {user?.phone && <p className="text-white/70 mt-1 text-sm" dir="ltr">{user.phone}</p>}
+            {user?.email && <p className="text-white/70 mt-1 text-sm">{user.email}</p>}
           </div>
         </div>
 
@@ -219,21 +220,21 @@ export default function ProfilePage() {
             {/* Desktop header (hidden on mobile) */}
             <div className="hidden md:block text-center px-10 pt-10 pb-2"
               style={{ animation: 'fadeUp 0.5s ease-out both' }}>
-              {user.photoURL ? (
+              {user?.photoURL ? (
                 <img src={user.photoURL} alt="" className="w-24 h-24 rounded-full mx-auto mb-4 shadow-md shadow-black/5" referrerPolicy="no-referrer" />
               ) : (
                 <div className="w-24 h-24 rounded-full bg-primary/10
                   flex items-center justify-center mx-auto mb-4">
                   <span className="text-3xl font-bold text-primary">
-                    {(user.name || user.phone || '?')[0].toUpperCase()}
+                    {(user?.name || user?.phone || '?')[0].toUpperCase()}
                   </span>
                 </div>
               )}
               <h1 className="font-heading font-bold text-3xl text-text-primary">
-                {t('profile.welcome')}, {user.name || user.phone}!
+                {t('profile.welcome')}, {user?.name || user?.phone}!
               </h1>
-              {user.phone && <p className="text-text-secondary mt-1.5 text-sm" dir="ltr">{user.phone}</p>}
-              {user.email && <p className="text-text-secondary mt-1 text-sm">{user.email}</p>}
+              {user?.phone && <p className="text-text-secondary mt-1.5 text-sm" dir="ltr">{user.phone}</p>}
+              {user?.email && <p className="text-text-secondary mt-1 text-sm">{user.email}</p>}
             </div>
 
             {/* Actions */}

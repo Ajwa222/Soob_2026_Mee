@@ -1,8 +1,20 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 
-const LanguageContext = createContext();
+type Lang = 'en' | 'ar';
+type Theme = 'light' | 'dark';
 
-const translations = {
+interface LangContextValue {
+  lang: Lang;
+  toggleLang: () => void;
+  t: (path: string, params?: Record<string, string>) => string;
+  theme: Theme;
+  setTheme: (t: Theme) => void;
+  toggleTheme: () => void;
+}
+
+const LanguageContext = createContext<LangContextValue | null>(null);
+
+const translations: Record<string, Record<string, unknown>> = {
   en: {
     nav: { home: "Home", plans: "Browse Plans", finder: "Plan Finder", help: "Help", speedTest: "Speed Test", profile: "Profile", signIn: "Sign In", game: "Game", chat: "Meet People" },
     hero: {
@@ -879,10 +891,10 @@ const translations = {
   },
 };
 
-export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState(() => localStorage.getItem('simba-lang') || 'en');
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [lang, setLang] = useState<Lang>(() => (localStorage.getItem('simba-lang') as Lang) || 'en');
 
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState<Theme>('light');
 
   const toggleLang = useCallback(() => {
     setLang(prev => {
@@ -896,11 +908,11 @@ export function LanguageProvider({ children }) {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   }, []);
 
-  const t = useCallback((path, params) => {
+  const t = useCallback((path: string, params?: Record<string, string>): string => {
     const keys = path.split('.');
-    let result = translations[lang];
+    let result: unknown = translations[lang];
     for (const key of keys) {
-      result = result?.[key];
+      result = (result as Record<string, unknown>)?.[key];
     }
     if (!result) return path;
     if (params && typeof result === 'string') {
@@ -909,7 +921,7 @@ export function LanguageProvider({ children }) {
         result
       );
     }
-    return result;
+    return result as string;
   }, [lang]);
 
   useEffect(() => {
@@ -929,4 +941,8 @@ export function LanguageProvider({ children }) {
   );
 }
 
-export const useLang = () => useContext(LanguageContext);
+export const useLang = () => {
+  const ctx = useContext(LanguageContext);
+  if (!ctx) throw new Error('useLang must be used within LanguageProvider');
+  return ctx;
+};

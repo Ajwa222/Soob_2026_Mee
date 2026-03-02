@@ -13,7 +13,7 @@ import { PLANS_DATA, getValueScore, isValidValue } from '../data/plans';
 import PlanCard from '../components/PlanCard';
 import SarSymbol from '../components/SarSymbol';
 
-const SaudiRiyalIcon = ({ size = 24, className = '' }) => (
+const SaudiRiyalIcon = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 1124.14 1256.39" className={className} fill="currentColor">
     <path d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"/>
     <path d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"/>
@@ -25,15 +25,15 @@ const BUDGET_SHORTCUTS = [50, 100, 150, 200, 300, 500, 750, 1000];
 const BUDGET_MIN = 30;
 const BUDGET_MAX = 1000;
 
-function parseData(val) {
+function parseData(val: string): number {
   if (!val || val === '-') return 0;
   if (val === 'Unlimited') return Infinity;
   return parseFloat(val) || 0;
 }
 
 // --- Smart Scoring Engine ---
-function scorePlans(answers) {
-  const budget = answers.budget || 200;
+function scorePlans(answers: Record<string, string | number>) {
+  const budget = Number(answers.budget) || 200;
 
   const scored = PLANS_DATA
     .filter(p => p.planType !== 'Data-only')
@@ -142,10 +142,10 @@ export default function FinderPage() {
 
   const [started, setStarted] = useState(restoredState ? true : false);
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState(restoredState?.answers || { budget: 150 });
+  const [answers, setAnswers] = useState<Record<string, string | number>>(restoredState?.answers || { budget: 150 });
   const [showResults, setShowResults] = useState(restoredState ? true : false);
   const [isThinking, setIsThinking] = useState(false);
-  const autoAdvanceTimer = useRef(null);
+  const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasRestored = useRef(!!restoredState);
 
 
@@ -177,12 +177,12 @@ export default function FinderPage() {
 
   const isBudgetStep = STEPS[step] === 'budget';
 
-  const setAnswer = (key, value) => {
+  const setAnswer = (key: string, value: string | number) => {
     setAnswers(prev => ({ ...prev, [key]: value }));
   };
 
   // Auto-advance for yes/sometimes/no questions
-  const handleQuickAnswer = (key, value) => {
+  const handleQuickAnswer = (key: string, value: string) => {
     setAnswer(key, value);
     // Clear any pending timer
     if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
@@ -237,7 +237,7 @@ export default function FinderPage() {
     if (!showResults) return [];
     if (allNo) {
       // Pick 3 cheapest non-data-only plans within budget
-      const budget = answers.budget || 150;
+      const budget = Number(answers.budget) || 150;
       const cheap = PLANS_DATA
         .filter(p => p.planType !== 'Data-only' && p.priceSAR <= budget * 1.15)
         .sort((a, b) => a.priceSAR - b.priceSAR)
@@ -257,7 +257,7 @@ export default function FinderPage() {
     { key: 'no', icon: X, label: t('finder.ansNo') },
   ];
 
-  const stepConfig = {
+  const stepConfig: Record<string, { icon: React.ComponentType<{ size?: number; className?: string }>; title: string; subtitle: string }> = {
     internet: { icon: Wifi, title: t('finder.qInternet'), subtitle: t('finder.qInternetSub') },
     localCalls: { icon: Phone, title: t('finder.qLocalCalls'), subtitle: t('finder.qLocalCallsSub') },
     intlCalls: { icon: Globe2, title: t('finder.qIntlCalls'), subtitle: t('finder.qIntlCallsSub') },
@@ -269,11 +269,11 @@ export default function FinderPage() {
   const progress = showResults || isThinking ? 100 : ((step + 1) / STEPS.length) * 100;
   const BackIcon = lang === 'ar' ? ArrowRight : ArrowLeft;
 
-  const reasonLabel = (label) => {
-    const map = {
-      best: { icon: Trophy, text: t('finder.labelBest'), color: 'text-amber-500 bg-amber-500/10' },
-      runner: { icon: Star, text: t('finder.labelRunner'), color: 'text-primary bg-primary/10' },
-      value: { icon: ThumbsUp, text: t('finder.labelValue'), color: 'text-green-500 bg-green-500/10' },
+  const reasonLabel = (label: string) => {
+    const map: Record<string, { icon: typeof Trophy; text: string; color: string }> = {
+      best: { icon: Trophy, text: t('finder.labelBest') as string, color: 'text-amber-500 bg-amber-500/10' },
+      runner: { icon: Star, text: t('finder.labelRunner') as string, color: 'text-primary bg-primary/10' },
+      value: { icon: ThumbsUp, text: t('finder.labelValue') as string, color: 'text-green-500 bg-green-500/10' },
     };
     return map[label] || map.value;
   };
@@ -641,7 +641,7 @@ export default function FinderPage() {
                   style={{
                     direction: 'ltr',
                     transform: lang === 'ar' ? 'scaleX(-1)' : undefined,
-                    background: `linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.9) ${((answers.budget - BUDGET_MIN) / (BUDGET_MAX - BUDGET_MIN)) * 100}%, rgba(255,255,255,0.2) ${((answers.budget - BUDGET_MIN) / (BUDGET_MAX - BUDGET_MIN)) * 100}%, rgba(255,255,255,0.2) 100%)`,
+                    background: `linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.9) ${((Number(answers.budget) - BUDGET_MIN) / (BUDGET_MAX - BUDGET_MIN)) * 100}%, rgba(255,255,255,0.2) ${((Number(answers.budget) - BUDGET_MIN) / (BUDGET_MAX - BUDGET_MIN)) * 100}%, rgba(255,255,255,0.2) 100%)`,
                   }}
                 />
                 <div className="flex justify-between text-[10px] text-white/50 mt-1 px-0.5" dir="ltr">

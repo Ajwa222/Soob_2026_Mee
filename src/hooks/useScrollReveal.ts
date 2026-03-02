@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
-export function useScrollReveal(threshold = 0.15) {
-  const ref = useRef(null);
+export function useScrollReveal(threshold = 0.15): [React.RefObject<HTMLElement | null>, boolean] {
+  const ref = useRef<HTMLElement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -22,10 +22,10 @@ export function useScrollReveal(threshold = 0.15) {
     return () => observer.disconnect();
   }, [threshold]);
 
-  return [ref, isVisible];
+  return [ref, isVisible] as const;
 }
 
-export function useCountUp(target, duration = 1500, isVisible = false) {
+export function useCountUp(target: number, duration = 1500, isVisible = false) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {

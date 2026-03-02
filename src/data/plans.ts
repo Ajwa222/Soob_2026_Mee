@@ -1,4 +1,6 @@
-export const PLANS_DATA = [
+import type { Plan } from '../types';
+
+export const PLANS_DATA: Plan[] = [
   { id: 1, provider: "Mobily", planName: "Prepaid 30", planType: "Prepaid", priceSAR: 34.5, dataGB: "1", socialMediaData: "1 GB", localCallMinutes: "100", internationalCallMinutes: "-", sms: "-", roamingDataGB: "", contractTerms: "30 days", specialFeatures: "-", url: "https://www.mobily.com.sa/web/en/personal/mobile/prepaid/prepaid-30" },
   { id: 2, provider: "STC", planName: "Sawa Basic", planType: "Prepaid", priceSAR: 34.5, dataGB: "1", socialMediaData: "1", localCallMinutes: "100", internationalCallMinutes: "", sms: "", roamingDataGB: "", contractTerms: "4 weeks", specialFeatures: "", url: "https://www.stc.com.sa/content/stc-public-store/sa/en/public-store-landing-page/postpaid-landing-page/plan-detail.html?type=new&simType=REGULAR&productId=PRE_SPN_VD12_VAL_1M_R" },
   { id: 3, provider: "Virgin Mobile", planName: "Baqah 45", planType: "Prepaid", priceSAR: 51.75, dataGB: "3", socialMediaData: "1 GB", localCallMinutes: "250", internationalCallMinutes: "-", sms: "-", roamingDataGB: "", contractTerms: "4 weeks", specialFeatures: "-", url: "https://virginmobile.sa/join/#/plan-select" },
@@ -173,17 +175,17 @@ export const CARRIERS = [
   { name: "Salam", color: "#00AD42", logo: "/logos/salam.svg" },
 ];
 
-export const getCarrierLogo = (provider) => {
+export const getCarrierLogo = (provider: string): string | null => {
   const carrier = CARRIERS.find(c => c.name === provider);
   return carrier?.logo || null;
 };
 
-export const getCarrierColor = (provider) => {
+export const getCarrierColor = (provider: string): string => {
   const carrier = CARRIERS.find(c => c.name === provider);
   return carrier?.color || "#78716C";
 };
 
-export const isValidValue = (val) => {
+export const isValidValue = (val: string | null | undefined): boolean => {
   if (!val) return false;
   const v = val.toString().trim();
   return v !== "" && v !== "-";
@@ -194,7 +196,7 @@ export const isValidValue = (val) => {
  * Weighs data heavily, then minutes, SMS, social, intl calls, features.
  * Divides total "benefit points" by price to get value-per-SAR.
  */
-export const getValueScore = (plan) => {
+export const getValueScore = (plan: Plan): number => {
   const price = plan.priceSAR || 1;
   let points = 0;
 

@@ -1,10 +1,24 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageCircle, Send, SkipForward, X, Loader2, Users, Lock, Check, Flag } from 'lucide-react';
+import { Send, SkipForward, X, Loader2, Users, Lock, Check, Flag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
-const STRANGER_MESSAGES = {
+interface ChatMessage {
+  id: number;
+  sender: 'user' | 'stranger';
+  text: string;
+}
+
+interface MatchInfo {
+  name: string;
+  avatar: string;
+  initial: string;
+}
+
+type Phase = 'landing' | 'searching' | 'matched' | 'chatting';
+
+const STRANGER_MESSAGES: Record<string, string[]> = {
   en: [
     "Hey! Where are you from?",
     "Hi there! How's it going?",
@@ -65,7 +79,7 @@ const RANDOM_AVATARS = [
   "bg-gradient-to-br from-teal-400 to-cyan-600",
 ];
 
-function generateMatch() {
+function generateMatch(): MatchInfo {
   const name = RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)];
   const avatar = RANDOM_AVATARS[Math.floor(Math.random() * RANDOM_AVATARS.length)];
   return { name, avatar, initial: name[0] };
@@ -74,18 +88,36 @@ function generateMatch() {
 export default function ChatPage() {
   const { t, lang } = useLang();
   const { isLoggedIn } = useAuth();
-  const [phase, setPhase] = useState('landing'); // landing | searching | matched | chatting
-  const [messages, setMessages] = useState([]);
+  const [phase, setPhase] = useState<Phase>('landing');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [strangerTyping, setStrangerTyping] = useState(false);
-  const [usedIndices, setUsedIndices] = useState(new Set());
-  const [match, setMatch] = useState(null);
+  const [usedIndices, setUsedIndices] = useState<Set<number>>(new Set());
+  const [match, setMatch] = useState<MatchInfo | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [reportSent, setReportSent] = useState(false);
-  const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef(null);
-  const inputRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   const isRTL = lang === 'ar';
+
+  // Clean up all timers on unmount
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current.clear();
+    };
+  }, []);
+
+  const safeTimeout = useCallback((fn: () => void, delay: number) => {
+    const id = setTimeout(() => {
+      timersRef.current.delete(id);
+      fn();
+    }, delay);
+    timersRef.current.add(id);
+    return id;
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     const container = messagesContainerRef.current;
@@ -98,7 +130,7 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages, strangerTyping, scrollToBottom]);
 
-  const getRandomMessage = useCallback((isFirst) => {
+  const getRandomMessage = useCallback((isFirst: boolean) => {
     const pool = isFirst
       ? STRANGER_MESSAGES[lang].slice(0, 10)
       : STRANGER_MESSAGES[lang].slice(10);
@@ -118,7 +150,7 @@ export default function ChatPage() {
   const simulateStrangerReply = useCallback(() => {
     setStrangerTyping(true);
     const delay = 1000 + Math.random() * 2000;
-    setTimeout(() => {
+    safeTimeout(() => {
       setStrangerTyping(false);
       setMessages(prev => [...prev, {
         id: Date.now(),
@@ -126,7 +158,7 @@ export default function ChatPage() {
         text: getRandomMessage(false),
       }]);
     }, delay);
-  }, [getRandomMessage]);
+  }, [getRandomMessage, safeTimeout]);
 
   const findMatch = () => {
     setPhase('searching');
@@ -134,7 +166,7 @@ export default function ChatPage() {
     setUsedIndices(new Set());
     setShowReport(false);
     setReportSent(false);
-    setTimeout(() => {
+    safeTimeout(() => {
       setMatch(generateMatch());
       setPhase('matched');
     }, 1500 + Math.random() * 1500);
@@ -142,7 +174,7 @@ export default function ChatPage() {
 
   const acceptMatch = () => {
     setPhase('chatting');
-    setTimeout(() => {
+    safeTimeout(() => {
       setMessages([{
         id: Date.now(),
         sender: 'stranger',
@@ -154,7 +186,7 @@ export default function ChatPage() {
 
   const skipMatch = () => {
     setPhase('searching');
-    setTimeout(() => {
+    safeTimeout(() => {
       setMatch(generateMatch());
       setPhase('matched');
     }, 1000 + Math.random() * 1000);
@@ -191,7 +223,7 @@ export default function ChatPage() {
     simulateStrangerReply();
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -201,7 +233,7 @@ export default function ChatPage() {
   const confirmReport = () => {
     setShowReport(false);
     setReportSent(true);
-    setTimeout(() => {
+    safeTimeout(() => {
       setReportSent(false);
       nextPerson();
     }, 1500);

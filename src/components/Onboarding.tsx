@@ -111,7 +111,7 @@ export default function Onboarding() {
 
   if (!visible) return null;
 
-  const chooseLang = (chosen) => {
+  const chooseLang = (chosen: string) => {
     // Switch language if needed
     if (chosen !== lang) toggleLang();
     setLangChosen(true);

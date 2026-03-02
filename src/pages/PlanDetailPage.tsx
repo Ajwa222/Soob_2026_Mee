@@ -12,7 +12,7 @@ import {
   PLANS_DATA, getCarrierLogo, isValidValue,
 } from '../data/plans';
 
-const typeBadgeStyles = {
+const typeBadgeStyles: Record<string, { bg: string; color: string }> = {
   Prepaid: { bg: '#2563EB12', color: '#2563EB' },
   Postpaid: { bg: '#F59E0B12', color: '#D97706' },
   'Data-only': { bg: '#64748B12', color: '#64748B' },
