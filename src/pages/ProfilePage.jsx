@@ -35,8 +35,14 @@ export default function ProfilePage() {
     redirectAfterLogin();
   };
 
-  const handleGoogleSignIn = () => {
-    loginWithGoogle();
+  const handleGoogleSignIn = async () => {
+    try {
+      await loginWithGoogle();
+      // Popup success — redirect. (If it fell back to redirect, this won't run)
+      redirectAfterLogin();
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+    }
   };
 
   const handlePhoneSubmit = async (e) => {
