@@ -15,14 +15,6 @@ export function AuthProvider({ children }) {
   const hasAccount = !!localStorage.getItem('simba-has-account');
   const needsPhone = user?.provider === 'google' && !user?.phone;
 
-  // Manual login (backward compatible)
-  const login = useCallback((name, phone) => {
-    const userData = { name: name || phone, phone, provider: 'manual' };
-    setUser(userData);
-    localStorage.setItem('simba-user', JSON.stringify(userData));
-    localStorage.setItem('simba-has-account', 'true');
-  }, []);
-
   // Google Sign-In
   const loginWithGoogle = useCallback(async () => {
     await signInWithPopup(auth, googleProvider);
@@ -37,9 +29,9 @@ export function AuthProvider({ children }) {
     localStorage.setItem('simba-user', JSON.stringify(updatedUser));
   }, [user]);
 
-  // Logout (Firebase + localStorage)
+  // Logout
   const logout = useCallback(async () => {
-    try { await signOut(auth); } catch (_) { /* manual-only user */ }
+    await signOut(auth);
     setUser(null);
     localStorage.removeItem('simba-user');
   }, []);
@@ -71,17 +63,8 @@ export function AuthProvider({ children }) {
         localStorage.setItem('simba-user', JSON.stringify(userData));
         localStorage.setItem('simba-has-account', 'true');
       } else {
-        // No Firebase user — fall back to manual login if present
-        const stored = localStorage.getItem('simba-user');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed.provider === 'manual') {
-            setUser(parsed);
-          } else {
-            setUser(null);
-            localStorage.removeItem('simba-user');
-          }
-        }
+        setUser(null);
+        localStorage.removeItem('simba-user');
       }
       setLoading(false);
     });
@@ -96,7 +79,6 @@ export function AuthProvider({ children }) {
       hasAccount,
       loading,
       needsPhone,
-      login,
       loginWithGoogle,
       updatePhone,
       logout,
