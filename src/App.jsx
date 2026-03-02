@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { trackPageView } from './lib/analytics';
 import { LanguageProvider } from './context/LanguageContext';
 import { CompareProvider } from './context/CompareContext';
 import { AuthProvider } from './context/AuthContext';
@@ -26,10 +27,19 @@ function ScrollToTop() {
   return null;
 }
 
+function AnalyticsTracker() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    trackPageView(pathname);
+  }, [pathname]);
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <AnalyticsTracker />
       <LanguageProvider>
         <AuthProvider>
         <CompareProvider>
