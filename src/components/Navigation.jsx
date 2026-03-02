@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Smartphone, Search, Gamepad2, Users, User, Headphones } from 'lucide-react';
+import { Home, Smartphone, Search, /* Gamepad2, Users, */ User, Headphones } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,14 +21,14 @@ export default function Navigation() {
     { path: '/home', label: t('nav.home') },
     { path: '/plans', label: t('nav.plans') },
     { path: '/finder', label: t('nav.finder') },
-    { path: '/game', label: t('nav.game') },
+    // { path: '/game', label: t('nav.game') },
   ];
 
   const mobileNavItems = [
     { path: '/home', label: t('nav.home'), icon: Home },
     { path: '/plans', label: t('nav.plans'), icon: Smartphone },
     { path: '/finder', label: t('nav.finder'), icon: Search },
-    { path: '/game', label: t('nav.game'), icon: Gamepad2 },
+    // { path: '/game', label: t('nav.game'), icon: Gamepad2 },
   ];
 
   const isActive = (path) => location.pathname === path;

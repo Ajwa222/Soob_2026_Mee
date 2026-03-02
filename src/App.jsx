@@ -6,7 +6,7 @@ import { CompareProvider } from './context/CompareContext';
 import { AuthProvider } from './context/AuthContext';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
-import ChatBubble from './components/ChatBubble';
+// import ChatBubble from './components/ChatBubble';
 import CompareBar from './components/CompareBar';
 import Onboarding from './components/Onboarding';
 import HomePage from './pages/HomePage';
@@ -15,8 +15,8 @@ import PlanDetailPage from './pages/PlanDetailPage';
 import FinderPage from './pages/FinderPage';
 import ProfilePage from './pages/ProfilePage';
 import AboutPage from './pages/AboutPage';
-import GamePage from './pages/GamePage';
-import ChatPage from './pages/ChatPage';
+// import GamePage from './pages/GamePage';
+// import ChatPage from './pages/ChatPage';
 import GradientBackground from './components/GradientBackground';
 
 function ScrollToTop() {
@@ -56,12 +56,12 @@ function App() {
                 <Route path="/help" element={<Navigate to="/" replace />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/about" element={<AboutPage />} />
-                <Route path="/game" element={<GamePage />} />
-                <Route path="/chat" element={<ChatPage />} />
+                {/* <Route path="/game" element={<GamePage />} /> */}
+                {/* <Route path="/chat" element={<ChatPage />} /> */}
               </Routes>
             </main>
             <Footer />
-            <ChatBubble />
+            {/* <ChatBubble /> */}
             <CompareBar />
           </div>
           <Onboarding />
