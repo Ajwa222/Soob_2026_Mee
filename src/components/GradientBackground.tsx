@@ -2,19 +2,25 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Gradient } from '../lib/gradient';
 
+interface PageConfig {
+  top: string;
+  height: string;
+  fixed?: boolean;
+}
+
 // Use max() to guarantee minimum coverage on small phones
 // while scaling up on larger screens — ensures consistent look
-const PAGE_CONFIG = {
+const PAGE_CONFIG: Record<string, PageConfig> = {
   '/plans':  { top: 'max(-320px, -40dvh)', height: 'max(720px, 85dvh)' },
   '/finder': { top: '0', height: '100dvh' },
   '/profile': { top: 'max(-260px, -30dvh)', height: 'max(720px, 85dvh)' },
   '/about': { top: 'max(-260px, -30dvh)', height: 'max(720px, 85dvh)' },
 };
-const DEFAULT_CONFIG = { top: 'max(-300px, -36dvh)', height: 'max(720px, 85dvh)' };
+const DEFAULT_CONFIG: PageConfig = { top: 'max(-300px, -36dvh)', height: 'max(720px, 85dvh)' };
 
 export default function GradientBackground() {
-  const canvasRef = useRef(null);
-  const gradientRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gradientRef = useRef<InstanceType<typeof Gradient> | null>(null);
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -50,7 +56,7 @@ export default function GradientBackground() {
           '--gradient-color-2': '#6DCBCA',
           '--gradient-color-3': '#1FA9FF',
           '--gradient-color-4': '#6ED7B4',
-        }}
+        } as React.CSSProperties}
       />
     </div>
   );

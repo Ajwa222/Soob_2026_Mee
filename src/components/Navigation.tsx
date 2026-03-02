@@ -10,7 +10,7 @@ export default function Navigation() {
 
   if (!hasAccount) return null;
 
-  const handleNav = (e, path) => {
+  const handleNav = (e: React.MouseEvent, path: string) => {
     if (location.pathname === path) {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -31,7 +31,7 @@ export default function Navigation() {
     // { path: '/game', label: t('nav.game'), icon: Gamepad2 },
   ];
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <>
@@ -89,16 +89,16 @@ export default function Navigation() {
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold
                   bg-surface-alt hover:bg-border transition-all duration-200 btn-press"
               >
-                {user.photoURL ? (
+                {user?.photoURL ? (
                   <img src={user.photoURL} alt="" className="w-7 h-7 rounded-full" referrerPolicy="no-referrer" />
                 ) : (
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
                     <span className="text-xs font-bold text-white">
-                      {(user.name || user.phone || '?')[0].toUpperCase()}
+                      {(user?.name || user?.phone || '?')[0].toUpperCase()}
                     </span>
                   </div>
                 )}
-                <span className="text-text-primary">{user.name || user.phone}</span>
+                <span className="text-text-primary">{user?.name || user?.phone}</span>
               </Link>
             ) : (
               <Link
@@ -175,11 +175,11 @@ export default function Navigation() {
                 className="flex items-center justify-center w-8 h-8 rounded-full
                   bg-gradient-to-br from-primary to-primary-dark overflow-hidden"
               >
-                {user.photoURL ? (
+                {user?.photoURL ? (
                   <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
                 ) : (
                   <span className="text-[11px] font-bold text-white">
-                    {(user.name || user.phone || '?')[0].toUpperCase()}
+                    {(user?.name || user?.phone || '?')[0].toUpperCase()}
                   </span>
                 )}
               </Link>

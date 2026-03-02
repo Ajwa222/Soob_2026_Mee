@@ -4,6 +4,7 @@ import { trackPageView } from './lib/analytics';
 import { LanguageProvider, useLang } from './context/LanguageContext';
 import { CompareProvider } from './context/CompareContext';
 import { AuthProvider } from './context/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 // import ChatBubble from './components/ChatBubble';
@@ -49,6 +50,7 @@ function AnalyticsTracker() {
 
 function App() {
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <ScrollToTop />
       <LanguageProvider>
@@ -81,6 +83,7 @@ function App() {
         </AuthProvider>
       </LanguageProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

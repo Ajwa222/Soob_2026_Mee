@@ -1,3 +1,4 @@
+// @ts-nocheck — This component is disabled (commented out in App.tsx)
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Send, Sparkles, ChevronDown, Phone, Mail, ArrowRight, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

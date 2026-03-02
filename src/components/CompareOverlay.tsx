@@ -4,27 +4,37 @@ import SarSymbol from './SarSymbol';
 import { useCompare } from '../context/CompareContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
 import { Link } from 'react-router-dom';
+import type { Plan } from '../types';
 
 /* Short display value — keep everything compact */
-function shortVal(val) {
+function shortVal(val: string): string {
   if (!val || val === '-' || val === '') return '—';
   if (val === 'Unlimited' || val.toLowerCase?.().includes('unlimited')) return '__unlimited__';
   return val;
 }
 
-const attrs = [
-  { en: 'Price', ar: 'السعر', get: p => `${p.priceSAR}`, unit: '\xEA', unitClass: 'saudi-riyal', compare: 'lowest' },
-  { en: 'Data', ar: 'البيانات', get: p => isValidValue(p.dataGB) ? shortVal(p.dataGB) : '—', unit: 'GB', compare: 'highest' },
-  { en: 'Calls', ar: 'مكالمات', get: p => isValidValue(p.localCallMinutes) ? shortVal(p.localCallMinutes) : '—', unit: 'min', compare: 'highest' },
-  { en: 'SMS', ar: 'رسائل', get: p => isValidValue(p.sms) ? shortVal(p.sms) : '—', unit: '', compare: 'highest' },
-  { en: 'Social', ar: 'تواصل', get: p => isValidValue(p.socialMediaData) ? shortVal(p.socialMediaData) : '—', unit: '', compare: 'highest' },
-  { en: 'Int\'l', ar: 'دولية', get: p => isValidValue(p.internationalCallMinutes) ? shortVal(p.internationalCallMinutes) : '—', unit: 'min', compare: 'highest' },
-  { en: 'Roaming', ar: 'تجوال', get: p => isValidValue(p.roamingDataGB) ? shortVal(p.roamingDataGB) : '—', unit: 'GB', compare: 'highest' },
-  { en: 'Contract', ar: 'العقد', get: p => isValidValue(p.contractTerms) ? p.contractTerms : '—', unit: '', compare: 'none' },
-  { en: 'Extras', ar: 'إضافات', get: p => isValidValue(p.specialFeatures) ? p.specialFeatures : '—', unit: '', compare: 'none' },
+interface Attr {
+  en: string;
+  ar: string;
+  get: (p: Plan) => string;
+  unit: string;
+  unitClass?: string;
+  compare: string;
+}
+
+const attrs: Attr[] = [
+  { en: 'Price', ar: 'السعر', get: (p: Plan) => `${p.priceSAR}`, unit: '\xEA', unitClass: 'saudi-riyal', compare: 'lowest' },
+  { en: 'Data', ar: 'البيانات', get: (p: Plan) => isValidValue(p.dataGB) ? shortVal(p.dataGB) : '—', unit: 'GB', compare: 'highest' },
+  { en: 'Calls', ar: 'مكالمات', get: (p: Plan) => isValidValue(p.localCallMinutes) ? shortVal(p.localCallMinutes) : '—', unit: 'min', compare: 'highest' },
+  { en: 'SMS', ar: 'رسائل', get: (p: Plan) => isValidValue(p.sms) ? shortVal(p.sms) : '—', unit: '', compare: 'highest' },
+  { en: 'Social', ar: 'تواصل', get: (p: Plan) => isValidValue(p.socialMediaData) ? shortVal(p.socialMediaData) : '—', unit: '', compare: 'highest' },
+  { en: 'Int\'l', ar: 'دولية', get: (p: Plan) => isValidValue(p.internationalCallMinutes) ? shortVal(p.internationalCallMinutes) : '—', unit: 'min', compare: 'highest' },
+  { en: 'Roaming', ar: 'تجوال', get: (p: Plan) => isValidValue(p.roamingDataGB) ? shortVal(p.roamingDataGB) : '—', unit: 'GB', compare: 'highest' },
+  { en: 'Contract', ar: 'العقد', get: (p: Plan) => isValidValue(p.contractTerms) ? p.contractTerms : '—', unit: '', compare: 'none' },
+  { en: 'Extras', ar: 'إضافات', get: (p: Plan) => isValidValue(p.specialFeatures) ? p.specialFeatures : '—', unit: '', compare: 'none' },
 ];
 
-function getBest(plans, attr) {
+function getBest(plans: Plan[], attr: Attr): number[] {
   if (attr.compare === 'none') return [];
   const vals = plans.map(p => attr.get(p));
   if (attr.compare === 'lowest') {

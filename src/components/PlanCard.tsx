@@ -1,17 +1,19 @@
+import React from 'react';
 import { Wifi, Phone, MessageSquare, Plus, Check } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import SarSymbol from './SarSymbol';
 import { useCompare } from '../context/CompareContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
 import { Link } from 'react-router-dom';
+import type { Plan } from '../types';
 
-const typeBadgeStyles = {
+const typeBadgeStyles: Record<string, { bg: string; color: string }> = {
   Prepaid: { bg: '#10B98118', color: '#059669' },
   Postpaid: { bg: '#A855F718', color: '#9333EA' },
   'Data-only': { bg: '#F59E0B18', color: '#D97706' },
 };
 
-export default function PlanCard({ plan, style }) {
+export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CSSProperties }) {
   const { t } = useLang();
   const { togglePlan, isSelected } = useCompare();
   const selected = isSelected(plan.id);

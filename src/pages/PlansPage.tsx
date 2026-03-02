@@ -8,10 +8,10 @@ import { useLang } from '../context/LanguageContext';
 import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
 import PlanCard from '../components/PlanCard';
 
-const PLAN_TYPES = ['Prepaid', 'Postpaid', 'Data-only'];
+const PLAN_TYPES = ['Prepaid', 'Postpaid', 'Data-only'] as const;
 const PLANS_PER_PAGE = 6;
 
-const TYPE_COLORS = {
+const TYPE_COLORS: Record<string, { active: string; bg: string; ring: string }> = {
   Prepaid:     { active: '#059669', bg: '#10B98118', ring: '#10B98140' },
   Postpaid:    { active: '#9333EA', bg: '#A855F718', ring: '#A855F740' },
   'Data-only': { active: '#D97706', bg: '#F59E0B18', ring: '#F59E0B40' },
@@ -26,7 +26,7 @@ const SORT_OPTIONS = [
 
 const PRICE_MAX = 1000;
 
-function parseData(val) {
+function parseData(val: string): number {
   if (!val || val === '-') return 0;
   if (val === 'Unlimited') return Infinity;
   const n = parseFloat(val);
@@ -48,8 +48,8 @@ export default function PlansPage() {
 
   /* ---- filter state ---- */
   const [search, setSearch] = useState('');
-  const [selectedCarriers, setSelectedCarriers] = useState([]);
-  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedCarriers, setSelectedCarriers] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState([0, PRICE_MAX]);
   const [dataFilter, setDataFilter] = useState('any'); // 'any' | '5' | '20' | '50' | 'unlimited'
   const [localCallsFilter, setLocalCallsFilter] = useState('any'); // 'any' | '100' | '300' | '500' | 'unlimited'
@@ -60,13 +60,13 @@ export default function PlansPage() {
   const [showSort, setShowSort] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const toggleCarrier = useCallback((name) => {
+  const toggleCarrier = useCallback((name: string) => {
     setSelectedCarriers(prev =>
       prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]
     );
   }, []);
 
-  const toggleType = useCallback((type) => {
+  const toggleType = useCallback((type: string) => {
     setSelectedTypes(prev =>
       prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
     );
@@ -198,12 +198,12 @@ export default function PlansPage() {
     currentPage * PLANS_PER_PAGE
   );
 
-  const goToPage = useCallback((page) => {
+  const goToPage = useCallback((page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const activeSort = SORT_OPTIONS.find(s => s.key === sortBy);
+  const activeSort = SORT_OPTIONS.find(s => s.key === sortBy) ?? SORT_OPTIONS[0];
 
   /* ---- data filter options ---- */
   const dataOptions = [
@@ -283,7 +283,7 @@ export default function PlansPage() {
                     ? 'ring-1'
                     : 'bg-surface-alt text-[#213E53]/70 hover:bg-border'
                   }`}
-                style={active ? { backgroundColor: tc.bg, color: tc.active, '--tw-ring-color': tc.ring } : {}}
+                style={active ? { backgroundColor: tc.bg, color: tc.active, '--tw-ring-color': tc.ring } as React.CSSProperties : {}}
               >
                 {t(`types.${type}`)}
               </button>
@@ -741,7 +741,7 @@ export default function PlansPage() {
                         if (Math.abs(page - currentPage) <= 1) return true;
                         return false;
                       })
-                      .reduce((acc, page, i, arr) => {
+                      .reduce((acc: (string | number)[], page, i, arr) => {
                         if (i > 0 && page - arr[i - 1] > 1) {
                           acc.push('...');
                         }
@@ -756,7 +756,7 @@ export default function PlansPage() {
                         ) : (
                           <button
                             key={item}
-                            onClick={() => goToPage(item)}
+                            onClick={() => goToPage(item as number)}
                             className={`w-10 h-10 rounded-xl text-sm font-bold transition-all
                               ${currentPage === item
                                 ? 'bg-[#1FA9FF] text-white shadow-md shadow-[#1FA9FF]/20'
