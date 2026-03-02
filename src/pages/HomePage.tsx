@@ -1,22 +1,14 @@
-import { useMemo, useState, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
 import PlanCard from '../components/PlanCard';
+import FinderModal, { useFinderModal } from '../components/FinderModal';
 
 export default function HomePage() {
   const { t, lang } = useLang();
-  const navigate = useNavigate();
-
-  /* ---- finder suggestion modal — shown once per session ---- */
-  const [showFinderModal, setShowFinderModal] = useState(() => {
-    return !sessionStorage.getItem('simba-finder-modal-dismissed');
-  });
-  const dismissFinderModal = useCallback(() => {
-    sessionStorage.setItem('simba-finder-modal-dismissed', 'true');
-    setShowFinderModal(false);
-  }, []);
+  const { show: showFinderModal, dismiss: dismissFinderModal } = useFinderModal();
 
   const trendingPlans = useMemo(() => {
     return [...PLANS_DATA]
@@ -88,14 +80,14 @@ export default function HomePage() {
       </section>
 
       {/* ===================== CARRIER STRIP ===================== */}
-      <div className="relative -z-10 mt-4 border-t border-b border-border/60">
+      <div className="relative mt-4 border-t border-b border-border/60">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-3 flex flex-col items-center gap-2">
           <span className="relative z-10 text-[10px] text-[#213E53]/50 font-medium">
-            {lang === 'ar' ? 'نقارن من' : 'We compare'}
+            {t('home.weCompare')}
           </span>
           <div className="overflow-hidden w-full max-w-xl">
             <div
-              className="flex items-center justify-center gap-6 md:gap-10 w-max mx-auto"
+              className="flex items-center gap-6 md:gap-10 w-max"
               style={{
                 animation: `${lang === 'ar' ? 'marquee-rtl' : 'marquee'} 20s linear infinite`,
               }}
@@ -118,7 +110,7 @@ export default function HomePage() {
         <div className="flex items-end justify-between mb-5 md:mb-7">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#1FA9FF]">
-              {lang === 'ar' ? 'الأكثر رواجاً' : 'Popular right now'}
+              {t('home.popularNow')}
             </span>
             <h2 className="font-heading font-bold text-[20px] md:text-[28px] text-[#213E53] mt-1">
               {t('trending.title')}
@@ -154,7 +146,7 @@ export default function HomePage() {
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 text-white/90 text-[11px] font-medium mb-2.5">
                 <Sparkles size={11} />
-                {lang === 'ar' ? '30 ثانية فقط' : 'Just 30 seconds'}
+                {t('home.just30Seconds')}
               </div>
               <h2 className="font-heading font-bold text-lg md:text-2xl text-white leading-tight">
                 {t('finderCta.title')}
@@ -171,50 +163,7 @@ export default function HomePage() {
         </Link>
       </div>
 
-      {/* ========= FINDER SUGGESTION MODAL ========= */}
-      {showFinderModal && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-50"
-            onClick={dismissFinderModal}
-            style={{ animation: 'fadeIn 0.2s ease-out both' }}
-          />
-          <div
-            className="fixed z-50 top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] max-w-[calc(100vw-2rem)]
-              bg-surface rounded-2xl shadow-2xl border border-border/60 p-6 text-center"
-            style={{ animation: 'scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
-          >
-            <div className="w-12 h-12 rounded-xl bg-[#1FA9FF]/10 flex items-center justify-center mx-auto mb-4">
-              <Sparkles size={22} className="text-[#1FA9FF]" />
-            </div>
-            <h3 className="font-heading font-bold text-lg text-[#213E53]">
-              {lang === 'ar' ? 'مو متأكد وش تبي؟' : 'Not sure what you need?'}
-            </h3>
-            <p className="text-sm text-[#213E53]/70 mt-2 leading-relaxed">
-              {lang === 'ar'
-                ? 'المستشار الذكي يختار لك أفضل باقة بـ 30 ثانية بس'
-                : 'Our Smart Advisor picks the best plan for you in just 30 seconds'}
-            </p>
-            <div className="flex flex-col gap-2.5 mt-5">
-              <button
-                onClick={() => { dismissFinderModal(); navigate('/finder'); }}
-                className="w-full py-3 rounded-xl text-white font-bold text-sm
-                  hover:opacity-90 transition-all btn-press"
-                style={{ background: 'linear-gradient(135deg, #1FA9FF, #6dcbca)' }}
-              >
-                {t('finderCta.cta')}
-              </button>
-              <button
-                onClick={dismissFinderModal}
-                className="w-full py-3 rounded-xl bg-surface-alt text-[#213E53]/70 font-semibold text-sm
-                  hover:bg-border transition-colors btn-press"
-              >
-                {lang === 'ar' ? 'لا، أبي أتصفح' : 'No thanks, I\'ll browse'}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+      <FinderModal show={showFinderModal} onDismiss={dismissFinderModal} />
     </div>
   );
 }

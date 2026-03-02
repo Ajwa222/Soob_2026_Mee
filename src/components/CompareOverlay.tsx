@@ -59,6 +59,9 @@ export default function CompareOverlay() {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" style={{ animation: 'fadeIn 0.2s ease-out' }} />
 
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Compare plans"
         className="relative h-full sm:h-auto sm:max-h-[90vh] sm:my-8 sm:mx-auto sm:max-w-lg sm:rounded-2xl
           bg-bg flex flex-col overflow-hidden"
         style={{ animation: 'slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}
@@ -66,10 +69,11 @@ export default function CompareOverlay() {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <h2 className="font-heading font-bold text-lg text-text-primary">
-            {lang === 'ar' ? 'مقارنة' : 'Compare'}
+            {t('compare.title')}
           </h2>
           <button
             onClick={() => setShowOverlay(false)}
+            aria-label="Close comparison"
             className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-surface-alt transition-colors"
           >
             <X size={20} className="text-text-secondary" />
@@ -102,7 +106,7 @@ export default function CompareOverlay() {
                   <p className="font-heading font-bold text-base leading-none" style={{ color }}>
                     {plan.priceSAR}
                   </p>
-                  <span className="text-[9px] text-text-tertiary -mt-1 flex items-center gap-0.5"><SarSymbol className="text-[9px]" />/{lang === 'ar' ? 'شهر' : 'mo'}</span>
+                  <span className="text-[9px] text-text-tertiary -mt-1 flex items-center gap-0.5"><SarSymbol className="text-[9px]" />{t('compare.perMonth')}</span>
                 </div>
               );
             })}
@@ -162,7 +166,7 @@ export default function CompareOverlay() {
                       bg-gradient-to-r from-primary to-primary-dark hover:shadow-lg hover:shadow-primary/25
                       active:scale-[0.97] transition-all"
                   >
-                    {lang === 'ar' ? 'التفاصيل' : 'View Plan'}
+                    {t('compare.viewPlan')}
                     <ChevronRight size={14} className="rtl:rotate-180" />
                   </Link>
                 </div>

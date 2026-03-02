@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Globe, ArrowUpRight } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function Footer() {
-  const { lang, toggleLang, t } = useLang();
+  const { toggleLang, t, lang } = useLang();
   const { hasAccount } = useAuth();
 
   if (!hasAccount) return null;
@@ -36,7 +36,7 @@ export default function Footer() {
           {/* Quick Links */}
           <div className="md:col-span-2">
             <h4 className="font-heading font-semibold text-sm text-white/80 mb-4">
-              {lang === 'ar' ? 'روابط سريعة' : 'Quick Links'}
+              {t('footer.quickLinks')}
             </h4>
             <div className="space-y-2.5">
               {[
@@ -51,39 +51,15 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Support */}
+          {/* Company */}
           <div className="md:col-span-2">
             <h4 className="font-heading font-semibold text-sm text-white/80 mb-4">
-              {lang === 'ar' ? 'الدعم' : 'Support'}
+              {t('footer.company')}
             </h4>
             <div className="space-y-2.5">
-              <button
-                onClick={() => window.dispatchEvent(new CustomEvent('simba-open-chat'))}
-                className="block text-sm text-white/40 hover:text-white transition-colors"
-              >
-                {t('nav.help')}
-              </button>
               <Link to="/about" className="block text-sm text-white/40 hover:text-white transition-colors">
-                {lang === 'ar' ? 'نبذة عن سيمبا' : 'About Us'}
+                {t('footer.aboutUs')}
               </Link>
-            </div>
-          </div>
-
-          {/* Social */}
-          <div className="md:col-span-4">
-            <h4 className="font-heading font-semibold text-sm text-white/80 mb-4">
-              {lang === 'ar' ? 'تابعنا' : 'Follow Us'}
-            </h4>
-            <div className="flex gap-3">
-              {['X (Twitter)', 'Instagram'].map(social => (
-                <span
-                  key={social}
-                  className="flex items-center gap-1 px-4 py-2 rounded-xl bg-white/5 text-sm text-white/50 hover:bg-white/10 hover:text-white/70 transition-colors cursor-pointer"
-                >
-                  {social}
-                  <ArrowUpRight size={12} />
-                </span>
-              ))}
             </div>
           </div>
         </div>

@@ -3,13 +3,13 @@ import {
   ArrowRight, Users, Target, Award,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
-import { CARRIERS } from '../data/plans';
+import { CARRIERS, PLANS_DATA } from '../data/plans';
 
 export default function AboutPage() {
-  const { t, lang } = useLang();
+  const { t } = useLang();
 
   const stats = [
-    { icon: Target, value: '155+', label: t('about.statPlans') },
+    { icon: Target, value: `${PLANS_DATA.length}+`, label: t('about.statPlans') },
     { icon: Users, value: '8', label: t('about.statCarriers') },
     { icon: Award, value: '100%', label: t('about.statFree') },
   ];

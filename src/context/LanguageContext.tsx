@@ -64,6 +64,9 @@ const translations: Record<string, Record<string, unknown>> = {
       tagline: "Find your perfect plan in seconds",
       disclaimer: "Simba is an independent comparison platform. Not affiliated with any carrier. All trademarks belong to their respective owners.",
       madeWith: "Made with \u2764 in Saudi Arabia",
+      quickLinks: "Quick Links",
+      company: "Company",
+      aboutUs: "About Us",
     },
     planCard: {
       viewDetails: "View Details",
@@ -71,12 +74,19 @@ const translations: Record<string, Record<string, unknown>> = {
       selected: "Selected",
       perMonth: "/mo",
       sar: "SAR",
+      data: "Data",
+      mins: "Mins",
+      sms: "SMS",
+      unlimitedSocial: "Unlimited Social",
+      social: "Social",
     },
     compareBar: {
       selected: "selected",
       of: "of",
       selectMore: "Select at least 2 plans",
+      selectMoreShort: "Select more",
       compareNow: "Compare Now",
+      compareAction: "Compare",
       maxToast: "You can compare up to 3 plans. Remove one to add another.",
     },
     chat: {
@@ -182,6 +192,24 @@ const translations: Record<string, Record<string, unknown>> = {
       blurTitle: "Sign up to see the best plans for you",
       blurDesc: "Create a free account to see the best plans for you.",
       blurCta: "Sign Up — It's Free",
+    },
+    compare: {
+      title: "Compare",
+      viewPlan: "View Plan",
+      perMonth: "/mo",
+    },
+    home: {
+      weCompare: "We compare",
+      popularNow: "Popular right now",
+      just30Seconds: "Just 30 seconds",
+    },
+    finderModal: {
+      title: "Not sure what you need?",
+      desc: "Our Smart Advisor picks the best plan for you in just 30 seconds",
+      dismiss: "No thanks, I'll browse",
+    },
+    common: {
+      close: "Close",
     },
     help: {
       title: "Help Center",
@@ -501,6 +529,9 @@ const translations: Record<string, Record<string, unknown>> = {
       tagline: "اختار باقتك المثالية بثواني",
       disclaimer: "سيمبا منصة مقارنة مستقلة. ما تتبع لأي شركة اتصالات. كل العلامات التجارية ملك لأصحابها.",
       madeWith: "صُنع بحب ❤ في السعودية",
+      quickLinks: "روابط سريعة",
+      company: "الشركة",
+      aboutUs: "نبذة عن سيمبا",
     },
     planCard: {
       viewDetails: "شوف التفاصيل",
@@ -508,12 +539,19 @@ const translations: Record<string, Record<string, unknown>> = {
       selected: "مختار",
       perMonth: "/شهر",
       sar: "SAR",
+      data: "بيانات",
+      mins: "دقائق",
+      sms: "رسائل",
+      unlimitedSocial: "تواصل لا محدود",
+      social: "تواصل",
     },
     compareBar: {
       selected: "مختارة",
       of: "من",
       selectMore: "اختر باقتين على الأقل",
+      selectMoreShort: "اختر المزيد",
       compareNow: "قارن الحين",
+      compareAction: "قارن",
       maxToast: "تقدر تقارن 3 باقات بس. شل وحدة عشان تضيف غيرها.",
     },
     chat: {
@@ -619,6 +657,24 @@ const translations: Record<string, Record<string, unknown>> = {
       blurTitle: "سجّل عشان تشوف أفضل الباقات لك",
       blurDesc: "سوّ حساب مجاني عشان تشوف أفضل الباقات لك.",
       blurCta: "سجّل — مجاناً",
+    },
+    compare: {
+      title: "مقارنة",
+      viewPlan: "التفاصيل",
+      perMonth: "/شهر",
+    },
+    home: {
+      weCompare: "نقارن من",
+      popularNow: "الأكثر رواجاً",
+      just30Seconds: "30 ثانية فقط",
+    },
+    finderModal: {
+      title: "مو متأكد وش تبي؟",
+      desc: "المستشار الذكي يختار لك أفضل باقة بـ 30 ثانية بس",
+      dismiss: "لا، أبي أتصفح",
+    },
+    common: {
+      close: "إغلاق",
     },
     help: {
       title: "مركز المساعدة",

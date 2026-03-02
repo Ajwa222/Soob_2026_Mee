@@ -318,8 +318,8 @@ export default function FinderPage() {
         </div>
 
         {/* White area — button outside gradient */}
-        <div className="relative z-20 bg-[var(--color-bg)]" style={{ minHeight: '50vh' }}>
-          <div className="max-w-[480px] w-full mx-auto px-5 pt-28 md:pt-32 text-center">
+        <div className="relative z-20 bg-[var(--color-bg)]" style={{ minHeight: '30vh' }}>
+          <div className="max-w-[480px] w-full mx-auto px-5 pt-10 md:pt-14 text-center">
             <button
               onClick={() => setStarted(true)}
               className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold
@@ -453,6 +453,20 @@ export default function FinderPage() {
                   >
                     {t('finder.blurCta')}
                   </button>
+                  <div className="flex items-center justify-center gap-4 mt-4">
+                    <Link
+                      to="/plans"
+                      className="text-xs font-semibold text-text-secondary hover:text-primary transition-colors"
+                    >
+                      {t('nav.plans')}
+                    </Link>
+                    <button
+                      onClick={restart}
+                      className="text-xs font-semibold text-text-secondary hover:text-primary transition-colors"
+                    >
+                      {t('finder.startOver')}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
