@@ -5,7 +5,8 @@
       "Bash(find /c/Users/Abdulrhman24/Documents/projects/SimbaApp/src -name \"*.jsx\" -exec wc -l {} +)",
       "Bash(npm install -D typescript @types/mixpanel-browser)",
       "Bash(npx tsc --noEmit)",
-      "Bash(npx tsc -b)"
+      "Bash(npx tsc -b)",
+      "Bash(npm run build)"
     ]
   }
 }

@@ -29,8 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
   const [loading, setLoading] = useState(true);
+  const [hasAccount, setHasAccount] = useState(() => !!localStorage.getItem('simba-has-account'));
 
-  const hasAccount = !!localStorage.getItem('simba-has-account');
   const needsPhone = user?.provider === 'google' && !user?.phone;
 
   // Google Sign-In (popup with redirect fallback)
@@ -96,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(baseUser);
         localStorage.setItem('simba-user', JSON.stringify(baseUser));
         localStorage.setItem('simba-has-account', 'true');
+        setHasAccount(true);
 
         // Fetch phone from Firestore in background
         let phone: string | null = null;

@@ -4,10 +4,30 @@ import type { SimbaUser } from '../types';
 
 declare global {
   interface Window {
+    dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
     clarity?: (...args: unknown[]) => void;
   }
 }
+
+// ── Google Analytics ──
+const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
+try {
+  if (GA_ID) {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+    document.head.appendChild(script);
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function gtag() {
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer!.push(arguments);
+    };
+    window.gtag('js', new Date());
+    window.gtag('config', GA_ID, { send_page_view: false });
+  }
+} catch { /* analytics init should never crash the app */ }
 
 // ── Mixpanel ──
 const MP_TOKEN = import.meta.env.VITE_MIXPANEL_TOKEN;
