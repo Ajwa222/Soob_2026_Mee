@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { trackPageView } from './lib/analytics';
 import { LanguageProvider, useLang } from './context/LanguageContext';
@@ -11,14 +11,13 @@ import Footer from './components/Footer';
 import CompareBar from './components/CompareBar';
 import Onboarding from './components/Onboarding';
 import HomePage from './pages/HomePage';
-import PlansPage from './pages/PlansPage';
-import PlanDetailPage from './pages/PlanDetailPage';
-import FinderPage from './pages/FinderPage';
-import ProfilePage from './pages/ProfilePage';
-import AboutPage from './pages/AboutPage';
-// import GamePage from './pages/GamePage';
-// import ChatPage from './pages/ChatPage';
 import GradientBackground from './components/GradientBackground';
+
+const PlansPage = lazy(() => import('./pages/PlansPage'));
+const PlanDetailPage = lazy(() => import('./pages/PlanDetailPage'));
+const FinderPage = lazy(() => import('./pages/FinderPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -61,6 +60,7 @@ function App() {
             <GradientBackground />
             <Navigation />
             <main className="flex-1">
+              <Suspense fallback={<div className="flex-1 flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>}>
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/home" element={<HomePage />} />
@@ -72,7 +72,9 @@ function App() {
                 <Route path="/about" element={<AboutPage />} />
                 {/* <Route path="/game" element={<GamePage />} /> */}
                 {/* <Route path="/chat" element={<ChatPage />} /> */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
+              </Suspense>
             </main>
             <Footer />
             {/* <ChatBubble /> */}
