@@ -213,6 +213,11 @@ const translations = {
       welcome: "Welcome back",
       logout: "Sign Out",
       chatDesc: "Meet new people and make friends",
+      googleSignIn: "Sign in with Google",
+      or: "or",
+      almostDone: "Almost done!",
+      phonePrompt: "Please enter your phone number to complete your profile",
+      savePhone: "Save & Continue",
     },
     about: {
       title: "About Simba",
@@ -644,6 +649,11 @@ const translations = {
       welcome: "يا مرحبا و مسهلا رجعتلنا",
       logout: "تسجيل خروج",
       chatDesc: "تعرّف على ناس جديدة وكوّن صداقات",
+      googleSignIn: "سجّل دخول بقوقل",
+      or: "أو",
+      almostDone: "تقريباً خلصنا!",
+      phonePrompt: "ادخل رقم جوالك عشان نكمّل حسابك",
+      savePhone: "حفظ ومتابعة",
     },
     about: {
       title: "نبذة عن سيمبا",
