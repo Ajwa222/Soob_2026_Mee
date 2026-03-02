@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signInWithRedirect, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../lib/firebase';
 
@@ -23,10 +23,9 @@ export function AuthProvider({ children }) {
     localStorage.setItem('simba-has-account', 'true');
   }, []);
 
-  // Google Sign-In
+  // Google Sign-In (redirect — avoids COOP popup issues)
   const loginWithGoogle = useCallback(async () => {
-    const result = await signInWithPopup(auth, googleProvider);
-    return result;
+    await signInWithRedirect(auth, googleProvider);
   }, []);
 
   // Save phone number to Firestore (for Google users)
