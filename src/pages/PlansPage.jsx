@@ -598,6 +598,7 @@ export default function PlansPage() {
       </section>
 
       {/* ========= MAIN CONTENT ========= */}
+      <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-8">
         <div className="flex gap-8">
 
@@ -832,6 +833,7 @@ export default function PlansPage() {
             </Link>
           </div>
         </div>
+      </div>
       </div>
 
       {/* ========= MOBILE FILTER DRAWER ========= */}

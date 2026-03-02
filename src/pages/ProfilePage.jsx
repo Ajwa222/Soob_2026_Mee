@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import {
-  User, Phone,
-  LogOut, MessageCircle,
+  User, Phone, Star, Bell, ShieldCheck,
+  LogOut, /* MessageCircle, */
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { /* Link, */ useNavigate } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
+const SAUDI_PHONE_REGEX = /^05\d{8}$/;
+
 export default function ProfilePage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { user, isLoggedIn, needsPhone, loginWithGoogle, updatePhone, logout } = useAuth();
   const [phoneInput, setPhoneInput] = useState('');
+  const [error, setError] = useState('');
 
   const navTo = useNavigate();
 
@@ -23,26 +26,46 @@ export default function ProfilePage() {
   };
 
   const handleGoogleSignIn = async () => {
+    setError('');
     try {
       await loginWithGoogle();
       redirectAfterLogin();
-    } catch (error) {
-      console.error('Google sign-in failed:', error);
+    } catch (err) {
+      console.error('Google sign-in failed:', err);
+      if (err.code === 'auth/popup-closed-by-user') return;
+      setError(lang === 'ar' ? 'فشل تسجيل الدخول. حاول مرة ثانية.' : 'Sign-in failed. Please try again.');
     }
   };
 
   const handlePhoneSubmit = async (e) => {
     e.preventDefault();
-    if (!phoneInput) return;
-    await updatePhone(phoneInput);
-    redirectAfterLogin();
+    setError('');
+    const cleaned = phoneInput.replace(/\s/g, '');
+    if (!SAUDI_PHONE_REGEX.test(cleaned)) {
+      setError(lang === 'ar' ? 'ادخل رقم جوال سعودي صحيح (05XXXXXXXX)' : 'Enter a valid Saudi phone number (05XXXXXXXX)');
+      return;
+    }
+    try {
+      await updatePhone(cleaned);
+      redirectAfterLogin();
+    } catch (err) {
+      console.error('Phone update failed:', err);
+      setError(lang === 'ar' ? 'فشل حفظ الرقم. حاول مرة ثانية.' : 'Failed to save phone number. Please try again.');
+    }
   };
 
-  // Phone number prompt for Google users
+  const features = [
+    { icon: Star, title: t('profile.feat1Title'), desc: t('profile.feat1Desc') },
+    { icon: Bell, title: t('profile.feat2Title'), desc: t('profile.feat2Desc') },
+    { icon: ShieldCheck, title: t('profile.feat3Title'), desc: t('profile.feat3Desc') },
+  ];
+
+  // ───────── Phone number prompt (Google users) ─────────
   if (isLoggedIn && needsPhone) {
     return (
-      <div className="relative z-10 safe-pb flex flex-col">
-        <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
+      <div className="relative z-10 safe-pb flex flex-col md:min-h-[calc(100dvh-72px)]">
+        {/* ── Mobile: gradient header ── */}
+        <div className="md:hidden relative flex items-center justify-center pt-24 pb-10">
           <div className="max-w-[480px] w-full mx-auto px-6 text-center"
             style={{ animation: 'fadeUp 0.5s ease-out both' }}>
             {user.photoURL ? (
@@ -55,7 +78,7 @@ export default function ProfilePage() {
                 </span>
               </div>
             )}
-            <h1 className="font-heading font-bold text-2xl md:text-3xl text-white">
+            <h1 className="font-heading font-bold text-2xl text-white">
               {t('profile.almostDone')}
             </h1>
             <p className="text-white/70 mt-1 text-sm">
@@ -64,50 +87,79 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
-          <div className="max-w-[480px] mx-auto px-6 md:px-8 pt-8 pb-8"
-            style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}>
-            <form onSubmit={handlePhoneSubmit}
-              className="bg-surface rounded-2xl border border-border/60 p-6 shadow-sm">
-              <div className="mb-5">
-                <label className="block text-xs font-bold text-text-secondary mb-2">
-                  {t('profile.phone')}
-                </label>
-                <div className="relative">
-                  <Phone size={16} className="absolute top-1/2 -translate-y-1/2 start-4 text-text-tertiary" />
-                  <input
-                    type="tel"
-                    value={phoneInput}
-                    onChange={(e) => setPhoneInput(e.target.value)}
-                    placeholder={t('profile.phonePlaceholder')}
-                    dir="ltr"
-                    className="w-full ps-11 pe-4 py-3 rounded-xl bg-surface-alt border border-border text-sm text-text-primary
-                      placeholder:text-text-tertiary outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                  />
+        {/* ── Content area (card on desktop, white section on mobile) ── */}
+        <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl
+          md:flex md:flex-1 md:items-center md:justify-center md:bg-transparent md:rounded-none md:py-12 md:px-8">
+          <div className="max-w-[480px] md:max-w-[520px] w-full mx-auto
+            md:bg-surface md:rounded-3xl md:shadow-xl md:border md:border-border/60">
+
+            {/* Desktop header (hidden on mobile) */}
+            <div className="hidden md:block text-center px-10 pt-10 pb-2"
+              style={{ animation: 'fadeUp 0.5s ease-out both' }}>
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 shadow-md shadow-black/5" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-primary/10
+                  flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold text-primary">
+                    {(user.name || '?')[0].toUpperCase()}
+                  </span>
                 </div>
-              </div>
-              <button type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-bold text-sm
-                  hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 btn-press">
-                {t('profile.savePhone')}
-              </button>
-            </form>
+              )}
+              <h1 className="font-heading font-bold text-3xl text-text-primary">
+                {t('profile.almostDone')}
+              </h1>
+              <p className="text-text-secondary mt-2 text-sm">
+                {t('profile.phonePrompt')}
+              </p>
+            </div>
+
+            {/* Form */}
+            <div className="px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10"
+              style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}>
+              <form onSubmit={handlePhoneSubmit}
+                className="bg-surface rounded-2xl border border-border/60 p-6 shadow-sm md:bg-transparent md:border-0 md:shadow-none md:p-0">
+                <div className="mb-5">
+                  <label className="block text-xs font-bold text-text-secondary mb-2">
+                    {t('profile.phone')}
+                  </label>
+                  <div className="relative">
+                    <Phone size={16} className="absolute top-1/2 -translate-y-1/2 start-4 text-text-tertiary" />
+                    <input
+                      type="tel"
+                      value={phoneInput}
+                      onChange={(e) => setPhoneInput(e.target.value)}
+                      placeholder={t('profile.phonePlaceholder')}
+                      dir="ltr"
+                      className="w-full ps-11 pe-4 py-3 rounded-xl bg-surface-alt border border-border text-sm text-text-primary
+                        placeholder:text-text-tertiary outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    />
+                  </div>
+                </div>
+                {error && (
+                  <p className="text-xs font-semibold text-error mb-3">{error}</p>
+                )}
+                <button type="submit"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-bold text-sm
+                    hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 btn-press">
+                  {t('profile.savePhone')}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // Logged-in view
+  // ───────── Logged-in view ─────────
   if (isLoggedIn) {
     return (
-      <div className="relative z-10 safe-pb flex flex-col">
-        {/* Gradient area — header */}
-        <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
-          <div
-            className="max-w-[480px] w-full mx-auto px-6 text-center"
-            style={{ animation: 'fadeUp 0.5s ease-out both' }}
-          >
+      <div className="relative z-10 safe-pb flex flex-col md:min-h-[calc(100dvh-72px)]">
+        {/* ── Mobile: gradient header ── */}
+        <div className="md:hidden relative flex items-center justify-center pt-24 pb-10">
+          <div className="max-w-[480px] w-full mx-auto px-6 text-center"
+            style={{ animation: 'fadeUp 0.5s ease-out both' }}>
             {user.photoURL ? (
               <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 shadow-lg shadow-black/10" referrerPolicy="no-referrer" />
             ) : (
@@ -118,7 +170,7 @@ export default function ProfilePage() {
                 </span>
               </div>
             )}
-            <h1 className="font-heading font-bold text-2xl md:text-3xl text-white">
+            <h1 className="font-heading font-bold text-2xl text-white">
               {t('profile.welcome')}, {user.name || user.phone}!
             </h1>
             {user.phone && <p className="text-white/70 mt-1 text-sm" dir="ltr">{user.phone}</p>}
@@ -126,55 +178,78 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* White area — content */}
-        <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
-          <div
-            className="max-w-[480px] mx-auto px-6 md:px-8 pt-8 pb-8"
-            style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}
-          >
-            <div className="bg-surface rounded-2xl border border-border/60 p-5 shadow-sm space-y-3">
-              <Link
-                to="/chat"
-                className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl bg-primary/10 hover:bg-primary/15 transition-colors"
-              >
-                <MessageCircle size={20} className="text-primary" />
-                <div className="text-start">
-                  <p className="text-sm font-bold text-text-primary">{t('meetChat.title')}</p>
-                  <p className="text-xs text-text-secondary">{t('profile.chatDesc')}</p>
-                </div>
-              </Link>
+        {/* ── Content area ── */}
+        <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl
+          md:flex md:flex-1 md:items-center md:justify-center md:bg-transparent md:rounded-none md:py-12 md:px-8">
+          <div className="max-w-[480px] md:max-w-[520px] w-full mx-auto
+            md:bg-surface md:rounded-3xl md:shadow-xl md:border md:border-border/60">
 
-              <button
-                onClick={logout}
-                className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl hover:bg-red-500/10 transition-colors"
-              >
-                <LogOut size={20} className="text-red-500" />
-                <span className="text-sm font-semibold text-red-500">{t('profile.logout')}</span>
-              </button>
+            {/* Desktop header (hidden on mobile) */}
+            <div className="hidden md:block text-center px-10 pt-10 pb-2"
+              style={{ animation: 'fadeUp 0.5s ease-out both' }}>
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="" className="w-24 h-24 rounded-full mx-auto mb-4 shadow-md shadow-black/5" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-primary/10
+                  flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl font-bold text-primary">
+                    {(user.name || user.phone || '?')[0].toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <h1 className="font-heading font-bold text-3xl text-text-primary">
+                {t('profile.welcome')}, {user.name || user.phone}!
+              </h1>
+              {user.phone && <p className="text-text-secondary mt-1.5 text-sm" dir="ltr">{user.phone}</p>}
+              {user.email && <p className="text-text-secondary mt-1 text-sm">{user.email}</p>}
             </div>
 
-            <p className="text-center text-xs text-text-tertiary mt-4">
-              {t('profile.demoNotice')}
-            </p>
+            {/* Actions */}
+            <div className="px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10"
+              style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}>
+              <div className="bg-surface rounded-2xl border border-border/60 p-5 shadow-sm space-y-3
+                md:bg-surface-alt md:border-border/40">
+                {/* <Link
+                  to="/chat"
+                  className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl bg-primary/10 hover:bg-primary/15 transition-colors"
+                >
+                  <MessageCircle size={20} className="text-primary" />
+                  <div className="text-start">
+                    <p className="text-sm font-bold text-text-primary">{t('meetChat.title')}</p>
+                    <p className="text-xs text-text-secondary">{t('profile.chatDesc')}</p>
+                  </div>
+                </Link> */}
+
+                <button
+                  onClick={logout}
+                  className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl hover:bg-red-500/10 transition-colors"
+                >
+                  <LogOut size={20} className="text-red-500" />
+                  <span className="text-sm font-semibold text-red-500">{t('profile.logout')}</span>
+                </button>
+              </div>
+
+              <p className="text-center text-xs text-text-tertiary mt-4">
+                {t('profile.demoNotice')}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // Not logged in — Google sign-in only
+  // ───────── Not logged in — Google sign-in ─────────
   return (
-    <div className="relative z-10 safe-pb flex flex-col">
-      {/* Gradient area — header */}
-      <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
-        <div
-          className="max-w-[480px] w-full mx-auto px-6 text-center"
-          style={{ animation: 'fadeUp 0.5s ease-out both' }}
-        >
+    <div className="relative z-10 safe-pb flex flex-col md:min-h-[calc(100dvh-72px)]">
+      {/* ── Mobile: gradient header ── */}
+      <div className="md:hidden relative flex items-center justify-center pt-24 pb-10">
+        <div className="max-w-[480px] w-full mx-auto px-6 text-center"
+          style={{ animation: 'fadeUp 0.5s ease-out both' }}>
           <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-4">
             <User size={28} className="text-white" />
           </div>
-          <h1 className="font-heading font-bold text-2xl md:text-3xl text-white">
+          <h1 className="font-heading font-bold text-2xl text-white">
             {t('profile.title')}
           </h1>
           <p className="text-white/70 mt-1 text-sm">
@@ -183,32 +258,79 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* White area — sign in */}
-      <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
-        <div
-          className="max-w-[480px] mx-auto px-6 md:px-8 pt-8 pb-8"
-          style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}
-        >
-          <button
-            onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl
-              bg-surface border border-border hover:bg-surface-alt
-              transition-all duration-200 shadow-sm btn-press"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            <span className="text-sm font-bold text-text-primary">
-              {t('profile.googleSignIn')}
-            </span>
-          </button>
+      {/* ── Content area (card on desktop, white section on mobile) ── */}
+      <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl
+        md:flex md:flex-1 md:items-center md:justify-center md:bg-transparent md:rounded-none md:py-12 md:px-8">
+        <div className="max-w-[480px] md:max-w-[520px] w-full mx-auto
+          md:bg-surface md:rounded-3xl md:shadow-xl md:border md:border-border/60">
 
-          <p className="text-center text-xs text-text-tertiary mt-4">
-            {t('profile.demoNotice')}
-          </p>
+          {/* Desktop header (hidden on mobile) */}
+          <div className="hidden md:block text-center px-10 pt-10 pb-2"
+            style={{ animation: 'fadeUp 0.5s ease-out both' }}>
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
+              <User size={28} className="text-primary" />
+            </div>
+            <h1 className="font-heading font-bold text-3xl text-text-primary">
+              {t('profile.title')}
+            </h1>
+            <p className="text-text-secondary mt-2 text-base leading-relaxed max-w-sm mx-auto">
+              {t('profile.subtitle')}
+            </p>
+          </div>
+
+          {/* Sign-in content */}
+          <div className="px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10"
+            style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}>
+            <button
+              onClick={handleGoogleSignIn}
+              className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl
+                bg-surface border border-border hover:bg-surface-alt
+                transition-all duration-200 shadow-sm btn-press
+                md:py-4 md:text-base"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              <span className="text-sm font-bold text-text-primary">
+                {t('profile.googleSignIn')}
+              </span>
+            </button>
+
+            {error && (
+              <p className="text-center text-xs font-semibold text-error mt-3">{error}</p>
+            )}
+
+            {/* Why join — feature cards (visible on all sizes, grid on desktop) */}
+            <div className="mt-8 md:mt-10">
+              <p className="text-xs font-bold uppercase tracking-wider text-text-tertiary mb-4 text-center">
+                {t('profile.whyJoin')}
+              </p>
+              <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-3">
+                {features.map((feat) => {
+                  const Icon = feat.icon;
+                  return (
+                    <div key={feat.title} className="flex items-start gap-3 md:flex-col md:items-center md:text-center
+                      p-3 md:p-4 rounded-xl bg-surface-alt/70 md:bg-surface-alt">
+                      <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Icon size={16} className="text-primary md:w-[18px] md:h-[18px]" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-text-primary md:mt-2">{feat.title}</p>
+                        <p className="text-xs text-text-secondary mt-0.5 leading-relaxed">{feat.desc}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <p className="text-center text-xs text-text-tertiary mt-6">
+              {t('profile.demoNotice')}
+            </p>
+          </div>
         </div>
       </div>
     </div>

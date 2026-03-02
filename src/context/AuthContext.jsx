@@ -7,8 +7,13 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem('simba-user');
-    return stored ? JSON.parse(stored) : null;
+    try {
+      const stored = localStorage.getItem('simba-user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      localStorage.removeItem('simba-user');
+      return null;
+    }
   });
   const [loading, setLoading] = useState(true);
 
@@ -49,7 +54,7 @@ export function AuthProvider({ children }) {
           if (userDoc.exists()) {
             phone = userDoc.data().phone || null;
           }
-        } catch (_) { /* Firestore read failed — phone stays null */ }
+        } catch (err) { console.warn('Firestore read failed:', err); }
 
         const userData = {
           name: displayName || email,
