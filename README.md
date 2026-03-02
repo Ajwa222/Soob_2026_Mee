@@ -9,7 +9,7 @@ Compare 155+ telecom plans from all licensed Saudi carriers. Find your perfect p
 - **Side-by-Side Compare** — Compare up to 3 plans at once
 - **Google Sign-In** — Firebase Authentication with popup and redirect fallback
 - **Bilingual** — Full English and Arabic support with RTL layout
-- **Analytics** — Google Analytics 4 with dynamic page titles, query param tracking, and custom events
+- **Analytics** — Google Analytics 4, Mixpanel, and Microsoft Clarity with unified tracking, dynamic page titles, user identification, and custom events
 - **Responsive** — Mobile-first design with bottom tab navigation and desktop sidebar
 
 ## Tech Stack
@@ -38,6 +38,8 @@ npm run dev
 | Variable | Description |
 |---|---|
 | `VITE_GA_MEASUREMENT_ID` | Google Analytics 4 measurement ID (`G-XXXXXXXXXX`) |
+| `VITE_MIXPANEL_TOKEN` | Mixpanel project token |
+| `VITE_CLARITY_PROJECT_ID` | Microsoft Clarity project ID |
 | `VITE_FIREBASE_API_KEY` | Firebase API key |
 | `VITE_FIREBASE_AUTH_DOMAIN` | Firebase auth domain |
 | `VITE_FIREBASE_PROJECT_ID` | Firebase project ID |

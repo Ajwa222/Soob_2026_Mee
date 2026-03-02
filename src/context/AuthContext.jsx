@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useEffect } from 'rea
 import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../lib/firebase';
+import { identifyUser, resetUser } from '../lib/analytics';
 
 const AuthContext = createContext();
 
@@ -46,6 +47,7 @@ export function AuthProvider({ children }) {
   // Logout
   const logout = useCallback(async () => {
     await signOut(auth);
+    resetUser();
     setUser(null);
     localStorage.removeItem('simba-user');
   }, []);
@@ -81,6 +83,7 @@ export function AuthProvider({ children }) {
           phone,
         };
         setUser(userData);
+        identifyUser(userData);
         localStorage.setItem('simba-user', JSON.stringify(userData));
         localStorage.setItem('simba-has-account', 'true');
       } else {
