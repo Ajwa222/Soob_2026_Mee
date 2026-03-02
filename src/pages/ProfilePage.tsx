@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  User, Phone, Star, Bell, ShieldCheck,
+  User, Phone,
   LogOut, /* MessageCircle, */
 } from 'lucide-react';
 import { /* Link, */ useNavigate } from 'react-router-dom';
@@ -77,12 +77,6 @@ export default function ProfilePage() {
       setError(lang === 'ar' ? 'فشل حفظ الرقم. حاول مرة ثانية.' : 'Failed to save phone number. Please try again.');
     }
   };
-
-  const features = [
-    { icon: Star, title: t('profile.feat1Title'), desc: t('profile.feat1Desc') },
-    { icon: Bell, title: t('profile.feat2Title'), desc: t('profile.feat2Desc') },
-    { icon: ShieldCheck, title: t('profile.feat3Title'), desc: t('profile.feat3Desc') },
-  ];
 
   // ───────── Loading (prevents flash during redirect auth) ─────────
   if (loading) {
@@ -336,33 +330,6 @@ export default function ProfilePage() {
               <p className="text-center text-xs font-semibold text-error mt-3">{error}</p>
             )}
 
-            {/* Why join — feature cards (visible on all sizes, grid on desktop) */}
-            <div className="mt-8 md:mt-10">
-              <p className="text-xs font-bold uppercase tracking-wider text-text-tertiary mb-4 text-center">
-                {t('profile.whyJoin')}
-              </p>
-              <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-3">
-                {features.map((feat) => {
-                  const Icon = feat.icon;
-                  return (
-                    <div key={feat.title} className="flex items-start gap-3 md:flex-col md:items-center md:text-center
-                      p-3 md:p-4 rounded-xl bg-surface-alt/70 md:bg-surface-alt">
-                      <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <Icon size={16} className="text-primary md:w-[18px] md:h-[18px]" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-text-primary md:mt-2">{feat.title}</p>
-                        <p className="text-xs text-text-secondary mt-0.5 leading-relaxed">{feat.desc}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <p className="text-center text-xs text-text-tertiary mt-6">
-              {t('profile.demoNotice')}
-            </p>
           </div>
         </div>
       </div>
