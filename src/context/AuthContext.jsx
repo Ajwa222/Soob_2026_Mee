@@ -65,7 +65,20 @@ export function AuthProvider({ children }) {
       if (firebaseUser) {
         const { displayName, email, photoURL, uid } = firebaseUser;
 
-        // Fetch phone from Firestore
+        // Set user immediately so UI updates without waiting for Firestore
+        const baseUser = {
+          name: displayName || email,
+          email,
+          photoURL,
+          uid,
+          provider: 'google',
+          phone: null,
+        };
+        setUser(baseUser);
+        localStorage.setItem('simba-user', JSON.stringify(baseUser));
+        localStorage.setItem('simba-has-account', 'true');
+
+        // Fetch phone from Firestore in background
         let phone = null;
         try {
           const userDoc = await getDoc(doc(db, 'users', uid));
@@ -74,18 +87,10 @@ export function AuthProvider({ children }) {
           }
         } catch (err) { console.warn('Firestore read failed:', err); }
 
-        const userData = {
-          name: displayName || email,
-          email,
-          photoURL,
-          uid,
-          provider: 'google',
-          phone,
-        };
+        const userData = { ...baseUser, phone };
         setUser(userData);
         identifyUser(userData);
         localStorage.setItem('simba-user', JSON.stringify(userData));
-        localStorage.setItem('simba-has-account', 'true');
       } else {
         setUser(null);
         localStorage.removeItem('simba-user');
