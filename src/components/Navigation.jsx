@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Smartphone, Search, /* Gamepad2, Users, */ User, Headphones } from 'lucide-react';
+import { Home, Smartphone, Search, /* Gamepad2, Users, */ User, /* Headphones */ } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navigation() {
-  const { lang, t } = useLang();
+  const { t } = useLang();
   const { user, isLoggedIn, hasAccount } = useAuth();
   const location = useLocation();
 
@@ -74,7 +74,7 @@ export default function Navigation() {
 
           {/* Right side */}
           <div className="flex items-center gap-1.5">
-            <button
+            {/* <button
               onClick={() => window.dispatchEvent(new CustomEvent('simba-open-chat'))}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold
                 text-primary-light hover:text-white hover:bg-primary/20 transition-all duration-150 btn-press"
@@ -82,7 +82,7 @@ export default function Navigation() {
             >
               <Headphones size={15} />
               {lang === 'ar' ? 'الدعم' : 'Support'}
-            </button>
+            </button> */}
             {isLoggedIn ? (
               <Link
                 to="/profile"
@@ -160,7 +160,7 @@ export default function Navigation() {
             </span>
           </Link>
           <div className="flex items-center gap-1">
-            <button
+            {/* <button
               onClick={() => window.dispatchEvent(new CustomEvent('simba-open-chat'))}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold
                 bg-primary/10 text-primary-light hover:text-white hover:bg-primary/20 transition-colors duration-150"
@@ -168,7 +168,7 @@ export default function Navigation() {
             >
               <Headphones size={13} />
               {lang === 'ar' ? 'دعم' : 'Help'}
-            </button>
+            </button> */}
             {isLoggedIn ? (
               <Link
                 to="/profile"

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   User, Phone, Star, Bell, ShieldCheck,
   LogOut, /* MessageCircle, */
@@ -6,12 +6,13 @@ import {
 import { /* Link, */ useNavigate } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { trackEvent } from '../lib/analytics';
 
 const SAUDI_PHONE_REGEX = /^05\d{8}$/;
 
 export default function ProfilePage() {
   const { t, lang } = useLang();
-  const { user, isLoggedIn, needsPhone, loginWithGoogle, updatePhone, logout } = useAuth();
+  const { user, isLoggedIn, needsPhone, loading, loginWithGoogle, updatePhone, logout } = useAuth();
   const [phoneInput, setPhoneInput] = useState('');
   const [error, setError] = useState('');
 
@@ -25,15 +26,36 @@ export default function ProfilePage() {
     }
   };
 
+  // Handle post-redirect navigation (when signInWithRedirect was used as fallback)
+  useEffect(() => {
+    if (isLoggedIn && !needsPhone && localStorage.getItem('simba-auth-redirect') === 'pending') {
+      localStorage.removeItem('simba-auth-redirect');
+      redirectAfterLogin();
+    }
+  }, [isLoggedIn, needsPhone]);
+
   const handleGoogleSignIn = async () => {
     setError('');
     try {
       await loginWithGoogle();
+      trackEvent('login', { method: 'google' });
       redirectAfterLogin();
     } catch (err) {
       console.error('Google sign-in failed:', err);
-      if (err.code === 'auth/popup-closed-by-user') return;
-      setError(lang === 'ar' ? 'فشل تسجيل الدخول. حاول مرة ثانية.' : 'Sign-in failed. Please try again.');
+      // User cancelled or popup was replaced — no error needed
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
+      // Popup blocked is handled in AuthContext via redirect fallback
+      if (err.code === 'auth/popup-blocked') return;
+
+      if (err.code === 'auth/network-request-failed') {
+        setError(lang === 'ar' ? 'خطأ في الاتصال. تحقق من الإنترنت وحاول مرة ثانية.' : 'Network error. Check your connection and try again.');
+      } else if (err.code === 'auth/user-disabled') {
+        setError(lang === 'ar' ? 'هذا الحساب معطّل. تواصل مع الدعم.' : 'This account has been disabled. Contact support.');
+      } else if (err.code === 'auth/account-exists-with-different-credential') {
+        setError(lang === 'ar' ? 'يوجد حساب بهذا الإيميل بطريقة تسجيل مختلفة.' : 'An account already exists with this email using a different sign-in method.');
+      } else {
+        setError(lang === 'ar' ? 'فشل تسجيل الدخول. حاول مرة ثانية.' : 'Sign-in failed. Please try again.');
+      }
     }
   };
 
@@ -47,6 +69,7 @@ export default function ProfilePage() {
     }
     try {
       await updatePhone(cleaned);
+      trackEvent('phone_saved');
       redirectAfterLogin();
     } catch (err) {
       console.error('Phone update failed:', err);
@@ -59,6 +82,15 @@ export default function ProfilePage() {
     { icon: Bell, title: t('profile.feat2Title'), desc: t('profile.feat2Desc') },
     { icon: ShieldCheck, title: t('profile.feat3Title'), desc: t('profile.feat3Desc') },
   ];
+
+  // ───────── Loading (prevents flash during redirect auth) ─────────
+  if (loading) {
+    return (
+      <div className="relative z-10 safe-pb flex items-center justify-center min-h-[calc(100dvh-72px)]">
+        <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   // ───────── Phone number prompt (Google users) ─────────
   if (isLoggedIn && needsPhone) {
@@ -221,7 +253,7 @@ export default function ProfilePage() {
                 </Link> */}
 
                 <button
-                  onClick={logout}
+                  onClick={() => { trackEvent('logout'); logout(); }}
                   className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl hover:bg-red-500/10 transition-colors"
                 >
                   <LogOut size={20} className="text-red-500" />

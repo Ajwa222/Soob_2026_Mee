@@ -437,6 +437,7 @@ const translations = {
       cancel: "Cancel",
       reportSent: "Reported. Finding someone new...",
     },
+    pageTitles: { home: "Home", plans: "Browse Plans", planDetail: "Plan Details", finder: "Plan Finder", profile: "Profile", about: "About" },
     types: { Prepaid: "Prepaid", Postpaid: "Postpaid", "Data-only": "Data-only" },
   },
   ar: {
@@ -873,6 +874,7 @@ const translations = {
       cancel: "إلغاء",
       reportSent: "تم البلاغ. ندور لك شخص جديد...",
     },
+    pageTitles: { home: "الرئيسية", plans: "تصفح الباقات", planDetail: "تفاصيل الباقة", finder: "المستشار الذكي", profile: "حسابي", about: "نبذة عن سيمبا" },
     types: { Prepaid: "مسبق الدفع", Postpaid: "مفوتر", "Data-only": "بيانات فقط" },
   },
 };
