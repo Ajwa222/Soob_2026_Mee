@@ -558,7 +558,7 @@ export default function PlansPage() {
             {/* Mobile filter toggle */}
             <button
               onClick={() => setShowMobileFilters(true)}
-              className="flex md:hidden items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/15 border border-white/20
+              className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/15 border border-white/20
                 text-sm font-semibold text-white hover:border-white/40 transition-all backdrop-blur-sm"
             >
               <SlidersHorizontal size={16} />
@@ -577,7 +577,7 @@ export default function PlansPage() {
         <div className="flex gap-8">
 
           {/* ---- DESKTOP SIDEBAR FILTERS ---- */}
-          <aside className="hidden md:block w-[260px] shrink-0">
+          <aside className="hidden lg:block w-[260px] shrink-0">
             <div className="sticky top-24 space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="font-heading font-bold text-sm text-[#213E53]">
@@ -702,7 +702,7 @@ export default function PlansPage() {
                     <button
                       onClick={() => goToPage(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-[#213E53]/70
+                      className="w-11 h-11 rounded-xl flex items-center justify-center text-[#213E53]/70
                         hover:bg-surface-alt transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       <ChevronLeft size={18} className="rtl:rotate-180" />
@@ -724,14 +724,14 @@ export default function PlansPage() {
                       }, [])
                       .map((item, i) =>
                         item === '...' ? (
-                          <span key={`dot-${i}`} className="w-10 h-10 flex items-center justify-center text-[#213E53]/50 text-sm">
+                          <span key={`dot-${i}`} className="w-11 h-11 flex items-center justify-center text-[#213E53]/50 text-sm">
                             ...
                           </span>
                         ) : (
                           <button
                             key={item}
                             onClick={() => goToPage(item as number)}
-                            className={`w-10 h-10 rounded-xl text-sm font-bold transition-all
+                            className={`w-11 h-11 rounded-xl text-sm font-bold transition-all
                               ${currentPage === item
                                 ? 'bg-[#1FA9FF] text-white shadow-md shadow-[#1FA9FF]/20'
                                 : 'text-[#213E53]/70 hover:bg-surface-alt'
@@ -745,7 +745,7 @@ export default function PlansPage() {
                     <button
                       onClick={() => goToPage(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-[#213E53]/70
+                      className="w-11 h-11 rounded-xl flex items-center justify-center text-[#213E53]/70
                         hover:bg-surface-alt transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       <ChevronRight size={18} className="rtl:rotate-180" />

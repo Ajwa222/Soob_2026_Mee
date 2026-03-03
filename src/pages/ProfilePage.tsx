@@ -147,7 +147,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Form */}
-            <div className="px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10"
+            <div className="px-4 sm:px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10"
               style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}>
               <form onSubmit={handlePhoneSubmit}
                 className="bg-surface rounded-2xl border border-border/60 p-6 shadow-sm md:bg-transparent md:border-0 md:shadow-none md:p-0">
@@ -237,7 +237,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Actions */}
-            <div className="px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10"
+            <div className="px-4 sm:px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10"
               style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}>
               <div className="bg-surface rounded-2xl border border-border/60 p-5 shadow-sm space-y-3
                 md:bg-surface-alt md:border-border/40">

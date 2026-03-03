@@ -85,7 +85,7 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
         {/* ---- Price ---- */}
         <div className="plan-price mt-3 flex items-baseline gap-1">
           <SarSymbol className="text-sm font-medium text-text-secondary" />
-          <span className="text-3xl font-heading font-bold text-text-primary">
+          <span className="text-2xl sm:text-3xl font-heading font-bold text-text-primary">
             {plan.priceSAR}
           </span>
           <span className="text-sm text-text-tertiary">{t('planCard.perMonth')}</span>
@@ -98,30 +98,30 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
         <div className="grid grid-cols-3 gap-2 text-sm">
           <div className="flex flex-col items-center gap-1 py-2 px-1 rounded-lg bg-surface-alt/70">
             <Wifi size={14} className="text-primary" />
-            <p className="font-bold text-text-primary text-[12px] leading-tight text-center">
+            <p className="font-bold text-text-primary text-[13px] leading-tight text-center">
               {isValidValue(plan.dataGB)
                 ? (plan.dataGB === 'Unlimited' ? t('detail.unlimited') : `${plan.dataGB} GB`)
                 : '—'}
             </p>
-            <p className="text-[11px] text-text-tertiary">{t('planCard.data')}</p>
+            <p className="text-[12px] text-text-tertiary">{t('planCard.data')}</p>
           </div>
           <div className="flex flex-col items-center gap-1 py-2 px-1 rounded-lg bg-surface-alt/70">
             <Phone size={14} className="text-primary" />
-            <p className="font-bold text-text-primary text-[12px] leading-tight text-center">
+            <p className="font-bold text-text-primary text-[13px] leading-tight text-center">
               {isValidValue(plan.localCallMinutes)
                 ? (plan.localCallMinutes === 'Unlimited' ? t('detail.unlimited') : `${plan.localCallMinutes}`)
                 : '—'}
             </p>
-            <p className="text-[11px] text-text-tertiary">{t('planCard.mins')}</p>
+            <p className="text-[12px] text-text-tertiary">{t('planCard.mins')}</p>
           </div>
           <div className="flex flex-col items-center gap-1 py-2 px-1 rounded-lg bg-surface-alt/70">
             <MessageSquare size={14} className="text-primary" />
-            <p className="font-bold text-text-primary text-[12px] leading-tight text-center">
+            <p className="font-bold text-text-primary text-[13px] leading-tight text-center">
               {isValidValue(plan.sms) && plan.sms !== '-'
                 ? (plan.sms === 'Unlimited' ? t('detail.unlimited') : plan.sms)
                 : '—'}
             </p>
-            <p className="text-[11px] text-text-tertiary">{t('planCard.sms')}</p>
+            <p className="text-[12px] text-text-tertiary">{t('planCard.sms')}</p>
           </div>
         </div>
 
@@ -144,14 +144,14 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
         <div className="flex items-center gap-2.5 mt-4">
           <Link
             to={`/plan/${plan.id}`}
-            className="flex-1 text-center py-2.5 px-4 rounded-xl text-sm font-bold
-              bg-surface-alt text-text-primary hover:bg-border transition-colors duration-150 btn-press"
+            className="flex-1 text-center py-3 px-4 rounded-xl text-sm font-bold min-h-11
+              bg-surface-alt text-text-primary hover:bg-border transition-colors duration-150 btn-press flex items-center justify-center"
           >
             {t('planCard.viewDetails')}
           </Link>
           <button
             onClick={(e) => { e.preventDefault(); togglePlan(plan); }}
-            className={`flex items-center gap-1.5 py-2.5 px-4 rounded-xl text-sm font-bold transition-all duration-200 btn-press
+            className={`flex items-center gap-1.5 py-3 px-4 rounded-xl text-sm font-bold min-h-11 transition-all duration-200 btn-press
               ${selected
                 ? 'bg-primary text-white shadow-md shadow-primary/20'
                 : 'bg-primary/10 text-primary hover:bg-primary/20'

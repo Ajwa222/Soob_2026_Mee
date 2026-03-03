@@ -99,7 +99,7 @@ export default function Navigation() {
                     </span>
                   </div>
                 )}
-                <span className="text-text-primary">{user?.name || user?.phone}</span>
+                <span className="text-text-primary truncate max-w-30">{user?.name || user?.phone}</span>
               </Link>
             ) : (
               <Link
@@ -126,7 +126,7 @@ export default function Navigation() {
                 key={item.path}
                 to={item.path}
                 onClick={(e) => handleNav(e, item.path)}
-                className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-200"
+                className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all duration-200 min-h-11 justify-center"
                 style={active ? { backgroundColor: 'color-mix(in srgb, var(--color-primary) 8%, transparent)' } : {}}
               >
                 <Icon
@@ -145,7 +145,7 @@ export default function Navigation() {
 
       {/* Mobile Top Bar */}
       <div className="md:hidden sticky top-0 z-50 bg-surface border-b border-border/60">
-        <div className="flex items-center justify-between px-5 h-[60px]">
+        <div className="flex items-center justify-between px-3 sm:px-5 h-[60px]">
           <Link to="/" className="flex items-center gap-2">
             <img
               src="/icon-512.png"
