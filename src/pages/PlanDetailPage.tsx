@@ -86,7 +86,7 @@ export default function PlanDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-5 md:px-8">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 md:px-8">
 
         {/* ========= PLAN HEADER ========= */}
         <div className="pt-6 pb-5" style={{ animation: 'fadeUp 0.4s ease-out both' }}>
@@ -125,7 +125,7 @@ export default function PlanDetailPage() {
           {/* Price */}
           <div className="mt-4 flex items-baseline gap-1.5">
             <SarSymbol className="text-base text-text-secondary" />
-            <span className="text-4xl md:text-5xl font-heading font-bold text-text-primary">
+            <span className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold text-text-primary">
               {plan.priceSAR}
             </span>
             <span className="text-base text-text-tertiary">/{t('compare.perMonth')}</span>

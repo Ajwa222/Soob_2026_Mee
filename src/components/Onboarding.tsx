@@ -9,8 +9,8 @@ import { CARRIERS } from '../data/plans';
 function SceneCarriers() {
   return (
     <div
-      className="w-52 h-28 rounded-2xl bg-surface shadow-lg border border-border/50 p-3
-        grid grid-cols-4 grid-rows-2 gap-2"
+      className="w-52 h-28 md:w-72 md:h-40 rounded-2xl bg-surface shadow-lg border border-border/50 p-3 md:p-4
+        grid grid-cols-4 grid-rows-2 gap-2 md:gap-3"
       style={{ animation: 'scaleIn 0.4s ease-out both' }}
     >
       {CARRIERS.map((c, i) => (
@@ -21,7 +21,7 @@ function SceneCarriers() {
             animation: `scaleIn 0.35s cubic-bezier(0.34,1.56,0.64,1) ${0.2 + i * 0.06}s both`,
           }}
         >
-          <img src={c.logo} alt={c.name} className="w-6 h-6 object-contain" />
+          <img src={c.logo} alt={c.name} className="w-6 h-6 md:w-8 md:h-8 object-contain" />
         </div>
       ))}
     </div>
@@ -39,12 +39,12 @@ function SceneMatch() {
             key={i}
             className={`rounded-2xl bg-surface border flex flex-col items-center p-3 gap-2 ${
               best
-                ? 'w-[76px] h-40 border-primary shadow-md'
-                : 'w-16 h-28 border-border/50 opacity-35'
+                ? 'w-[76px] h-40 md:w-24 md:h-48 border-primary shadow-md'
+                : 'w-16 h-28 md:w-20 md:h-36 border-border/50 opacity-35'
             }`}
             style={{ animation: `fadeUp 0.4s ease-out ${0.15 + i * 0.1}s both` }}
           >
-            <div className={`w-8 h-8 rounded-lg shrink-0 ${best ? 'bg-primary/10' : 'bg-surface-alt'}`} />
+            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg shrink-0 ${best ? 'bg-primary/10' : 'bg-surface-alt'}`} />
             <div className="w-full h-1.5 rounded-full bg-surface-alt" />
             <div className="w-2/3 h-1.5 rounded-full bg-surface-alt" />
             {best && (
@@ -67,19 +67,20 @@ function SceneTrust() {
   return (
     <div className="flex flex-col items-center gap-3">
       <div
-        className="w-20 h-20 rounded-2xl bg-primary/8 flex items-center justify-center"
+        className="w-20 h-20 md:w-28 md:h-28 rounded-2xl bg-primary/8 flex items-center justify-center"
         style={{ animation: 'scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.15s both' }}
       >
-        <ShieldCheck size={36} className="text-primary" strokeWidth={1.8} />
+        <ShieldCheck size={36} className="text-primary md:hidden" strokeWidth={1.8} />
+        <ShieldCheck size={48} className="text-primary hidden md:block" strokeWidth={1.8} />
       </div>
       <div className="flex items-center gap-2 mt-1">
         {CARRIERS.slice(0, 4).map((c, i) => (
           <div
             key={c.name}
-            className="w-8 h-8 rounded-lg bg-surface border border-border/50 flex items-center justify-center"
+            className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-surface border border-border/50 flex items-center justify-center"
             style={{ animation: `fadeUp 0.3s ease-out ${0.4 + i * 0.08}s both` }}
           >
-            <img src={c.logo} alt={c.name} className="w-5 h-5 object-contain" />
+            <img src={c.logo} alt={c.name} className="w-5 h-5 md:w-6 md:h-6 object-contain" />
           </div>
         ))}
         <span
@@ -160,17 +161,17 @@ export default function Onboarding() {
         <img
           src="/icon-512.png"
           alt="Simba"
-          className="w-16 h-16 mb-5 shadow-lg shadow-black/15"
+          className="w-16 h-16 md:w-20 md:h-20 mb-5 shadow-lg shadow-black/15"
           style={{ borderRadius: '25%', animation: 'scaleIn 0.4s ease-out both' }}
         />
         <h1
-          className="font-heading font-bold text-[26px] text-white text-center leading-tight mb-1"
+          className="font-heading font-bold text-[26px] md:text-[34px] text-white text-center leading-tight mb-1"
           style={{ animation: 'fadeUp 0.4s ease-out 0.08s both' }}
         >
           Welcome to Simba
         </h1>
         <p
-          className="text-[18px] text-white/80 text-center mb-6 font-semibold"
+          className="text-[18px] md:text-[22px] text-white/80 text-center mb-6 font-semibold"
           style={{ animation: 'fadeUp 0.4s ease-out 0.12s both' }}
         >
           حياك في سيمبا
@@ -187,7 +188,7 @@ export default function Onboarding() {
         >
           اختر لغتك المفضلة
         </p>
-        <div className="flex gap-3 w-full max-w-xs" style={{ animation: 'fadeUp 0.4s ease-out 0.2s both' }}>
+        <div className="flex gap-3 w-full max-w-xs md:max-w-sm" style={{ animation: 'fadeUp 0.4s ease-out 0.2s both' }}>
           <button
             onClick={() => chooseLang('en')}
             className="flex-1 py-4 rounded-xl border-2 border-white bg-white text-base font-bold text-[#213E53]
@@ -223,13 +224,13 @@ export default function Onboarding() {
       <div className="flex-1 flex flex-col items-center justify-center px-6" key={page}>
         <div className="mb-10">{current.scene}</div>
         <h2
-          className="font-heading font-bold text-[22px] text-white text-center leading-tight max-w-xs"
+          className="font-heading font-bold text-[22px] md:text-[30px] text-white text-center leading-tight max-w-xs md:max-w-md"
           style={{ animation: 'fadeUp 0.4s ease-out 0.1s both' }}
         >
           {current.title}
         </h2>
         <p
-          className="mt-2.5 text-[15px] text-white/70 text-center max-w-xs leading-relaxed"
+          className="mt-2.5 text-[15px] md:text-[17px] text-white/70 text-center max-w-xs md:max-w-md leading-relaxed"
           style={{ animation: 'fadeUp 0.4s ease-out 0.2s both' }}
         >
           {current.sub}
@@ -255,7 +256,7 @@ export default function Onboarding() {
 
         <button
           onClick={isLast ? complete : () => setPage((p) => p + 1)}
-          className={`h-12 rounded-xl font-bold text-[15px] transition-all duration-200 active:scale-[0.98] ${
+          className={`h-12 md:h-14 rounded-xl font-bold text-[15px] md:text-[17px] transition-all duration-200 active:scale-[0.98] ${
             isLast
               ? 'px-7 bg-white text-[#213E53] shadow-md shadow-black/10'
               : 'w-12 bg-white text-[#213E53] shadow-md shadow-black/10 flex items-center justify-center hover:bg-white/90'

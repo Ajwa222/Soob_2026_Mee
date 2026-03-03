@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Globe } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -6,8 +6,10 @@ import { useAuth } from '../context/AuthContext';
 export default function Footer() {
   const { toggleLang, t, lang } = useLang();
   const { hasAccount } = useAuth();
+  const location = useLocation();
 
   if (!hasAccount) return null;
+  if (location.pathname === '/finder') return null;
 
   return (
     <footer className="relative z-10 bg-[#0F0F1A] text-white -mt-10">

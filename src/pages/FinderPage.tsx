@@ -587,7 +587,7 @@ export default function FinderPage() {
         >
           {/* Yes / Sometimes / No questions (steps 0-3) */}
           {!isBudgetStep && (
-            <div className="grid grid-cols-3 gap-2.5 md:gap-4 max-w-[480px] mx-auto">
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 md:gap-4 max-w-[480px] mx-auto">
               {answerOptions.map(option => {
                 const Icon = option.icon;
                 const isSelected = answers[STEPS[step]] === option.key;
@@ -639,10 +639,10 @@ export default function FinderPage() {
                   value={answers.budget}
                   onChange={(e) => setAnswer('budget', Number(e.target.value))}
                   className="w-full h-2 rounded-full appearance-none cursor-pointer
-                    [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6
+                    [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:h-7
                     [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg
                     [&::-webkit-slider-thumb]:shadow-black/20 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
-                    [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full
+                    [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:rounded-full
                     [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white"
                   dir="ltr"
                   style={{
@@ -663,7 +663,7 @@ export default function FinderPage() {
                   <button
                     key={val}
                     onClick={() => setAnswer('budget', val)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all btn-press
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all btn-press
                       ${answers.budget === val
                         ? 'bg-white text-[#213E53] shadow-sm shadow-black/10'
                         : 'bg-white/15 text-white hover:bg-white/25 border border-white/20'

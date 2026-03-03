@@ -62,7 +62,7 @@ export default function CompareOverlay() {
         role="dialog"
         aria-modal="true"
         aria-label="Compare plans"
-        className="relative h-full sm:h-auto sm:max-h-[90vh] sm:my-8 sm:mx-auto sm:max-w-lg sm:rounded-2xl
+        className="relative h-full sm:h-auto sm:max-h-[90vh] sm:my-8 sm:mx-auto sm:max-w-xl md:max-w-2xl sm:rounded-2xl
           bg-bg flex flex-col overflow-hidden"
         style={{ animation: 'slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}
       >
@@ -100,7 +100,7 @@ export default function CompareOverlay() {
                     <X size={10} className="text-error" />
                   </button>
                   {logo && <img src={logo} alt={plan.provider} className="h-5 w-auto object-contain" />}
-                  <p className="text-[11px] font-semibold text-text-primary text-center leading-tight line-clamp-2 px-1">
+                  <p className="text-[12px] sm:text-[13px] font-semibold text-text-primary text-center leading-tight line-clamp-2 px-1">
                     {plan.planName}
                   </p>
                   <p className="font-heading font-bold text-base leading-none" style={{ color }}>
@@ -162,7 +162,7 @@ export default function CompareOverlay() {
                   <Link
                     to={`/plan/${plan.id}`}
                     onClick={() => setShowOverlay(false)}
-                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-white text-[13px] font-bold
+                    className="flex items-center justify-center gap-1.5 py-3 rounded-xl text-white text-[13px] font-bold min-h-11
                       bg-gradient-to-r from-primary to-primary-dark hover:shadow-lg hover:shadow-primary/25
                       active:scale-[0.97] transition-all"
                   >

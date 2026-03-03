@@ -8,7 +8,8 @@
       "Bash(npx tsc -b)",
       "Bash(npm run build)",
       "Bash(npx tsc -b --noEmit)",
-      "Bash(npx vite build)"
+      "Bash(npx vite build)",
+      "WebFetch(domain:kevinhufnagl.com)"
     ]
   }
 }
