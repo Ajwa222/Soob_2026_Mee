@@ -408,6 +408,16 @@ export default function FinderPage() {
                     {t('finder.resultsSubtitle')}
                   </p>
                 </div>
+                {isLoggedIn && (
+                  <button
+                    onClick={restart}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs md:text-sm font-bold
+                      bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all btn-press"
+                  >
+                    <RotateCcw size={14} />
+                    {t('finder.startOver')}
+                  </button>
+                )}
               </div>
             </div>
           </section>
@@ -453,20 +463,6 @@ export default function FinderPage() {
                   >
                     {t('finder.blurCta')}
                   </button>
-                  <div className="flex items-center justify-center gap-4 mt-4">
-                    <Link
-                      to="/plans"
-                      className="text-xs font-semibold text-text-secondary hover:text-primary transition-colors"
-                    >
-                      {t('nav.plans')}
-                    </Link>
-                    <button
-                      onClick={restart}
-                      className="text-xs font-semibold text-text-secondary hover:text-primary transition-colors"
-                    >
-                      {t('finder.startOver')}
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -526,25 +522,6 @@ export default function FinderPage() {
                 </div>
               )}
 
-              {recommendations.length > 0 && (
-                <div className="flex items-center justify-center gap-4 mt-8">
-                  <button
-                    onClick={restart}
-                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold
-                      bg-primary/10 text-primary hover:bg-primary/20 transition-colors btn-press"
-                  >
-                    <RotateCcw size={14} />
-                    {t('finder.startOver')}
-                  </button>
-                  <Link
-                    to="/plans"
-                    className="inline-flex items-center gap-1.5 text-xs md:text-sm font-semibold text-text-secondary hover:text-primary transition-colors"
-                  >
-                    {t('finder.notRight')}
-                    <ChevronRight size={14} className="rtl:rotate-180" />
-                  </Link>
-                </div>
-              )}
             </>
           )}
         </div>
@@ -555,6 +532,14 @@ export default function FinderPage() {
   // --- Wizard view ---
   return (
     <div className={`relative z-10 safe-pb flex flex-col min-h-[calc(100dvh-60px)] md:min-h-[calc(100dvh-72px)] transition-[backdrop-filter] duration-500 ${step === 3 ? 'backdrop-blur-lg' : ''}`}>
+      {/* Decorative dark swirls for white text contrast */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute top-[15%] left-[10%] w-72 h-72 bg-black/35 rounded-full blur-3xl" />
+        <div className="absolute top-[40%] right-[5%] w-96 h-96 bg-black/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-[20%] left-[30%] w-64 h-64 bg-black/25 rounded-full blur-2xl" />
+        <div className="absolute top-[65%] left-[5%] w-56 h-56 bg-black/20 rounded-full blur-3xl" />
+        <div className="absolute top-[10%] right-[25%] w-48 h-48 bg-black/25 rounded-full blur-2xl" />
+      </div>
       {/* Progress header — compact */}
       <section>
         <div className="max-w-[800px] mx-auto px-4 md:px-8 pt-5 pb-4">
