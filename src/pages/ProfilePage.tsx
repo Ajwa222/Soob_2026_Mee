@@ -261,9 +261,6 @@ export default function ProfilePage() {
                 </button>
               </div>
 
-              <p className="text-center text-xs text-text-tertiary mt-4">
-                {t('profile.demoNotice')}
-              </p>
             </div>
           </div>
         </div>

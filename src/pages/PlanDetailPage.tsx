@@ -181,7 +181,7 @@ export default function PlanDetailPage() {
 
         {/* ========= ACTION BUTTONS ========= */}
         <div
-          className="mt-5 flex flex-col gap-3"
+          className="mt-5 pb-12 flex flex-col gap-3"
           style={{ animation: 'fadeUp 0.4s ease-out 0.2s both' }}
         >
           <a
@@ -208,9 +208,6 @@ export default function PlanDetailPage() {
             {selected ? t('planCard.selected') : t('detail.addToCompare')}
           </button>
 
-          <p className="text-[11px] text-text-tertiary text-center leading-relaxed mt-1">
-            {t('detail.disclaimer')}
-          </p>
         </div>
       </div>
 
