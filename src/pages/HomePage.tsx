@@ -82,9 +82,6 @@ export default function HomePage() {
       {/* ===================== CARRIER STRIP ===================== */}
       <div className="relative mt-4 border-t border-b border-border/60">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-3 flex flex-col items-center gap-2">
-          <span className="relative z-10 text-[10px] text-[#213E53]/50 font-medium">
-            {t('home.weCompare')}
-          </span>
           <div className="overflow-hidden w-full max-w-xl">
             <div
               className="flex items-center gap-6 md:gap-10 w-max"

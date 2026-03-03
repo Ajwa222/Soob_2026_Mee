@@ -527,10 +527,18 @@ export default function FinderPage() {
               )}
 
               {recommendations.length > 0 && (
-                <div className="text-center mt-8">
+                <div className="flex items-center justify-center gap-4 mt-8">
+                  <button
+                    onClick={restart}
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold
+                      bg-primary/10 text-primary hover:bg-primary/20 transition-colors btn-press"
+                  >
+                    <RotateCcw size={14} />
+                    {t('finder.startOver')}
+                  </button>
                   <Link
                     to="/plans"
-                    className="inline-flex items-center gap-1.5 text-xs md:text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+                    className="inline-flex items-center gap-1.5 text-xs md:text-sm font-semibold text-text-secondary hover:text-primary transition-colors"
                   >
                     {t('finder.notRight')}
                     <ChevronRight size={14} className="rtl:rotate-180" />
