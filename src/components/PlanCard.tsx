@@ -1,9 +1,10 @@
-import React from 'react';
-import { Wifi, Phone, MessageSquare, Plus, Check } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Wifi, Phone, MessageSquare, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import SarSymbol from './SarSymbol';
 import { useCompare } from '../context/CompareContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
+import { fetchReaction, fetchComments } from '../lib/planInteractions';
 import { Link } from 'react-router-dom';
 import type { Plan } from '../types';
 
@@ -20,6 +21,14 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
   const carrierColor = getCarrierColor(plan.provider);
   const carrierLogo = getCarrierLogo(plan.provider);
   const badge = typeBadgeStyles[plan.planType] || typeBadgeStyles['Prepaid'];
+  const [likes, setLikes] = useState(0);
+  const [dislikes, setDislikes] = useState(0);
+  const [commentCount, setCommentCount] = useState(0);
+
+  useEffect(() => {
+    fetchReaction(plan.id).then(r => { setLikes(r.likes); setDislikes(r.dislikes); }).catch(() => {});
+    fetchComments(plan.id).then(c => setCommentCount(c.length)).catch(() => {});
+  }, [plan.id]);
 
   const perks = [];
   if (isValidValue(plan.socialMediaData) && plan.socialMediaData !== '1') {
@@ -135,6 +144,22 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
               {perk}
             </span>
           ))}
+        </div>
+
+        {/* ---- Like & comment counts ---- */}
+        <div className="flex items-center gap-3 mt-2 text-text-tertiary">
+          <div className="flex items-center gap-1">
+            <ThumbsUp size={12} />
+            <span className="text-[11px] font-medium">{likes}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <ThumbsDown size={12} />
+            <span className="text-[11px] font-medium">{dislikes}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <MessageCircle size={12} />
+            <span className="text-[11px] font-medium">{commentCount}</span>
+          </div>
         </div>
 
         {/* ---- Spacer to push actions to bottom ---- */}

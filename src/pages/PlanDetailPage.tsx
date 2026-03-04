@@ -1,13 +1,16 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ChevronRight, ChevronLeft, ExternalLink, Plus, Check,
   Wifi, Phone, MessageSquare, Globe2, Share2, Clock,
   Zap, ArrowLeft, ArrowRight, Plane,
+  ThumbsUp, ThumbsDown, Send, Trash2, MessageCircle, LogIn,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import SarSymbol from '../components/SarSymbol';
 import { useCompare } from '../context/CompareContext';
+import { usePlanInteractions } from '../hooks/usePlanInteractions';
 import {
   PLANS_DATA, getCarrierLogo, isValidValue,
 } from '../data/plans';
@@ -18,13 +21,31 @@ const typeBadgeStyles: Record<string, { bg: string; color: string }> = {
   'Data-only': { bg: '#64748B12', color: '#64748B' },
 };
 
+function timeAgo(ts: number, t: (k: string, p?: Record<string, string>) => string): string {
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return t('interactions.justNow');
+  if (mins < 60) return t('interactions.minutesAgo', { n: String(mins) });
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return t('interactions.hoursAgo', { n: String(hrs) });
+  const days = Math.floor(hrs / 24);
+  return t('interactions.daysAgo', { n: String(days) });
+}
+
 export default function PlanDetailPage() {
   const { id } = useParams();
   const { t, lang } = useLang();
   const { togglePlan, isSelected } = useCompare();
+  const { user, isLoggedIn, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const [commentText, setCommentText] = useState('');
 
-  const plan = useMemo(() => PLANS_DATA.find(p => p.id === Number(id)), [id]);
+  const planId = useMemo(() => Number(id), [id]);
+  const plan = useMemo(() => PLANS_DATA.find(p => p.id === planId), [planId]);
+  const {
+    reaction, comments, loading: interactionsLoading,
+    toggleLike, toggleDislike, addComment, removeComment,
+  } = usePlanInteractions(plan ? planId : undefined);
 
   if (!plan) {
     return (
@@ -209,6 +230,139 @@ export default function PlanDetailPage() {
           </button>
 
         </div>
+
+        {/* ========= LIKE / DISLIKE ========= */}
+        <div
+          className="bg-surface rounded-2xl border border-border/60 p-5"
+          style={{ animation: 'fadeUp 0.4s ease-out 0.25s both' }}
+        >
+          <div className="flex items-center gap-3">
+            <button
+              onClick={isLoggedIn ? toggleLike : loginWithGoogle}
+              className={`flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold transition-all duration-200 btn-press
+                ${user && reaction.likedBy.includes(user.uid)
+                  ? 'bg-green-500/15 text-green-600 ring-1 ring-green-500/30'
+                  : 'bg-surface-alt text-text-secondary hover:bg-green-500/10 hover:text-green-600'
+                }`}
+            >
+              <ThumbsUp size={16} />
+              <span>{reaction.likes}</span>
+            </button>
+            <button
+              onClick={isLoggedIn ? toggleDislike : loginWithGoogle}
+              className={`flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold transition-all duration-200 btn-press
+                ${user && reaction.dislikedBy.includes(user.uid)
+                  ? 'bg-red-500/15 text-red-500 ring-1 ring-red-500/30'
+                  : 'bg-surface-alt text-text-secondary hover:bg-red-500/10 hover:text-red-500'
+                }`}
+            >
+              <ThumbsDown size={16} />
+              <span>{reaction.dislikes}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ========= COMMENTS ========= */}
+        <div
+          className="bg-surface rounded-2xl border border-border/60 overflow-hidden mt-4"
+          style={{ animation: 'fadeUp 0.4s ease-out 0.3s both' }}
+        >
+          {/* Header */}
+          <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2">
+            <MessageCircle size={18} className="text-primary" />
+            <h2 className="font-bold text-text-primary text-sm">
+              {t('interactions.comments')}
+              {comments.length > 0 && (
+                <span className="ms-1.5 text-text-tertiary font-normal">({comments.length})</span>
+              )}
+            </h2>
+          </div>
+
+          {/* Comment Input */}
+          {isLoggedIn ? (
+            <div className="px-5 py-4 border-b border-border/40 flex items-center gap-3">
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full shrink-0 object-cover" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <span className="text-xs font-bold text-primary">{user?.name?.[0] ?? '?'}</span>
+                </div>
+              )}
+              <input
+                type="text"
+                value={commentText}
+                onChange={e => setCommentText(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && commentText.trim()) {
+                    addComment(commentText);
+                    setCommentText('');
+                  }
+                }}
+                placeholder={t('interactions.commentPlaceholder')}
+                className="flex-1 bg-surface-alt rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:ring-2 focus:ring-primary/30 border border-border/50"
+                maxLength={500}
+              />
+              <button
+                onClick={() => {
+                  if (commentText.trim()) {
+                    addComment(commentText);
+                    setCommentText('');
+                  }
+                }}
+                disabled={!commentText.trim()}
+                className="p-2.5 rounded-xl bg-primary text-white disabled:opacity-40 transition-opacity btn-press shrink-0"
+              >
+                <Send size={16} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={loginWithGoogle}
+              className="w-full px-5 py-4 border-b border-border/40 flex items-center justify-center gap-2 text-sm text-primary font-medium hover:bg-primary/5 transition-colors"
+            >
+              <LogIn size={16} />
+              {t('interactions.signInToInteract')}
+            </button>
+          )}
+
+          {/* Comments List */}
+          <div className="divide-y divide-border/30">
+            {comments.length === 0 && !interactionsLoading && (
+              <p className="px-5 py-8 text-center text-sm text-text-tertiary">
+                {t('interactions.noComments')}
+              </p>
+            )}
+            {comments.map(comment => (
+              <div key={comment.id} className="px-5 py-4 flex gap-3">
+                {comment.userPhoto ? (
+                  <img src={comment.userPhoto} alt="" className="w-8 h-8 rounded-full shrink-0 object-cover mt-0.5" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-primary">{comment.userName?.[0] ?? '?'}</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-text-primary truncate">{comment.userName}</span>
+                    <span className="text-[11px] text-text-tertiary shrink-0">{timeAgo(comment.createdAt, t)}</span>
+                  </div>
+                  <p className="text-sm text-text-secondary mt-1 break-words">{comment.text}</p>
+                </div>
+                {user?.uid === comment.userId && (
+                  <button
+                    onClick={() => removeComment(comment.id)}
+                    className="p-1.5 rounded-lg text-text-tertiary hover:text-red-500 hover:bg-red-500/10 transition-colors shrink-0 self-start"
+                    title={t('interactions.deleteComment')}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="pb-12" />
       </div>
 
     </div>
