@@ -379,6 +379,14 @@ export default function FinderPage() {
                 <p className="text-text-secondary text-sm md:text-base max-w-md leading-relaxed">
                   {t('finder.allNoDesc')}
                 </p>
+                <button
+                  onClick={restart}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 mt-4 rounded-xl text-xs md:text-sm font-bold
+                    bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border border-amber-500/20 transition-all btn-press"
+                >
+                  <RotateCcw size={14} />
+                  {t('finder.startOver')}
+                </button>
               </div>
 
             </div>
