@@ -8,8 +8,8 @@ import { useLang } from '../context/LanguageContext';
 const FAQ_DATA = [
   {
     q: "What is Simba?", qAr: "وش هي سيمبا؟",
-    a: "Simba is Saudi Arabia's smartest telecom comparison platform. We compare 155+ plans from all 8 licensed carriers — STC, Mobily, Zain, Virgin Mobile, Jawwy, Lebara, Yaqoot, and Salam. We're 100% free, independent, and we never sell SIMs.",
-    aAr: "سيمبا أذكى منصة مقارنة اتصالات بالسعودية. نقارن أكثر من 155 باقة من 8 شركات مرخصة. مجانية 100% ومستقلة وما نبيع شرائح.",
+    a: "Simba is Saudi Arabia's smartest telecom comparison platform. We compare 150+ plans from all 8 licensed carriers — STC, Mobily, Zain, Virgin Mobile, Jawwy, Lebara, Yaqoot, and Salam. We're 100% free, independent, and we never sell SIMs.",
+    aAr: "سيمبا أذكى منصة مقارنة اتصالات بالسعودية. نقارن أكثر من 150+ باقة من 8 شركات مرخصة. مجانية 100% ومستقلة وما نبيع شرائح.",
   },
   {
     q: "Does Simba sell SIM cards?", qAr: "سيمبا تبيع شرائح؟",
@@ -80,8 +80,8 @@ const INTENTS = [
   {
     id: 'browse_plans',
     keywords: ['browse', 'all plans', 'show plans', 'list', 'الباقات', 'تصفح', 'كل الباقات', 'عرض'],
-    en: "We have **155+ plans** from all 8 Saudi carriers. Browse, filter, and sort to find exactly what you need!",
-    ar: "عندنا **أكثر من 155 باقة** من 8 شركات. تصفح، فلتر، ورتب عشان تلقى اللي يناسبك!",
+    en: "We have **150+ plans** from all 8 Saudi carriers. Browse, filter, and sort to find exactly what you need!",
+    ar: "عندنا **أكثر من 150+ باقة** من 8 شركات. تصفح، فلتر، ورتب عشان تلقى اللي يناسبك!",
     nav: { path: '/plans', en: 'Browse All Plans', ar: 'تصفح كل الباقات' },
   },
   {
@@ -94,8 +94,8 @@ const INTENTS = [
   {
     id: 'what_is_simba',
     keywords: ['what is simba', 'about simba', 'who are you', 'what do you do', 'وش سيمبا', 'عن سيمبا', 'من انتم', 'وش تسوون'],
-    en: "Simba is Saudi Arabia's smartest telecom comparison platform. We compare **155+ plans** from all 8 licensed carriers. We're 100% free, independent, and we **never sell SIMs** — we redirect you to the carrier's official website.",
-    ar: "سيمبا أذكى منصة مقارنة اتصالات بالسعودية. نقارن **أكثر من 155 باقة** من 8 شركات. مجانية 100% ومستقلة و**ما نبيع شرائح** — نحوّلك لموقع الشركة الرسمي.",
+    en: "Simba is Saudi Arabia's smartest telecom comparison platform. We compare **150+ plans** from all 8 licensed carriers. We're 100% free, independent, and we **never sell SIMs** — we redirect you to the carrier's official website.",
+    ar: "سيمبا أذكى منصة مقارنة اتصالات بالسعودية. نقارن **أكثر من 150+ باقة** من 8 شركات. مجانية 100% ومستقلة و**ما نبيع شرائح** — نحوّلك لموقع الشركة الرسمي.",
     nav: { path: '/about', en: 'Learn More', ar: 'اعرف أكثر' },
   },
   {

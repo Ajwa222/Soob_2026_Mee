@@ -65,7 +65,7 @@ export default function HomePage() {
             >
               <div className="flex items-center gap-4 mb-3">
                 {[
-                  { value: `${PLANS_DATA.length}+`, label: t('stats.plans') },
+                  { value: '150+', label: t('stats.plans') },
                   { value: '8', label: t('stats.carriers') },
                 ].map((stat, i) => (
                   <div key={i} className="flex items-center gap-1.5">

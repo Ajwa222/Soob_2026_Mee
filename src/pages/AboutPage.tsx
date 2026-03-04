@@ -9,7 +9,7 @@ export default function AboutPage() {
   const { t } = useLang();
 
   const stats = [
-    { icon: Target, value: `${PLANS_DATA.length}+`, label: t('about.statPlans') },
+    { icon: Target, value: '150+', label: t('about.statPlans') },
     { icon: Users, value: '8', label: t('about.statCarriers') },
     { icon: Award, value: '100%', label: t('about.statFree') },
   ];

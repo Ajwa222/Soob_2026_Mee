@@ -115,7 +115,7 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className={`md:hidden fixed bottom-0 inset-x-0 z-50 glass border-t border-border/60${location.pathname === '/finder' ? ' hidden' : ''}`}
+      <nav className={`md:hidden fixed bottom-0 inset-x-0 z-[200] glass border-t border-border/60${location.pathname === '/finder' ? ' hidden' : ''}`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div className="flex items-center justify-around h-[68px] px-3">
           {mobileNavItems.map(item => {
@@ -144,7 +144,7 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Top Bar */}
-      <div className="md:hidden sticky top-0 z-50 bg-surface border-b border-border/60">
+      <div className="md:hidden sticky top-0 z-[200] bg-surface border-b border-border/60">
         <div className="flex items-center justify-between px-3 sm:px-5 h-[60px]">
           <Link to="/" className="flex items-center gap-2">
             <img
