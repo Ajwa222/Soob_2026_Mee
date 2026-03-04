@@ -23,3 +23,19 @@ export interface SimbaUser {
   provider: 'google';
   phone: string | null;
 }
+
+export interface PlanReaction {
+  likes: number;
+  dislikes: number;
+  likedBy: string[];
+  dislikedBy: string[];
+}
+
+export interface PlanComment {
+  id: string;
+  userId: string;
+  userName: string;
+  userPhoto: string | null;
+  text: string;
+  createdAt: number; // milliseconds timestamp
+}
