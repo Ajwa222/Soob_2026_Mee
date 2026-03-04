@@ -28,12 +28,16 @@ export default function FinderModal({ show, onDismiss }: { show: boolean; onDism
         style={{ animation: 'fadeIn 0.2s ease-out both' }}
       />
       <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onClick={onDismiss}
+      >
+      <div
         role="dialog"
         aria-modal="true"
         aria-label="Plan Finder suggestion"
-        className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-95 mx-4
-          bg-surface rounded-2xl shadow-2xl border border-border/60 p-4 sm:p-6 text-center"
+        className="w-full max-w-sm bg-surface rounded-2xl shadow-2xl border border-border/60 p-4 sm:p-6 text-center"
         style={{ animation: 'scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="w-12 h-12 rounded-xl bg-[#1FA9FF]/10 flex items-center justify-center mx-auto mb-4">
           <Sparkles size={22} className="text-[#1FA9FF]" />
@@ -61,6 +65,7 @@ export default function FinderModal({ show, onDismiss }: { show: boolean; onDism
             {t('finderModal.dismiss')}
           </button>
         </div>
+      </div>
       </div>
     </>
   );
