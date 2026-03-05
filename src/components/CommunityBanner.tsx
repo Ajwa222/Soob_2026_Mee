@@ -39,10 +39,10 @@ export default function CommunityBanner() {
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 text-white/90 text-[11px] font-medium mb-2.5">
               <Users size={11} />
-              {isArabic ? 'مجتمع سمبا' : 'Community'}
+              {isArabic ? 'مجتمع سيمبا' : 'Community'}
             </div>
             <h2 className="font-heading font-bold text-lg md:text-2xl text-white leading-tight">
-              {isArabic ? 'انضم لمجتمع سمبا' : 'Join the Simba Community'}
+              {isArabic ? 'انضم لمجتمع سيمبا' : 'Join the Simba Community'}
             </h2>
             <p className="mt-1 text-white/70 text-sm max-w-sm leading-relaxed">
               {isArabic
