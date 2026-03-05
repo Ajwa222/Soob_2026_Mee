@@ -328,7 +328,7 @@ export default function FinderPage() {
             <button
               onClick={() => { trackEvent('finder_started'); setStarted(true); }}
               className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold
-                bg-[#1FA9FF] text-white hover:bg-[#1890e0] hover:shadow-lg shadow-md shadow-[#1FA9FF]/25
+                bg-primary text-white hover:bg-primary-dark hover:shadow-lg shadow-md shadow-primary/25
                 active:scale-[0.98] transition-all btn-press"
             >
               {t('finder.introStart')}

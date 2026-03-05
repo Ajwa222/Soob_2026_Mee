@@ -19,19 +19,23 @@ export default function ProfilePage() {
 
   const navTo = useNavigate();
 
-  const redirectAfterLogin = () => {
+  const redirectAfterLogin = (signup: boolean) => {
     if (localStorage.getItem('simba-finder-pending')) {
       navTo('/finder?reveal=1');
-    } else {
+    } else if (signup) {
       navTo('/finder');
+    } else {
+      navTo('/home');
     }
   };
 
   // Handle post-redirect navigation (when signInWithRedirect was used as fallback)
   useEffect(() => {
     if (isLoggedIn && !needsPhone && localStorage.getItem('simba-auth-redirect') === 'pending') {
+      const wasSignUp = localStorage.getItem('simba-auth-flow') === 'signup';
       localStorage.removeItem('simba-auth-redirect');
-      redirectAfterLogin();
+      localStorage.removeItem('simba-auth-flow');
+      redirectAfterLogin(wasSignUp);
     }
   }, [isLoggedIn, needsPhone]);
 
@@ -40,9 +44,12 @@ export default function ProfilePage() {
     setError('');
     setSigningIn(true);
     try {
+      const wasSignUp = isSignUp;
+      localStorage.setItem('simba-auth-flow', wasSignUp ? 'signup' : 'signin');
       await loginWithGoogle();
-      trackEvent(isSignUp ? 'signup' : 'login', { method: 'google' });
-      redirectAfterLogin();
+      trackEvent(wasSignUp ? 'signup' : 'login', { method: 'google' });
+      localStorage.removeItem('simba-auth-flow');
+      redirectAfterLogin(wasSignUp);
     } catch (err: unknown) {
       if (import.meta.env.DEV) console.error('Google sign-in failed:', err);
       const code = (err as { code?: string })?.code;

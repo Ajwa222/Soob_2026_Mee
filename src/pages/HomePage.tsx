@@ -42,7 +42,7 @@ export default function HomePage() {
                 onClick={() => trackEvent('homepage_cta_clicked', { cta: 'finder' })}
                 className="inline-flex items-center justify-center gap-2 px-6 h-[48px] rounded-xl
                   text-white font-bold text-[15px]
-                  shadow-md shadow-[#1FA9FF]/20 hover:shadow-lg hover:shadow-[#1FA9FF]/30
+                  shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30
                   active:scale-[0.98] transition-all duration-200"
                 style={{ background: 'linear-gradient(135deg, #1FA9FF 0%, #6dcbca 100%)' }}
               >
@@ -53,7 +53,7 @@ export default function HomePage() {
                 to="/plans"
                 onClick={() => trackEvent('homepage_cta_clicked', { cta: 'browse_plans' })}
                 className="inline-flex items-center justify-center gap-2 px-6 h-[48px] rounded-xl
-                  bg-white text-[#213E53] font-semibold text-[15px]
+                  bg-white text-text-primary font-semibold text-[15px]
                   hover:bg-white/90
                   active:scale-[0.98] transition-all duration-200"
               >
@@ -83,7 +83,7 @@ export default function HomePage() {
       </section>
 
       {/* Everything below hero: positioned above gradient canvas (z-0) */}
-      <div style={{ position: 'relative', zIndex: 1, backgroundColor: '#FAFAF9' }}>
+      <div style={{ position: 'relative', zIndex: 1 }} className="bg-bg">
 
         {/* ===================== CARRIER STRIP ===================== */}
         <div className="border-t border-b border-border/60 overflow-hidden">
@@ -108,16 +108,16 @@ export default function HomePage() {
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-10 md:pt-16 pb-10 md:pb-14">
           <div className="flex items-end justify-between mb-5 md:mb-7">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#1FA9FF]">
+              <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-primary">
                 {t('home.popularNow')}
               </span>
-              <h2 className="font-heading font-bold text-[20px] md:text-[28px] text-[#213E53] mt-1">
+              <h2 className="font-heading font-bold text-[20px] md:text-[28px] text-text-primary mt-1">
                 {t('trending.title')}
               </h2>
             </div>
             <Link
               to="/plans"
-              className="flex items-center gap-1 text-sm font-bold text-[#1FA9FF] hover:text-[#1890e0] transition-colors"
+              className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary-dark transition-colors"
             >
               {t('trending.seeAll')}
               <ChevronRight size={16} className="rtl:rotate-180" />
@@ -151,13 +151,13 @@ export default function HomePage() {
                 <h2 className="font-heading font-bold text-lg md:text-2xl text-white leading-tight">
                   {t('finderCta.title')}
                 </h2>
-                <p className="mt-1 text-white/50 text-sm max-w-sm leading-relaxed">
+                <p className="mt-1 text-white/70 text-sm max-w-sm leading-relaxed">
                   {t('finderCta.subtitle')}
                 </p>
               </div>
               <div className="shrink-0 w-11 h-11 rounded-xl bg-white flex items-center justify-center
                 shadow-lg group-hover:scale-105 transition-transform duration-200">
-                <ArrowRight size={18} className="text-[#1FA9FF] rtl:rotate-180" />
+                <ArrowRight size={18} className="text-primary rtl:rotate-180" />
               </div>
             </div>
           </Link>

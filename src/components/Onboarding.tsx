@@ -195,14 +195,14 @@ export default function Onboarding() {
         <div className="flex gap-3 w-full max-w-xs md:max-w-sm" style={{ animation: 'fadeUp 0.4s ease-out 0.2s both' }}>
           <button
             onClick={() => chooseLang('en')}
-            className="flex-1 py-4 rounded-xl border-2 border-white bg-white text-base font-bold text-[#213E53]
+            className="flex-1 py-4 rounded-xl border-2 border-white bg-white text-base font-bold text-text-primary
               hover:bg-white/90 shadow-md shadow-black/10 transition-all active:scale-[0.98]"
           >
             English
           </button>
           <button
             onClick={() => chooseLang('ar')}
-            className="flex-1 py-4 rounded-xl border-2 border-white bg-white text-base font-bold text-[#213E53]
+            className="flex-1 py-4 rounded-xl border-2 border-white bg-white text-base font-bold text-text-primary
               hover:bg-white/90 shadow-md shadow-black/10 transition-all active:scale-[0.98]"
           >
             العربية
@@ -262,8 +262,8 @@ export default function Onboarding() {
           onClick={isLast ? complete : () => setPage((p) => p + 1)}
           className={`h-12 md:h-14 rounded-xl font-bold text-[15px] md:text-[17px] transition-all duration-200 active:scale-[0.98] ${
             isLast
-              ? 'px-7 bg-white text-[#213E53] shadow-md shadow-black/10'
-              : 'w-12 bg-white text-[#213E53] shadow-md shadow-black/10 flex items-center justify-center hover:bg-white/90'
+              ? 'px-7 bg-white text-text-primary shadow-md shadow-black/10'
+              : 'w-12 bg-white text-text-primary shadow-md shadow-black/10 flex items-center justify-center hover:bg-white/90'
           }`}
         >
           {isLast

@@ -37,7 +37,6 @@ export default function PhoneGate() {
     try {
       await updatePhone(cleaned);
       trackEvent('phone_saved');
-      // Redirect to finder (restore pending results if any)
       if (localStorage.getItem('simba-finder-pending')) {
         navigate('/finder?reveal=1');
       } else {

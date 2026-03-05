@@ -248,7 +248,7 @@ export default function PlansPage() {
     <>
       {/* Carrier filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-[#213E53]/70 mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
           {t('browse.allCarriers')}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -260,8 +260,8 @@ export default function PlansPage() {
                 onClick={() => toggleCarrier(carrier.name)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 btn-press
                   ${active
-                    ? 'bg-[#1FA9FF]/10 text-[#1FA9FF] ring-1 ring-[#1FA9FF]/30'
-                    : 'bg-surface-alt text-[#213E53]/70 hover:bg-border'
+                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
+                    : 'bg-surface-alt text-text-secondary hover:bg-border'
                   }`}
               >
                 <img src={carrier.logo} alt={carrier.name} className="h-4 w-auto object-contain" />
@@ -274,7 +274,7 @@ export default function PlansPage() {
 
       {/* Type filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-[#213E53]/70 mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
           {t('browse.allTypes')}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -288,7 +288,7 @@ export default function PlansPage() {
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 btn-press
                   ${active
                     ? 'ring-1'
-                    : 'bg-surface-alt text-[#213E53]/70 hover:bg-border'
+                    : 'bg-surface-alt text-text-secondary hover:bg-border'
                   }`}
                 style={active ? { backgroundColor: tc.bg, color: tc.active, '--tw-ring-color': tc.ring } as React.CSSProperties : {}}
               >
@@ -301,7 +301,7 @@ export default function PlansPage() {
 
       {/* Price range — dual-thumb slider */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-[#213E53]/70 mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
           {t('browse.priceRange')}
         </p>
         <div className="relative h-6">
@@ -360,7 +360,7 @@ export default function PlansPage() {
             style={{ zIndex: 4 }}
           />
         </div>
-        <div className="flex justify-between mt-2 text-xs text-[#213E53]/70 font-medium">
+        <div className="flex justify-between mt-2 text-xs text-text-secondary font-medium">
           <span>SAR {priceRange[0]}</span>
           <span>SAR {priceRange[1] >= PRICE_MAX ? `${PRICE_MAX}+` : priceRange[1]}</span>
         </div>
@@ -368,7 +368,7 @@ export default function PlansPage() {
 
       {/* Data filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-[#213E53]/70 mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
           {t('browse.dataRange')}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -380,8 +380,8 @@ export default function PlansPage() {
                 onClick={() => setDataFilter(opt.key)}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 btn-press
                   ${active
-                    ? 'bg-[#1FA9FF]/10 text-[#1FA9FF] ring-1 ring-[#1FA9FF]/30'
-                    : 'bg-surface-alt text-[#213E53]/70 hover:bg-border'
+                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
+                    : 'bg-surface-alt text-text-secondary hover:bg-border'
                   }`}
               >
                 {opt.label}
@@ -393,7 +393,7 @@ export default function PlansPage() {
 
       {/* Local calls filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-[#213E53]/70 mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
           {t('browse.localCalls')}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -405,8 +405,8 @@ export default function PlansPage() {
                 onClick={() => setLocalCallsFilter(opt.key)}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 btn-press
                   ${active
-                    ? 'bg-[#1FA9FF]/10 text-[#1FA9FF] ring-1 ring-[#1FA9FF]/30'
-                    : 'bg-surface-alt text-[#213E53]/70 hover:bg-border'
+                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
+                    : 'bg-surface-alt text-text-secondary hover:bg-border'
                   }`}
               >
                 {opt.label}
@@ -418,7 +418,7 @@ export default function PlansPage() {
 
       {/* International calls filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-[#213E53]/70 mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
           {t('browse.intlCalls')}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -430,8 +430,8 @@ export default function PlansPage() {
                 onClick={() => setIntlCallsFilter(opt.key)}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 btn-press
                   ${active
-                    ? 'bg-[#1FA9FF]/10 text-[#1FA9FF] ring-1 ring-[#1FA9FF]/30'
-                    : 'bg-surface-alt text-[#213E53]/70 hover:bg-border'
+                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
+                    : 'bg-surface-alt text-text-secondary hover:bg-border'
                   }`}
               >
                 {opt.label}
@@ -443,7 +443,7 @@ export default function PlansPage() {
 
       {/* Social media data filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-[#213E53]/70 mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
           {t('browse.socialMedia')}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -455,8 +455,8 @@ export default function PlansPage() {
                 onClick={() => setSocialFilter(opt.key)}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 btn-press
                   ${active
-                    ? 'bg-[#1FA9FF]/10 text-[#1FA9FF] ring-1 ring-[#1FA9FF]/30'
-                    : 'bg-surface-alt text-[#213E53]/70 hover:bg-border'
+                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
+                    : 'bg-surface-alt text-text-secondary hover:bg-border'
                   }`}
               >
                 {opt.label}
@@ -531,7 +531,7 @@ export default function PlansPage() {
 
                     {/* Title */}
                     <div className="px-5 pt-5 pb-3">
-                      <p className="font-heading font-bold text-base text-[#213E53]">
+                      <p className="font-heading font-bold text-base text-text-primary">
                         {t('browse.sortBy')}
                       </p>
                     </div>
@@ -544,8 +544,8 @@ export default function PlansPage() {
                           onClick={() => { setSortBy(opt.key); trackEvent('sort_changed', { sort: opt.key }); setShowSort(false); }}
                           className={`w-full text-start px-4 py-3 text-sm rounded-lg transition-colors mb-0.5
                             ${sortBy === opt.key
-                              ? 'text-[#1FA9FF] font-bold bg-[#1FA9FF]/10'
-                              : 'text-[#213E53] hover:bg-surface-alt'}`}
+                              ? 'text-primary font-bold bg-primary/10'
+                              : 'text-text-primary hover:bg-surface-alt'}`}
                         >
                           {t(opt.label)}
                         </button>
@@ -557,7 +557,7 @@ export default function PlansPage() {
                       <button
                         onClick={() => setShowSort(false)}
                         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl
-                          bg-surface-alt text-[#213E53]/70 text-sm font-semibold
+                          bg-surface-alt text-text-secondary text-sm font-semibold
                           hover:bg-border/40 active:scale-[0.98] transition-all"
                       >
                         <X size={16} />
@@ -578,7 +578,7 @@ export default function PlansPage() {
               <SlidersHorizontal size={16} />
               {t('browse.filters')}
               {hasActiveFilters && (
-                <span className="w-2 h-2 rounded-full bg-[#1FA9FF]" />
+                <span className="w-2 h-2 rounded-full bg-primary" />
               )}
             </button>
           </div>
@@ -594,13 +594,13 @@ export default function PlansPage() {
           <aside className="hidden lg:block w-[260px] shrink-0">
             <div className="sticky top-24 space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="font-heading font-bold text-sm text-[#213E53]">
+                <h3 className="font-heading font-bold text-sm text-text-primary">
                   {t('browse.filters')}
                 </h3>
                 {hasActiveFilters && (
                   <button
                     onClick={clearFilters}
-                    className="text-xs font-semibold text-[#1FA9FF] hover:text-[#1890e0] transition-colors"
+                    className="text-xs font-semibold text-primary hover:text-primary-dark transition-colors"
                   >
                     {t('browse.clearFilters')}
                   </button>
@@ -614,15 +614,15 @@ export default function PlansPage() {
           <div className="flex-1 min-w-0">
             {/* Results count + active filter chips */}
             <div className="flex items-center justify-between mb-5">
-              <p className="text-sm text-[#213E53]/70 font-medium">
+              <p className="text-sm text-text-secondary font-medium">
                 {t('browse.showing')}{' '}
-                <span className="font-bold text-[#213E53]">
+                <span className="font-bold text-text-primary">
                   {filteredPlans.length > 0
                     ? `${(currentPage - 1) * PLANS_PER_PAGE + 1}–${Math.min(currentPage * PLANS_PER_PAGE, filteredPlans.length)}`
                     : '0'}
                 </span>{' '}
                 {t('browse.of')}{' '}
-                <span className="font-bold text-[#213E53]">{filteredPlans.length}</span>{' '}
+                <span className="font-bold text-text-primary">{filteredPlans.length}</span>{' '}
                 {t('browse.plans')}
               </p>
             </div>
@@ -633,10 +633,10 @@ export default function PlansPage() {
                 {selectedCarriers.map(c => (
                   <span
                     key={c}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1FA9FF]/8 text-[#1FA9FF] text-xs font-semibold"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 text-primary text-xs font-semibold"
                   >
                     {c}
-                    <button onClick={() => toggleCarrier(c)} className="hover:text-[#1890e0]">
+                    <button onClick={() => toggleCarrier(c)} className="hover:text-primary-dark">
                       <X size={12} />
                     </button>
                   </span>
@@ -665,7 +665,7 @@ export default function PlansPage() {
                   </span>
                 )}
                 {(priceRange[0] > 0 || priceRange[1] < PRICE_MAX) && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1FA9FF]/8 text-[#1FA9FF] text-xs font-semibold">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 text-primary text-xs font-semibold">
                     SAR {priceRange[0]}–{priceRange[1] >= PRICE_MAX ? `${PRICE_MAX}+` : priceRange[1]}
                     <button onClick={() => setPriceRange([0, PRICE_MAX])}>
                       <X size={12} />
@@ -689,7 +689,7 @@ export default function PlansPage() {
                   </span>
                 )}
                 {socialFilter !== 'any' && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1FA9FF]/8 text-[#1FA9FF] text-xs font-semibold">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 text-primary text-xs font-semibold">
                     {socialOptions.find(o => o.key === socialFilter)?.label}
                     <button onClick={() => setSocialFilter('any')}>
                       <X size={12} />
@@ -716,7 +716,7 @@ export default function PlansPage() {
                     <button
                       onClick={() => goToPage(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="w-11 h-11 rounded-xl flex items-center justify-center text-[#213E53]/70
+                      className="w-11 h-11 rounded-xl flex items-center justify-center text-text-secondary
                         hover:bg-surface-alt transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       <ChevronLeft size={18} className="rtl:rotate-180" />
@@ -738,7 +738,7 @@ export default function PlansPage() {
                       }, [])
                       .map((item, i) =>
                         item === '...' ? (
-                          <span key={`dot-${i}`} className="w-11 h-11 flex items-center justify-center text-[#213E53]/50 text-sm">
+                          <span key={`dot-${i}`} className="w-11 h-11 flex items-center justify-center text-text-tertiary text-sm">
                             ...
                           </span>
                         ) : (
@@ -747,8 +747,8 @@ export default function PlansPage() {
                             onClick={() => goToPage(item as number)}
                             className={`w-11 h-11 rounded-xl text-sm font-bold transition-all
                               ${currentPage === item
-                                ? 'bg-[#1FA9FF] text-white shadow-md shadow-[#1FA9FF]/20'
-                                : 'text-[#213E53]/70 hover:bg-surface-alt'
+                                ? 'bg-primary text-white shadow-md shadow-primary/20'
+                                : 'text-text-secondary hover:bg-surface-alt'
                               }`}
                           >
                             {item}
@@ -759,7 +759,7 @@ export default function PlansPage() {
                     <button
                       onClick={() => goToPage(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="w-11 h-11 rounded-xl flex items-center justify-center text-[#213E53]/70
+                      className="w-11 h-11 rounded-xl flex items-center justify-center text-text-secondary
                         hover:bg-surface-alt transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       <ChevronRight size={18} className="rtl:rotate-180" />
@@ -771,18 +771,18 @@ export default function PlansPage() {
               /* Empty state */
               <div className="text-center py-20">
                 <div className="w-16 h-16 rounded-2xl bg-surface-alt flex items-center justify-center mx-auto mb-4">
-                  <Search size={28} className="text-[#213E53]/50" />
+                  <Search size={28} className="text-text-tertiary" />
                 </div>
-                <h3 className="font-heading font-bold text-xl text-[#213E53]">
+                <h3 className="font-heading font-bold text-xl text-text-primary">
                   {t('browse.noResults')}
                 </h3>
-                <p className="text-[#213E53]/70 mt-2 text-sm max-w-sm mx-auto">
+                <p className="text-text-secondary mt-2 text-sm max-w-sm mx-auto">
                   {t('browse.noResultsDesc')}
                 </p>
                 <button
                   onClick={clearFilters}
-                  className="mt-5 px-6 py-2.5 rounded-xl bg-[#1FA9FF]/10 text-[#1FA9FF] font-bold text-sm
-                    hover:bg-[#1FA9FF]/20 transition-colors btn-press"
+                  className="mt-5 px-6 py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-sm
+                    hover:bg-primary/20 transition-colors btn-press"
                 >
                   {t('browse.clearFilters')}
                 </button>
@@ -812,7 +812,7 @@ export default function PlansPage() {
             </p>
             <Link
               to="/finder"
-              className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-white text-[#1FA9FF]
+              className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-white text-primary
                 font-bold text-sm hover:bg-white/95 hover:shadow-lg
                 transition-all duration-200 btn-press shadow-md"
             >
@@ -840,14 +840,14 @@ export default function PlansPage() {
             style={{ animation: 'slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
           >
             <div className="sticky top-0 bg-surface z-10 px-6 pt-4 pb-3 border-b border-border flex items-center justify-between">
-              <h3 className="font-heading font-bold text-lg text-[#213E53]">
+              <h3 className="font-heading font-bold text-lg text-text-primary">
                 {t('browse.filters')}
               </h3>
               <div className="flex items-center gap-3">
                 {hasActiveFilters && (
                   <button
                     onClick={clearFilters}
-                    className="text-xs font-semibold text-[#1FA9FF]"
+                    className="text-xs font-semibold text-primary"
                   >
                     {t('browse.clearFilters')}
                   </button>
@@ -856,7 +856,7 @@ export default function PlansPage() {
                   onClick={() => setShowMobileFilters(false)}
                   className="w-8 h-8 rounded-lg bg-surface-alt flex items-center justify-center"
                 >
-                  <X size={18} className="text-[#213E53]/70" />
+                  <X size={18} className="text-text-secondary" />
                 </button>
               </div>
             </div>
