@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react';
 import {
-  User, Phone,
+  User,
   LogOut, /* MessageCircle, */
 } from 'lucide-react';
-import { /* Link, */ useNavigate } from 'react-router-dom';
+import { /* Link, */ useNavigate, useSearchParams } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { trackEvent } from '../lib/analytics';
 
-const SAUDI_PHONE_REGEX = /^05\d{8}$/;
-
 export default function ProfilePage() {
   const { t, lang } = useLang();
-  const { user, isLoggedIn, needsPhone, loading, loginWithGoogle, updatePhone, logout } = useAuth();
-  const [phoneInput, setPhoneInput] = useState('');
+  const { user, isLoggedIn, needsPhone, loading, loginWithGoogle, logout } = useAuth();
   const [error, setError] = useState('');
   const [signingIn, setSigningIn] = useState(false);
+  const [searchParams] = useSearchParams();
+  // simba-has-account is only set after a successful login, not after onboarding
+  const isSignUp = !localStorage.getItem('simba-has-account') || searchParams.get('tab') === 'signup';
 
   const navTo = useNavigate();
 
@@ -65,121 +65,11 @@ export default function ProfilePage() {
     }
   };
 
-  const handlePhoneSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    const cleaned = phoneInput.replace(/\s/g, '');
-    if (!SAUDI_PHONE_REGEX.test(cleaned)) {
-      setError(lang === 'ar' ? 'ادخل رقم جوال سعودي صحيح (05XXXXXXXX)' : 'Enter a valid Saudi phone number (05XXXXXXXX)');
-      return;
-    }
-    try {
-      await updatePhone(cleaned);
-      trackEvent('phone_saved');
-      redirectAfterLogin();
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('Phone update failed:', err);
-      setError(lang === 'ar' ? 'فشل حفظ الرقم. حاول مرة ثانية.' : 'Failed to save phone number. Please try again.');
-    }
-  };
-
   // ───────── Loading (prevents flash during redirect auth) ─────────
   if (loading) {
     return (
       <div className="relative z-10 safe-pb flex items-center justify-center min-h-[calc(100dvh-72px)]">
         <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  // ───────── Phone number prompt (Google users) ─────────
-  if (isLoggedIn && needsPhone) {
-    return (
-      <div className="relative z-10 safe-pb flex flex-col md:min-h-[calc(100dvh-72px)]">
-        {/* ── Mobile: gradient header ── */}
-        <div className="md:hidden relative flex items-center justify-center pt-24 pb-10">
-          <div className="max-w-[480px] w-full mx-auto px-6 text-center"
-            style={{ animation: 'fadeUp 0.5s ease-out both' }}>
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 shadow-lg shadow-black/10" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm
-                flex items-center justify-center mx-auto mb-4 shadow-lg shadow-black/10">
-                <span className="text-2xl font-bold text-white">
-                  {(user?.name || '?')[0].toUpperCase()}
-                </span>
-              </div>
-            )}
-            <h1 className="font-heading font-bold text-2xl text-white">
-              {t('profile.almostDone')}
-            </h1>
-            <p className="text-white/70 mt-1 text-sm">
-              {t('profile.phonePrompt')}
-            </p>
-          </div>
-        </div>
-
-        {/* ── Content area (card on desktop, white section on mobile) ── */}
-        <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl
-          md:flex md:flex-1 md:items-center md:justify-center md:bg-transparent md:rounded-none md:py-12 md:px-8">
-          <div className="max-w-[480px] md:max-w-[520px] w-full mx-auto
-            md:bg-surface md:rounded-3xl md:shadow-xl md:border md:border-border/60">
-
-            {/* Desktop header (hidden on mobile) */}
-            <div className="hidden md:block text-center px-10 pt-10 pb-2"
-              style={{ animation: 'fadeUp 0.5s ease-out both' }}>
-              {user?.photoURL ? (
-                <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 shadow-md shadow-black/5" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-primary/10
-                  flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl font-bold text-primary">
-                    {(user?.name || '?')[0].toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <h1 className="font-heading font-bold text-3xl text-text-primary">
-                {t('profile.almostDone')}
-              </h1>
-              <p className="text-text-secondary mt-2 text-sm">
-                {t('profile.phonePrompt')}
-              </p>
-            </div>
-
-            {/* Form */}
-            <div className="px-4 sm:px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10"
-              style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}>
-              <form onSubmit={handlePhoneSubmit}
-                className="bg-surface rounded-2xl border border-border/60 p-6 shadow-sm md:bg-transparent md:border-0 md:shadow-none md:p-0">
-                <div className="mb-5">
-                  <label className="block text-xs font-bold text-text-secondary mb-2">
-                    {t('profile.phone')}
-                  </label>
-                  <div className="relative">
-                    <Phone size={16} className="absolute top-1/2 -translate-y-1/2 start-4 text-text-tertiary" />
-                    <input
-                      type="tel"
-                      value={phoneInput}
-                      onChange={(e) => setPhoneInput(e.target.value)}
-                      placeholder={t('profile.phonePlaceholder')}
-                      dir="ltr"
-                      className="w-full ps-11 pe-4 py-3 rounded-xl bg-surface-alt border border-border text-sm text-text-primary
-                        placeholder:text-text-tertiary outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                  </div>
-                </div>
-                {error && (
-                  <p className="text-xs font-semibold text-error mb-3">{error}</p>
-                )}
-                <button type="submit"
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-bold text-sm
-                    hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 btn-press">
-                  {t('profile.savePhone')}
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
       </div>
     );
   }
@@ -279,10 +169,10 @@ export default function ProfilePage() {
             <User size={28} className="text-white" />
           </div>
           <h1 className="font-heading font-bold text-2xl text-white">
-            {t('profile.title')}
+            {isSignUp ? t('profile.signUpTitle') : t('profile.title')}
           </h1>
           <p className="text-white/70 mt-1 text-sm">
-            {t('profile.subtitle')}
+            {isSignUp ? t('profile.signUpSubtitle') : t('profile.subtitle')}
           </p>
         </div>
       </div>
@@ -300,10 +190,10 @@ export default function ProfilePage() {
               <User size={28} className="text-primary" />
             </div>
             <h1 className="font-heading font-bold text-3xl text-text-primary">
-              {t('profile.title')}
+              {isSignUp ? t('profile.signUpTitle') : t('profile.title')}
             </h1>
             <p className="text-text-secondary mt-2 text-base leading-relaxed max-w-sm mx-auto">
-              {t('profile.subtitle')}
+              {isSignUp ? t('profile.signUpSubtitle') : t('profile.subtitle')}
             </p>
           </div>
 
@@ -331,7 +221,7 @@ export default function ProfilePage() {
               <span className="text-sm font-bold text-text-primary">
                 {signingIn
                   ? (lang === 'ar' ? 'جاري تسجيل الدخول...' : 'Signing in...')
-                  : t('profile.googleSignIn')}
+                  : isSignUp ? t('profile.googleSignUp') : t('profile.googleSignIn')}
               </span>
             </button>
 
