@@ -16,7 +16,7 @@ const LanguageContext = createContext<LangContextValue | null>(null);
 
 const translations: Record<string, Record<string, unknown>> = {
   en: {
-    nav: { home: "Home", plans: "Browse Plans", finder: "Plan Finder", help: "Help", speedTest: "Speed Test", profile: "Profile", signIn: "Sign In", signUp: "Sign Up", game: "Game", chat: "Meet People" },
+    nav: { home: "Home", plans: "Browse Plans", finder: "Plan Finder", help: "Help", speedTest: "Speed Test", profile: "Profile", signIn: "Sign In", signUp: "Sign Up", game: "Game", chat: "Meet People", support: "Support" },
     hero: {
       headline: "Find your perfect plan in seconds",
       subheadline: "Compare 150+ plans from all Saudi carriers.",
@@ -236,7 +236,7 @@ const translations: Record<string, Record<string, unknown>> = {
       name: "Full Name",
       namePlaceholder: "Enter your name",
       phone: "Phone Number",
-      phonePlaceholder: "05XXXXXXXX",
+      phonePlaceholder: "+1234567890",
       password: "Password",
       passwordPlaceholder: "Enter your password",
       signInBtn: "Sign In",
@@ -259,7 +259,7 @@ const translations: Record<string, Record<string, unknown>> = {
       signUpSubtitle: "Sign up to get personalized plan recommendations",
       or: "or",
       almostDone: "Almost done!",
-      phonePrompt: "Please enter your phone number to complete your profile",
+      phonePrompt: "Enter your phone number to complete your profile (optional)",
       savePhone: "Save & Continue",
     },
     about: {
@@ -499,7 +499,7 @@ const translations: Record<string, Record<string, unknown>> = {
     types: { Prepaid: "Prepaid", Postpaid: "Postpaid", "Data-only": "Data-only" },
   },
   ar: {
-    nav: { home: "الرئيسية", plans: "الباقات", finder: "المستشار", help: "المساعدة", speedTest: "فحص السرعة", profile: "حسابي", signIn: "دخول", signUp: "سجّل", game: "لعبة", chat: "تعرّف" },
+    nav: { home: "الرئيسية", plans: "الباقات", finder: "المستشار", help: "المساعدة", speedTest: "فحص السرعة", profile: "حسابي", signIn: "دخول", signUp: "سجّل", game: "لعبة", chat: "تعرّف", support: "الدعم" },
     hero: {
       headline: "اختار باقتك المثالية بثواني",
       subheadline: "قارن 150+ باقة من كل شركات الاتصالات بالسعودية.",
@@ -719,7 +719,7 @@ const translations: Record<string, Record<string, unknown>> = {
       name: "الاسم الكامل",
       namePlaceholder: "اكتب اسمك",
       phone: "رقم الجوال",
-      phonePlaceholder: "05XXXXXXXX",
+      phonePlaceholder: "+1234567890",
       password: "الرقم السري",
       passwordPlaceholder: "اكتب الرقم السري",
       signInBtn: "سجّل دخول",
@@ -742,7 +742,7 @@ const translations: Record<string, Record<string, unknown>> = {
       signUpSubtitle: "سجّل عشان تحصل على توصيات باقات تناسبك",
       or: "أو",
       almostDone: "تقريباً خلصنا!",
-      phonePrompt: "ادخل رقم جوالك عشان نكمّل حسابك",
+      phonePrompt: "ادخل رقم جوالك عشان نكمّل حسابك (اختياري)",
       savePhone: "حفظ ومتابعة",
     },
     about: {

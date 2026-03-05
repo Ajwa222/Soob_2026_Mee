@@ -102,7 +102,7 @@ export default function ProfilePage() {
             <h1 className="font-heading font-bold text-2xl text-white">
               {t('profile.welcome')}, {user?.name || user?.phone}!
             </h1>
-            {user?.phone && <p className="text-white/70 mt-1 text-sm" dir="ltr">{user.phone}</p>}
+            {user?.phone && user.phone !== 'skipped' && <p className="text-white/70 mt-1 text-sm" dir="ltr">{user.phone}</p>}
             {user?.email && <p className="text-white/70 mt-1 text-sm">{user.email}</p>}
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function ProfilePage() {
               <h1 className="font-heading font-bold text-3xl text-text-primary">
                 {t('profile.welcome')}, {user?.name || user?.phone}!
               </h1>
-              {user?.phone && <p className="text-text-secondary mt-1.5 text-sm" dir="ltr">{user.phone}</p>}
+              {user?.phone && user.phone !== 'skipped' && <p className="text-text-secondary mt-1.5 text-sm" dir="ltr">{user.phone}</p>}
               {user?.email && <p className="text-text-secondary mt-1 text-sm">{user.email}</p>}
             </div>
 
