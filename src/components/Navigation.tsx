@@ -38,7 +38,6 @@ export default function Navigation() {
     { path: '/home', label: t('nav.home'), icon: Home },
     { path: '/plans', label: t('nav.plans'), icon: Smartphone },
     { path: '/finder', label: t('nav.finder'), icon: Search },
-    { path: '/profile', label: t('nav.profile'), icon: User },
     { path: WHATSAPP_GROUP_LINK, label: t('nav.support'), icon: WhatsAppIcon, external: true },
   ];
 
@@ -96,32 +95,6 @@ export default function Navigation() {
               <WhatsAppIcon size={16} />
               {t('nav.support')}
             </a>
-            {isLoggedIn ? (
-              <Link
-                to="/profile"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold
-                  bg-surface-alt hover:bg-border transition-all duration-200 btn-press"
-              >
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt="" className="w-7 h-7 rounded-full" referrerPolicy="no-referrer" />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">
-                      {(user?.name || user?.phone || '?')[0].toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <span className="text-text-primary truncate max-w-30">{user?.name || user?.phone}</span>
-              </Link>
-            ) : (
-              <Link
-                to="/profile"
-                className="px-5 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-primary to-primary-dark text-white
-                  hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 btn-press"
-              >
-                {localStorage.getItem('simba-has-account') ? t('nav.signIn') : t('nav.signUp')}
-              </Link>
-            )}
           </div>
         </div>
       </nav>
@@ -188,32 +161,6 @@ export default function Navigation() {
               Simba
             </span>
           </Link>
-          <div className="flex items-center gap-1">
-            {isLoggedIn ? (
-              <Link
-                to="/profile"
-                className="flex items-center justify-center w-8 h-8 rounded-full
-                  bg-gradient-to-br from-primary to-primary-dark overflow-hidden"
-              >
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
-                ) : (
-                  <span className="text-[11px] font-bold text-white">
-                    {(user?.name || user?.phone || '?')[0].toUpperCase()}
-                  </span>
-                )}
-              </Link>
-            ) : (
-              <Link
-                to="/profile"
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold
-                  bg-gradient-to-r from-primary to-primary-dark text-white transition-colors duration-150"
-              >
-                <User size={13} />
-                {localStorage.getItem('simba-has-account') ? t('nav.signIn') : t('nav.signUp')}
-              </Link>
-            )}
-          </div>
         </div>
       </div>
     </>

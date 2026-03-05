@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
+import CommunityBanner from '../components/CommunityBanner';
 import { useLang } from '../context/LanguageContext';
 import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
 import PlanCard from '../components/PlanCard';
@@ -129,6 +130,11 @@ export default function HomePage() {
               <PlanCard key={plan.id} plan={plan} />
             ))}
           </div>
+        </div>
+
+        {/* ===================== COMMUNITY BANNER ===================== */}
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pb-10 md:pb-14">
+          <CommunityBanner />
         </div>
 
         {/* ===================== PLAN FINDER CTA ===================== */}
