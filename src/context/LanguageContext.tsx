@@ -16,7 +16,7 @@ const LanguageContext = createContext<LangContextValue | null>(null);
 
 const translations: Record<string, Record<string, unknown>> = {
   en: {
-    nav: { home: "Home", plans: "Browse Plans", finder: "Plan Finder", help: "Help", speedTest: "Speed Test", profile: "Profile", signIn: "Sign In", signUp: "Sign Up", game: "Game", chat: "Meet People" },
+    nav: { home: "Home", plans: "Browse Plans", finder: "Plan Finder", help: "Help", speedTest: "Speed Test", profile: "Profile", signIn: "Sign In", signUp: "Sign Up", game: "Game", chat: "Meet People", support: "Support" },
     hero: {
       headline: "Find your perfect plan in seconds",
       subheadline: "Compare 150+ plans from all Saudi carriers.",
@@ -499,7 +499,7 @@ const translations: Record<string, Record<string, unknown>> = {
     types: { Prepaid: "Prepaid", Postpaid: "Postpaid", "Data-only": "Data-only" },
   },
   ar: {
-    nav: { home: "الرئيسية", plans: "الباقات", finder: "المستشار", help: "المساعدة", speedTest: "فحص السرعة", profile: "حسابي", signIn: "دخول", signUp: "سجّل", game: "لعبة", chat: "تعرّف" },
+    nav: { home: "الرئيسية", plans: "الباقات", finder: "المستشار", help: "المساعدة", speedTest: "فحص السرعة", profile: "حسابي", signIn: "دخول", signUp: "سجّل", game: "لعبة", chat: "تعرّف", support: "الدعم" },
     hero: {
       headline: "اختار باقتك المثالية بثواني",
       subheadline: "قارن 150+ باقة من كل شركات الاتصالات بالسعودية.",
