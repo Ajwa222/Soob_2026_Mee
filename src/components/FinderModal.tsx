@@ -39,13 +39,13 @@ export default function FinderModal({ show, onDismiss }: { show: boolean; onDism
         style={{ animation: 'scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-12 h-12 rounded-xl bg-[#1FA9FF]/10 flex items-center justify-center mx-auto mb-4">
-          <Sparkles size={22} className="text-[#1FA9FF]" />
+        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <Sparkles size={22} className="text-primary" />
         </div>
-        <h3 className="font-heading font-bold text-lg text-[#213E53]">
+        <h3 className="font-heading font-bold text-lg text-text-primary">
           {t('finderModal.title')}
         </h3>
-        <p className="text-sm text-[#213E53]/70 mt-2 leading-relaxed">
+        <p className="text-sm text-text-secondary mt-2 leading-relaxed">
           {t('finderModal.desc')}
         </p>
         <div className="flex flex-col gap-2.5 mt-5">
@@ -59,7 +59,7 @@ export default function FinderModal({ show, onDismiss }: { show: boolean; onDism
           </button>
           <button
             onClick={onDismiss}
-            className="w-full py-3 rounded-xl bg-surface-alt text-[#213E53]/70 font-semibold text-sm
+            className="w-full py-3 rounded-xl bg-surface-alt text-text-secondary font-semibold text-sm
               hover:bg-border transition-colors btn-press"
           >
             {t('finderModal.dismiss')}

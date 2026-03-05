@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Smartphone, Search, /* Gamepad2, Users, */ User, /* Headphones */ } from 'lucide-react';
+import { Home, Smartphone, Search, /* Gamepad2, Users, */ User, /* Headphones */ Sun, Moon } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navigation() {
-  const { t } = useLang();
+  const { t, theme, toggleTheme } = useLang();
   const { user, isLoggedIn, hasAccount } = useAuth();
   const location = useLocation();
 
@@ -76,13 +76,12 @@ export default function Navigation() {
           {/* Right side */}
           <div className="flex items-center gap-1.5">
             {/* <button
-              onClick={() => window.dispatchEvent(new CustomEvent('simba-open-chat'))}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold
-                text-primary-light hover:text-white hover:bg-primary/20 transition-all duration-150 btn-press"
-              aria-label="Support"
+              onClick={toggleTheme}
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-text-secondary
+                hover:bg-surface-alt hover:text-text-primary transition-all duration-200"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              <Headphones size={15} />
-              {lang === 'ar' ? 'الدعم' : 'Support'}
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button> */}
             {isLoggedIn ? (
               <Link
@@ -162,13 +161,12 @@ export default function Navigation() {
           </Link>
           <div className="flex items-center gap-1">
             {/* <button
-              onClick={() => window.dispatchEvent(new CustomEvent('simba-open-chat'))}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold
-                bg-primary/10 text-primary-light hover:text-white hover:bg-primary/20 transition-colors duration-150"
-              aria-label="Support"
+              onClick={toggleTheme}
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-text-secondary
+                hover:bg-surface-alt hover:text-text-primary transition-all duration-200"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              <Headphones size={13} />
-              {lang === 'ar' ? 'دعم' : 'Help'}
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button> */}
             {isLoggedIn ? (
               <Link

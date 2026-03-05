@@ -41,8 +41,8 @@ export default class ErrorBoundary extends Component<Props, State> {
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-[#1FA9FF] text-white
-                hover:bg-[#1890e0] transition-colors"
+              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-primary text-white
+                hover:bg-primary-dark transition-colors"
             >
               {isAr ? 'إعادة التحميل' : 'Reload'}
             </button>

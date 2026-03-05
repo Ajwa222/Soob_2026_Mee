@@ -176,15 +176,15 @@ const translations: Record<string, Record<string, unknown>> = {
       labelRunner: "Runner Up",
       labelValue: "Great Value",
       qInternet: "Do you use the internet?",
-      qInternetSub: "Browsing, YouTube, Netflix, apps — anything online",
+      qInternetSub: "",
       qLocalCalls: "Do you make local calls?",
-      qLocalCallsSub: "Calling people inside Saudi Arabia",
+      qLocalCallsSub: "",
       qIntlCalls: "Do you call internationally?",
-      qIntlCallsSub: "Calling people outside Saudi Arabia",
+      qIntlCallsSub: "",
       qSocial: "Do you use social media?",
-      qSocialSub: "WhatsApp, TikTok, Instagram, Snapchat, X",
+      qSocialSub: "",
       qBudget: "What's your monthly budget?",
-      qBudgetSub: "Drag the slider or pick a shortcut",
+      qBudgetSub: "",
       sar: "SAR",
       ansYes: "Yes",
       ansSometimes: "Sometimes",
@@ -659,15 +659,15 @@ const translations: Record<string, Record<string, unknown>> = {
       labelRunner: "الوصيف",
       labelValue: "أفضل قيمة",
       qInternet: "تستخدم النت؟",
-      qInternetSub: "تصفح، يوتيوب، نتفلكس، تطبيقات — أي شي أونلاين",
+      qInternetSub: "",
       qLocalCalls: "تتصل محلي؟",
-      qLocalCallsSub: "مكالمات لأرقام داخل السعودية",
+      qLocalCallsSub: "",
       qIntlCalls: "تتصل دولي؟",
-      qIntlCallsSub: "مكالمات لأرقام برا السعودية",
+      qIntlCallsSub: "",
       qSocial: "تستخدم السوشل ميديا؟",
-      qSocialSub: "واتساب، تيك توك، انستقرام، سناب، اكس",
+      qSocialSub: "",
       qBudget: "كم ميزانيتك الشهرية؟",
-      qBudgetSub: "حرّك السلايدر أو اختر مبلغ",
+      qBudgetSub: "",
       sar: "ريال",
       ansYes: "نعم",
       ansSometimes: "أحياناً",
@@ -986,7 +986,12 @@ const translations: Record<string, Record<string, unknown>> = {
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(() => (localStorage.getItem('simba-lang') as Lang) || 'en');
 
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>(() => (localStorage.getItem('simba-theme') as Theme) || 'light');
+
+  const setTheme = useCallback((t: Theme) => {
+    localStorage.setItem('simba-theme', t);
+    setThemeState(t);
+  }, []);
 
   const toggleLang = useCallback(() => {
     setLang(prev => {
@@ -997,7 +1002,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+    setThemeState(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      localStorage.setItem('simba-theme', next);
+      return next;
+    });
   }, []);
 
   const t = useCallback((path: string, params?: Record<string, string>): string => {
@@ -1006,7 +1015,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     for (const key of keys) {
       result = (result as Record<string, unknown>)?.[key];
     }
-    if (!result) return path;
+    if (result === undefined || result === null) return path;
     if (params && typeof result === 'string') {
       return Object.entries(params).reduce(
         (str, [k, v]) => str.replace(`{${k}}`, v),

@@ -4,7 +4,7 @@ import { useLang } from '../context/LanguageContext';
 import SarSymbol from './SarSymbol';
 import { useCompare } from '../context/CompareContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
-import { fetchReaction, fetchComments } from '../lib/planInteractions';
+import { fetchReaction, fetchCommentCount } from '../lib/planInteractions';
 import { Link } from 'react-router-dom';
 import type { Plan } from '../types';
 
@@ -27,7 +27,7 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
 
   useEffect(() => {
     fetchReaction(plan.id).then(r => { setLikes(r.likes); setDislikes(r.dislikes); }).catch(() => {});
-    fetchComments(plan.id).then(c => setCommentCount(c.length)).catch(() => {});
+    fetchCommentCount(plan.id).then(c => setCommentCount(c)).catch(() => {});
   }, [plan.id]);
 
   const perks = [];

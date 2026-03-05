@@ -9,19 +9,56 @@ const COMMENTS_COL = 'planComments';
 
 const defaultReaction: PlanReaction = { likes: 0, dislikes: 0, likedBy: [], dislikedBy: [] };
 
+/* ── In-memory cache (TTL: 5 min) ── */
+const CACHE_TTL = 5 * 60 * 1000;
+
+interface CacheEntry<T> { data: T; ts: number; }
+
+const reactionCache = new Map<number, CacheEntry<PlanReaction>>();
+const commentCountCache = new Map<number, CacheEntry<number>>();
+
+function isFresh<T>(entry: CacheEntry<T> | undefined): entry is CacheEntry<T> {
+  return !!entry && Date.now() - entry.ts < CACHE_TTL;
+}
+
+export function invalidateReactionCache(planId: number) {
+  reactionCache.delete(planId);
+}
+
+export function invalidateCommentCache(planId: number) {
+  commentCountCache.delete(planId);
+}
+
 export async function fetchReaction(planId: number): Promise<PlanReaction> {
+  const cached = reactionCache.get(planId);
+  if (isFresh(cached)) return cached.data;
+
   const snap = await getDoc(doc(db, REACTIONS_COL, String(planId)));
-  if (!snap.exists()) return { ...defaultReaction };
-  const data = snap.data();
-  return {
-    likes: data.likes ?? 0,
-    dislikes: data.dislikes ?? 0,
-    likedBy: data.likedBy ?? [],
-    dislikedBy: data.dislikedBy ?? [],
-  };
+  const reaction: PlanReaction = !snap.exists()
+    ? { ...defaultReaction }
+    : {
+        likes: snap.data().likes ?? 0,
+        dislikes: snap.data().dislikes ?? 0,
+        likedBy: snap.data().likedBy ?? [],
+        dislikedBy: snap.data().dislikedBy ?? [],
+      };
+  reactionCache.set(planId, { data: reaction, ts: Date.now() });
+  return reaction;
+}
+
+export async function fetchCommentCount(planId: number): Promise<number> {
+  const cached = commentCountCache.get(planId);
+  if (isFresh(cached)) return cached.data;
+
+  const colRef = collection(db, COMMENTS_COL, String(planId), 'comments');
+  const snap = await getDocs(query(colRef));
+  const count = snap.size;
+  commentCountCache.set(planId, { data: count, ts: Date.now() });
+  return count;
 }
 
 export async function toggleLike(planId: number, userId: string): Promise<void> {
+  invalidateReactionCache(planId);
   const ref = doc(db, REACTIONS_COL, String(planId));
   const snap = await getDoc(ref);
 
@@ -52,6 +89,7 @@ export async function toggleLike(planId: number, userId: string): Promise<void> 
 }
 
 export async function toggleDislike(planId: number, userId: string): Promise<void> {
+  invalidateReactionCache(planId);
   const ref = doc(db, REACTIONS_COL, String(planId));
   const snap = await getDoc(ref);
 
@@ -92,6 +130,7 @@ export async function fetchComments(planId: number): Promise<PlanComment[]> {
 }
 
 export async function addComment(planId: number, user: SimbaUser, text: string): Promise<PlanComment> {
+  invalidateCommentCache(planId);
   const colRef = collection(db, COMMENTS_COL, String(planId), 'comments');
   const commentData = {
     userId: user.uid,
@@ -105,5 +144,6 @@ export async function addComment(planId: number, user: SimbaUser, text: string):
 }
 
 export async function deleteComment(planId: number, commentId: string): Promise<void> {
+  invalidateCommentCache(planId);
   await deleteDoc(doc(db, COMMENTS_COL, String(planId), 'comments', commentId));
 }
