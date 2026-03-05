@@ -304,7 +304,7 @@ export default function PlansPage() {
         <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
           {t('browse.priceRange')}
         </p>
-        <div className="relative h-6">
+        <div className="relative h-6" dir="ltr">
           {/* Track background */}
           <div className="absolute top-1/2 -translate-y-1/2 inset-x-0 h-1.5 rounded-full bg-border" />
           {/* Active track */}
@@ -854,23 +854,15 @@ export default function PlansPage() {
                 )}
                 <button
                   onClick={() => setShowMobileFilters(false)}
-                  className="w-8 h-8 rounded-lg bg-surface-alt flex items-center justify-center"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold btn-press"
+                  style={{ background: 'linear-gradient(135deg, #6ED7B4, #6DCBCA, #1FA9FF)' }}
                 >
-                  <X size={18} className="text-text-secondary" />
+                  {t('browse.showResults', { count: String(filteredPlans.length) })}
                 </button>
               </div>
             </div>
             <div className="p-6 space-y-6">
               {filterContent}
-            </div>
-            <div className="sticky bottom-0 bg-surface border-t border-border p-4">
-              <button
-                onClick={() => setShowMobileFilters(false)}
-                className="w-full py-3 rounded-xl text-white font-bold text-sm btn-press"
-                style={{ background: 'linear-gradient(135deg, #6ED7B4, #6DCBCA, #1FA9FF)' }}
-              >
-                {t('browse.showing')} {filteredPlans.length} {t('browse.plans')}
-              </button>
             </div>
           </div>
         </>
