@@ -5,6 +5,7 @@ import {
   fetchComments, addComment as fbAddComment, deleteComment as fbDeleteComment,
 } from '../lib/planInteractions';
 import type { PlanReaction, PlanComment } from '../types';
+import { trackEvent } from '../lib/analytics';
 
 const defaultReaction: PlanReaction = { likes: 0, dislikes: 0, likedBy: [], dislikedBy: [] };
 
@@ -38,6 +39,8 @@ export function usePlanInteractions(planId: number | undefined) {
     const wasLiked = reaction.likedBy.includes(uid);
     const wasDisliked = reaction.dislikedBy.includes(uid);
 
+    trackEvent(wasLiked ? 'plan_unliked' : 'plan_liked', { plan_id: planId });
+
     // Optimistic update
     setReaction(prev => ({
       likes: prev.likes + (wasLiked ? -1 : 1),
@@ -61,6 +64,8 @@ export function usePlanInteractions(planId: number | undefined) {
     const wasDisliked = reaction.dislikedBy.includes(uid);
     const wasLiked = reaction.likedBy.includes(uid);
 
+    trackEvent(wasDisliked ? 'plan_undisliked' : 'plan_disliked', { plan_id: planId });
+
     // Optimistic update
     setReaction(prev => ({
       dislikes: prev.dislikes + (wasDisliked ? -1 : 1),
@@ -82,11 +87,13 @@ export function usePlanInteractions(planId: number | undefined) {
     try {
       const comment = await fbAddComment(planId, user, text);
       setComments(prev => [comment, ...prev]);
+      trackEvent('comment_added', { plan_id: planId });
     } catch { /* silently fail */ }
   }, [user, planId]);
 
   const removeComment = useCallback(async (commentId: string) => {
     if (!planId) return;
+    trackEvent('comment_deleted', { plan_id: planId });
     setComments(prev => prev.filter(c => c.id !== commentId));
     try {
       await fbDeleteComment(planId, commentId);

@@ -5,6 +5,7 @@ import { useLang } from '../context/LanguageContext';
 import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
 import PlanCard from '../components/PlanCard';
 import FinderModal, { useFinderModal } from '../components/FinderModal';
+import { trackEvent } from '../lib/analytics';
 
 export default function HomePage() {
   const { t, lang } = useLang();
@@ -38,6 +39,7 @@ export default function HomePage() {
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Link
                 to="/finder"
+                onClick={() => trackEvent('homepage_cta_clicked', { cta: 'finder' })}
                 className="inline-flex items-center justify-center gap-2 px-6 h-[48px] rounded-xl
                   text-white font-bold text-[15px]
                   shadow-md shadow-[#1FA9FF]/20 hover:shadow-lg hover:shadow-[#1FA9FF]/30
@@ -49,6 +51,7 @@ export default function HomePage() {
               </Link>
               <Link
                 to="/plans"
+                onClick={() => trackEvent('homepage_cta_clicked', { cta: 'browse_plans' })}
                 className="inline-flex items-center justify-center gap-2 px-6 h-[48px] rounded-xl
                   bg-white text-[#213E53] font-semibold text-[15px]
                   hover:bg-white/90
@@ -132,6 +135,7 @@ export default function HomePage() {
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pb-10 md:pb-14">
           <Link
             to="/finder"
+            onClick={() => trackEvent('homepage_cta_clicked', { cta: 'finder_banner' })}
             className="relative block overflow-hidden rounded-2xl p-6 md:p-10 group"
             style={{ background: 'linear-gradient(135deg, #1890e0 0%, #1FA9FF 30%, #6dcbca 70%, #6ee29e 100%)' }}
           >

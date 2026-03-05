@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ChevronRight, ChevronLeft, ExternalLink, Plus, Check,
@@ -14,6 +14,7 @@ import { usePlanInteractions } from '../hooks/usePlanInteractions';
 import {
   PLANS_DATA, getCarrierLogo, isValidValue,
 } from '../data/plans';
+import { trackEvent } from '../lib/analytics';
 
 const typeBadgeStyles: Record<string, { bg: string; color: string }> = {
   Prepaid: { bg: '#2563EB12', color: '#2563EB' },
@@ -46,6 +47,12 @@ export default function PlanDetailPage() {
     reaction, comments, loading: interactionsLoading,
     toggleLike, toggleDislike, addComment, removeComment,
   } = usePlanInteractions(plan ? planId : undefined);
+
+  useEffect(() => {
+    if (plan) {
+      trackEvent('plan_detail_viewed', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR });
+    }
+  }, [plan]);
 
   if (!plan) {
     return (
@@ -209,6 +216,7 @@ export default function PlanDetailPage() {
             href={plan.url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackEvent('get_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider })}
             className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-[15px]
               bg-gradient-to-r from-primary-dark to-primary text-white
               hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 btn-press"

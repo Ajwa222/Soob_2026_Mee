@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { Plan } from '../types';
+import { trackEvent } from '../lib/analytics';
 
 type ToastType = 'max' | null;
 
@@ -37,22 +38,28 @@ export function CompareProvider({ children }: { children: ReactNode }) {
         return prev;
       }
       if (prev.find(p => p.id === plan.id)) return prev;
+      trackEvent('plan_added_to_compare', { plan_id: plan.id, plan_name: plan.planName });
       return [...prev, plan];
     });
   }, []);
 
   const removePlan = useCallback((planId: number) => {
+    trackEvent('plan_removed_from_compare', { plan_id: planId });
     setSelectedPlans(prev => prev.filter(p => p.id !== planId));
   }, []);
 
   const togglePlan = useCallback((plan: Plan) => {
     setSelectedPlans(prev => {
       const exists = prev.find(p => p.id === plan.id);
-      if (exists) return prev.filter(p => p.id !== plan.id);
+      if (exists) {
+        trackEvent('plan_removed_from_compare', { plan_id: plan.id });
+        return prev.filter(p => p.id !== plan.id);
+      }
       if (prev.length >= 3) {
         setToast('max');
         return prev;
       }
+      trackEvent('plan_added_to_compare', { plan_id: plan.id, plan_name: plan.planName });
       return [...prev, plan];
     });
   }, []);

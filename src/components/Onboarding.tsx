@@ -4,6 +4,7 @@ import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { CARRIERS } from '../data/plans';
+import { trackEvent } from '../lib/analytics';
 
 /* ---- Visual: Carrier logos converging into one grid ---- */
 function SceneCarriers() {
@@ -107,6 +108,7 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (visible) {
+      trackEvent('onboarding_started');
       document.body.style.overflow = 'hidden';
       return () => { document.body.style.overflow = ''; };
     }
@@ -118,12 +120,14 @@ export default function Onboarding() {
     // Switch language if needed
     if (chosen !== lang) toggleLang();
     setLangChosen(true);
+    trackEvent('onboarding_language_selected', { language: chosen });
     setPage(1);
   };
 
   const complete = () => {
     localStorage.setItem('simba-onboarded', 'true');
     markOnboarded();
+    trackEvent('onboarding_completed', { skipped: !langChosen || page < pages.length - 1 });
     setVisible(false);
     navigate('/finder');
   };

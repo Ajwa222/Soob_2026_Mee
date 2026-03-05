@@ -12,6 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import { PLANS_DATA, getValueScore, isValidValue } from '../data/plans';
 import PlanCard from '../components/PlanCard';
 import SarSymbol from '../components/SarSymbol';
+import { trackEvent } from '../lib/analytics';
 
 const SaudiRiyalIcon = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 1124.14 1256.39" className={className} fill="currentColor">
@@ -184,6 +185,7 @@ export default function FinderPage() {
   // Auto-advance for yes/sometimes/no questions
   const handleQuickAnswer = (key: string, value: string) => {
     setAnswer(key, value);
+    trackEvent('finder_question_answered', { question: key, answer: value, step: step + 1 });
     // Clear any pending timer
     if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
     // Short delay so the user sees their selection highlight
@@ -202,6 +204,7 @@ export default function FinderPage() {
 
   const submitBudget = () => {
     localStorage.setItem('simba-finder-pending', JSON.stringify({ answers }));
+    trackEvent('finder_budget_set', { budget: answers.budget });
     setIsThinking(true);
   };
 
@@ -210,6 +213,7 @@ export default function FinderPage() {
     const timer = setTimeout(() => {
       setIsThinking(false);
       setShowResults(true);
+      trackEvent('finder_results_viewed', { answers });
     }, 1500);
     return () => clearTimeout(timer);
   }, [isThinking]);
@@ -223,6 +227,7 @@ export default function FinderPage() {
   const restart = () => {
     if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
     sessionStorage.removeItem('simba-finder-session');
+    trackEvent('finder_restarted');
     setStarted(false);
     setStep(0);
     setAnswers({ budget: 150 });
@@ -321,7 +326,7 @@ export default function FinderPage() {
         <div className="relative z-20 bg-[var(--color-bg)]" style={{ minHeight: '30vh' }}>
           <div className="max-w-[480px] w-full mx-auto px-5 pt-10 md:pt-14 text-center">
             <button
-              onClick={() => setStarted(true)}
+              onClick={() => { trackEvent('finder_started'); setStarted(true); }}
               className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold
                 bg-[#1FA9FF] text-white hover:bg-[#1890e0] hover:shadow-lg shadow-md shadow-[#1FA9FF]/25
                 active:scale-[0.98] transition-all btn-press"
@@ -463,6 +468,7 @@ export default function FinderPage() {
                   </h3>
                   <button
                     onClick={() => {
+                      trackEvent('finder_signup_required');
                       localStorage.setItem('simba-finder-pending', JSON.stringify({ answers }));
                       navigate('/profile?tab=signup');
                     }}
