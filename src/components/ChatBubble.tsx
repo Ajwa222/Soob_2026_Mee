@@ -416,7 +416,7 @@ export default function ChatBubble() {
         >
           {/* Header */}
           <div className="px-5 py-4 flex items-center justify-between shrink-0"
-            style={{ background: 'linear-gradient(135deg, #1FA9FF, #1890e0)' }}>
+            style={{ background: 'var(--gradient-cta)' }}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
                 <Sparkles size={18} className="text-white" />

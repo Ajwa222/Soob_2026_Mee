@@ -794,7 +794,7 @@ export default function PlansPage() {
         {/* ========= FINDER CTA BANNER ========= */}
         <div className="mt-16 relative overflow-hidden rounded-3xl p-8 md:p-12 text-center"
           style={{
-            background: 'linear-gradient(135deg, #1890e0 0%, #1FA9FF 50%, #6dcbca 100%)',
+            background: 'var(--gradient-hero)',
           }}
         >
           <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
@@ -855,7 +855,7 @@ export default function PlansPage() {
                 <button
                   onClick={() => setShowMobileFilters(false)}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold btn-press"
-                  style={{ background: 'linear-gradient(135deg, #6ED7B4, #6DCBCA, #1FA9FF)' }}
+                  style={{ background: 'var(--gradient-brand)' }}
                 >
                   {t('browse.showResults', { count: String(filteredPlans.length) })}
                 </button>

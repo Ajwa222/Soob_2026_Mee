@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Gradient } from '../lib/gradient';
+import { useLang } from '../context/LanguageContext';
 
 interface PageConfig {
   top: string;
@@ -18,22 +19,32 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
 };
 const DEFAULT_CONFIG: PageConfig = { top: 'max(-300px, -36dvh)', height: 'max(720px, 85dvh)' };
 
+const LIGHT_COLORS = ['#6ED7B4', '#6DCBCA', '#1FA9FF', '#6ED7B4'];
+const DARK_COLORS = ['#1A6B5A', '#1A5F6B', '#0D5FAA', '#1A6B5A'];
+
 export default function GradientBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gradientRef = useRef<InstanceType<typeof Gradient> | null>(null);
   const { pathname } = useLocation();
+  const { theme } = useLang();
+
+  const colors = theme === 'dark' ? DARK_COLORS : LIGHT_COLORS;
 
   useEffect(() => {
     if (!canvasRef.current) return;
+    // Disconnect previous gradient if it exists
+    if (gradientRef.current) {
+      gradientRef.current.disconnect();
+    }
     const gradient = new Gradient();
     gradientRef.current = gradient;
-    gradient.colors = ['#6ED7B4', '#6DCBCA', '#1FA9FF', '#6ED7B4'];
+    gradient.colors = colors;
     gradient.initGradient('#gradient-canvas');
 
     return () => {
       gradient.disconnect();
     };
-  }, []);
+  }, [theme]);
 
   const config = PAGE_CONFIG[pathname] || DEFAULT_CONFIG;
   const isFixed = config.fixed;
@@ -52,10 +63,10 @@ export default function GradientBackground() {
         style={{
           width: '100%',
           height: '100%',
-          '--gradient-color-1': '#6ED7B4',
-          '--gradient-color-2': '#6DCBCA',
-          '--gradient-color-3': '#1FA9FF',
-          '--gradient-color-4': '#6ED7B4',
+          '--gradient-color-1': colors[0],
+          '--gradient-color-2': colors[1],
+          '--gradient-color-3': colors[2],
+          '--gradient-color-4': colors[3],
         } as React.CSSProperties}
       />
     </div>

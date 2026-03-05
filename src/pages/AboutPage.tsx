@@ -121,7 +121,7 @@ export default function AboutPage() {
         {/* CTA */}
         <section className="text-center">
           <div className="relative overflow-hidden rounded-3xl p-8 md:p-12"
-            style={{ background: 'linear-gradient(135deg, #1890e0 0%, #1FA9FF 50%, #6dcbca 100%)' }}>
+            style={{ background: 'var(--gradient-hero)' }}>
             <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
             <div className="relative">
               <h3 className="font-heading font-bold text-2xl md:text-3xl text-white">

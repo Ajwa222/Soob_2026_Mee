@@ -12,7 +12,7 @@ export default function Footer() {
   if (location.pathname === '/finder') return null;
 
   return (
-    <footer className="relative z-10 bg-[#0F0F1A] text-white -mt-10">
+    <footer className="relative z-10 bg-footer-bg text-white -mt-10">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8">
           {/* Brand */}

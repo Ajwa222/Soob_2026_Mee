@@ -45,7 +45,7 @@ export default function HomePage() {
                   text-white font-bold text-[15px]
                   shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30
                   active:scale-[0.98] transition-all duration-200"
-                style={{ background: 'linear-gradient(135deg, #1FA9FF 0%, #6dcbca 100%)' }}
+                style={{ background: 'var(--gradient-cta)' }}
               >
                 {t('hero.ctaFinder')}
                 <ArrowRight size={17} className="rtl:rotate-180" />
@@ -54,7 +54,7 @@ export default function HomePage() {
                 to="/plans"
                 onClick={() => trackEvent('homepage_cta_clicked', { cta: 'browse_plans' })}
                 className="inline-flex items-center justify-center gap-2 px-6 h-[48px] rounded-xl
-                  bg-white text-text-primary font-semibold text-[15px]
+                  bg-white text-[#213E53] font-semibold text-[15px]
                   hover:bg-white/90
                   active:scale-[0.98] transition-all duration-200"
               >
@@ -143,7 +143,7 @@ export default function HomePage() {
             to="/finder"
             onClick={() => trackEvent('homepage_cta_clicked', { cta: 'finder_banner' })}
             className="relative block overflow-hidden rounded-2xl p-6 md:p-10 group"
-            style={{ background: 'linear-gradient(135deg, #1890e0 0%, #1FA9FF 30%, #6dcbca 70%, #6ee29e 100%)' }}
+            style={{ background: 'var(--gradient-hero)' }}
           >
             <div className="absolute top-0 end-0 w-40 h-40 rounded-full bg-white/[0.06] -translate-y-1/3 translate-x-1/3" />
             <div className="absolute bottom-0 start-0 w-28 h-28 rounded-full bg-white/[0.06] translate-y-1/3 -translate-x-1/3" />

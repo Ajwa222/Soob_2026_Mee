@@ -312,8 +312,8 @@ export default function FinderPage() {
                 { icon: Shield, text: t('finder.introBullet3') },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#213E53]/15 flex items-center justify-center shrink-0">
-                    <item.icon size={16} className="text-[#213E53]" />
+                  <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+                    <item.icon size={16} className="text-white" />
                   </div>
                   <span className="text-xs md:text-sm text-white font-medium">{item.text}</span>
                 </div>
