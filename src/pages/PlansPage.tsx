@@ -8,6 +8,7 @@ import { useLang } from '../context/LanguageContext';
 import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
 import PlanCard from '../components/PlanCard';
 import FinderModal, { useFinderModal } from '../components/FinderModal';
+import { trackEvent } from '../lib/analytics';
 
 const PLAN_TYPES = ['Prepaid', 'Postpaid', 'Data-only'] as const;
 const PLANS_PER_PAGE = 6;
@@ -54,15 +55,19 @@ export default function PlansPage() {
   const plansGridRef = useRef<HTMLDivElement>(null);
 
   const toggleCarrier = useCallback((name: string) => {
-    setSelectedCarriers(prev =>
-      prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]
-    );
+    setSelectedCarriers(prev => {
+      const next = prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name];
+      trackEvent('filter_applied', { filter: 'carrier', value: name, active: !prev.includes(name) });
+      return next;
+    });
   }, []);
 
   const toggleType = useCallback((type: string) => {
-    setSelectedTypes(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
-    );
+    setSelectedTypes(prev => {
+      const next = prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type];
+      trackEvent('filter_applied', { filter: 'type', value: type, active: !prev.includes(type) });
+      return next;
+    });
   }, []);
 
   const clearFilters = useCallback(() => {
@@ -184,6 +189,15 @@ export default function PlansPage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, sortBy]);
+
+  // Track search queries (debounced)
+  useEffect(() => {
+    if (!search.trim()) return;
+    const timer = setTimeout(() => {
+      trackEvent('search_query', { query: search.trim() });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const totalPages = Math.ceil(filteredPlans.length / PLANS_PER_PAGE);
   const paginatedPlans = filteredPlans.slice(
@@ -527,7 +541,7 @@ export default function PlansPage() {
                       {SORT_OPTIONS.map(opt => (
                         <button
                           key={opt.key}
-                          onClick={() => { setSortBy(opt.key); setShowSort(false); }}
+                          onClick={() => { setSortBy(opt.key); trackEvent('sort_changed', { sort: opt.key }); setShowSort(false); }}
                           className={`w-full text-start px-4 py-3 text-sm rounded-lg transition-colors mb-0.5
                             ${sortBy === opt.key
                               ? 'text-[#1FA9FF] font-bold bg-[#1FA9FF]/10'

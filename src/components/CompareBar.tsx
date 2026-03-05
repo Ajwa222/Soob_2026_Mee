@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useCompare } from '../context/CompareContext';
 import { getCarrierColor, getCarrierLogo } from '../data/plans';
+import { trackEvent } from '../lib/analytics';
 import CompareOverlay from './CompareOverlay';
 
 export default function CompareBar() {
@@ -87,7 +88,7 @@ export default function CompareBar() {
 
               {/* CTA */}
               <button
-                onClick={() => selectedPlans.length >= 2 && setShowOverlay(true)}
+                onClick={() => { if (selectedPlans.length >= 2) { trackEvent('compare_overlay_opened', { plan_count: selectedPlans.length }); setShowOverlay(true); } }}
                 disabled={selectedPlans.length < 2}
                 className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 btn-press shrink-0
                   ${selectedPlans.length >= 2
