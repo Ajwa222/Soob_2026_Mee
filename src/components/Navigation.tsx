@@ -189,16 +189,6 @@ export default function Navigation() {
             </span>
           </Link>
           <div className="flex items-center gap-1">
-            <a
-              href={WHATSAPP_GROUP_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-[#25D366]
-                hover:bg-[#25D366]/10 transition-all duration-200"
-              aria-label={t('nav.support')}
-            >
-              <WhatsAppIcon size={16} />
-            </a>
             {isLoggedIn ? (
               <Link
                 to="/profile"

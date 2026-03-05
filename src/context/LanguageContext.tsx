@@ -127,6 +127,7 @@ const translations: Record<string, Record<string, unknown>> = {
       hasIntl: "Has Int'l Calls",
       hasSocial: "Has Social Data",
       unlimitedSocial: "Unlimited Social",
+      showResults: "Show {count} plans",
     },
     detail: {
       backToPlans: "Back to Plans",
@@ -610,6 +611,7 @@ const translations: Record<string, Record<string, unknown>> = {
       hasIntl: "فيه مكالمات دولية",
       hasSocial: "فيه بيانات سوشل",
       unlimitedSocial: "سوشل مفتوح",
+      showResults: "عرض {count} باقة",
     },
     detail: {
       backToPlans: "رجوع للباقات",
