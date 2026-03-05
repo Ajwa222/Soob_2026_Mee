@@ -41,7 +41,7 @@ export default function ProfilePage() {
     setSigningIn(true);
     try {
       await loginWithGoogle();
-      trackEvent('login', { method: 'google' });
+      trackEvent(isSignUp ? 'signup' : 'login', { method: 'google' });
       redirectAfterLogin();
     } catch (err: unknown) {
       if (import.meta.env.DEV) console.error('Google sign-in failed:', err);
