@@ -5,7 +5,7 @@ import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { trackEvent } from '../lib/analytics';
 
-const SAUDI_PHONE_REGEX = /^05\d{8}$/;
+const PHONE_REGEX = /^\+?\d{7,15}$/;
 
 export default function PhoneGate() {
   const { t, lang } = useLang();
@@ -25,23 +25,40 @@ export default function PhoneGate() {
 
   if (!isLoggedIn || !needsPhone) return null;
 
+  const navigateAway = () => {
+    if (localStorage.getItem('simba-finder-pending')) {
+      navigate('/finder?reveal=1');
+    } else {
+      navigate('/finder');
+    }
+  };
+
+  const handleSkip = async () => {
+    setSaving(true);
+    try {
+      await updatePhone('skipped');
+      trackEvent('phone_skipped');
+      navigateAway();
+    } catch {
+      navigateAway();
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     const cleaned = phoneInput.replace(/\s/g, '');
-    if (!SAUDI_PHONE_REGEX.test(cleaned)) {
-      setError(lang === 'ar' ? 'ادخل رقم جوال سعودي صحيح (05XXXXXXXX)' : 'Enter a valid Saudi phone number (05XXXXXXXX)');
+    if (!PHONE_REGEX.test(cleaned)) {
+      setError(lang === 'ar' ? 'ادخل رقم جوال صحيح' : 'Enter a valid phone number');
       return;
     }
     setSaving(true);
     try {
       await updatePhone(cleaned);
       trackEvent('phone_saved');
-      if (localStorage.getItem('simba-finder-pending')) {
-        navigate('/finder?reveal=1');
-      } else {
-        navigate('/finder');
-      }
+      navigateAway();
     } catch {
       setError(lang === 'ar' ? 'فشل حفظ الرقم. حاول مرة ثانية.' : 'Failed to save phone number. Please try again.');
     } finally {
@@ -109,6 +126,16 @@ export default function PhoneGate() {
             {saving
               ? (lang === 'ar' ? 'جاري الحفظ...' : 'Saving...')
               : t('profile.savePhone')}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSkip}
+            disabled={saving}
+            className="w-full py-3 mt-2 rounded-xl font-medium text-[14px] text-white/60 hover:text-white/80
+              transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {lang === 'ar' ? 'تخطي' : 'Skip'}
           </button>
         </form>
       </div>
