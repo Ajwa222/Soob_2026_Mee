@@ -107,7 +107,7 @@ export default function Navigation() {
                 className="px-5 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-primary to-primary-dark text-white
                   hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 btn-press"
               >
-                {t('nav.signIn')}
+                {localStorage.getItem('simba-has-account') ? t('nav.signIn') : t('nav.signUp')}
               </Link>
             )}
           </div>
@@ -191,7 +191,7 @@ export default function Navigation() {
                   bg-gradient-to-r from-primary to-primary-dark text-white transition-colors duration-150"
               >
                 <User size={13} />
-                {t('nav.signIn')}
+                {localStorage.getItem('simba-has-account') ? t('nav.signIn') : t('nav.signUp')}
               </Link>
             )}
           </div>

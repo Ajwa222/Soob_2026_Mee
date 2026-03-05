@@ -16,7 +16,7 @@ const LanguageContext = createContext<LangContextValue | null>(null);
 
 const translations: Record<string, Record<string, unknown>> = {
   en: {
-    nav: { home: "Home", plans: "Browse Plans", finder: "Plan Finder", help: "Help", speedTest: "Speed Test", profile: "Profile", signIn: "Sign In", game: "Game", chat: "Meet People" },
+    nav: { home: "Home", plans: "Browse Plans", finder: "Plan Finder", help: "Help", speedTest: "Speed Test", profile: "Profile", signIn: "Sign In", signUp: "Sign Up", game: "Game", chat: "Meet People" },
     hero: {
       headline: "Find your perfect plan in seconds",
       subheadline: "Compare 150+ plans from all Saudi carriers.",
@@ -254,6 +254,9 @@ const translations: Record<string, Record<string, unknown>> = {
       logout: "Sign Out",
       chatDesc: "Meet new people and make friends",
       googleSignIn: "Sign in with Google",
+      googleSignUp: "Sign up with Google",
+      signUpTitle: "Create Your Account",
+      signUpSubtitle: "Sign up to get personalized plan recommendations",
       or: "or",
       almostDone: "Almost done!",
       phonePrompt: "Please enter your phone number to complete your profile",
@@ -496,7 +499,7 @@ const translations: Record<string, Record<string, unknown>> = {
     types: { Prepaid: "Prepaid", Postpaid: "Postpaid", "Data-only": "Data-only" },
   },
   ar: {
-    nav: { home: "الرئيسية", plans: "الباقات", finder: "المستشار", help: "المساعدة", speedTest: "فحص السرعة", profile: "حسابي", signIn: "دخول", game: "لعبة", chat: "تعرّف" },
+    nav: { home: "الرئيسية", plans: "الباقات", finder: "المستشار", help: "المساعدة", speedTest: "فحص السرعة", profile: "حسابي", signIn: "دخول", signUp: "سجّل", game: "لعبة", chat: "تعرّف" },
     hero: {
       headline: "اختار باقتك المثالية بثواني",
       subheadline: "قارن 150+ باقة من كل شركات الاتصالات بالسعودية.",
@@ -734,6 +737,9 @@ const translations: Record<string, Record<string, unknown>> = {
       logout: "تسجيل خروج",
       chatDesc: "تعرّف على ناس جديدة وكوّن صداقات",
       googleSignIn: "سجّل دخول بقوقل",
+      googleSignUp: "سجّل بقوقل",
+      signUpTitle: "أنشئ حسابك",
+      signUpSubtitle: "سجّل عشان تحصل على توصيات باقات تناسبك",
       or: "أو",
       almostDone: "تقريباً خلصنا!",
       phonePrompt: "ادخل رقم جوالك عشان نكمّل حسابك",

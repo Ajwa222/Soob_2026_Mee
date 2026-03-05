@@ -10,6 +10,7 @@ import Footer from './components/Footer';
 // import ChatBubble from './components/ChatBubble';
 import CompareBar from './components/CompareBar';
 import Onboarding from './components/Onboarding';
+import PhoneGate from './components/PhoneGate';
 import HomePage from './pages/HomePage';
 import GradientBackground from './components/GradientBackground';
 
@@ -82,6 +83,7 @@ function App() {
             <CompareBar />
           </div>
           <Onboarding />
+          <PhoneGate />
         </CompareProvider>
         </AuthProvider>
       </LanguageProvider>

@@ -30,11 +30,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
   const [loading, setLoading] = useState(true);
+  const [phoneChecked, setPhoneChecked] = useState(false);
   const [hasAccount, setHasAccount] = useState(() =>
     !!localStorage.getItem('simba-has-account') || !!localStorage.getItem('simba-onboarded')
   );
 
-  const needsPhone = user?.provider === 'google' && !user?.phone;
+  const needsPhone = phoneChecked && user?.provider === 'google' && !user?.phone;
 
   // Google Sign-In (popup with redirect fallback)
   const loginWithGoogle = useCallback(async () => {
@@ -119,10 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const userData: SimbaUser = { ...baseUser, phone };
         setUser(userData);
+        setPhoneChecked(true);
         try { identifyUser(userData); } catch { /* analytics non-critical */ }
         localStorage.setItem('simba-user', JSON.stringify(userData));
       } else {
         setUser(null);
+        setPhoneChecked(false);
         localStorage.removeItem('simba-user');
       }
       setLoading(false);
