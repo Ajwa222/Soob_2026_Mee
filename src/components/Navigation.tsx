@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Smartphone, Search, /* Gamepad2, Users, */ User, /* Sun, Moon */ } from 'lucide-react';
+import { Home, Smartphone, Search, /* Gamepad2, Users, */ User, Sun, Moon } from 'lucide-react';
 
 function WhatsAppIcon({ size = 16 }: { size?: number }) {
   return (
@@ -59,7 +59,7 @@ export default function Navigation() {
             />
             <span
               className="font-heading font-bold text-[22px] leading-none tracking-tight bg-clip-text text-transparent"
-              style={{ backgroundImage: 'linear-gradient(135deg, #6ED7B4, #6DCBCA, #1FA9FF)' }}
+              style={{ backgroundImage: 'var(--gradient-brand)' }}
             >
               Simba
             </span>
@@ -85,6 +85,13 @@ export default function Navigation() {
 
           {/* Right side */}
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-xl text-text-secondary hover:text-text-primary hover:bg-surface-alt/80 transition-all duration-200"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             <a
               href={WHATSAPP_GROUP_LINK}
               target="_blank"
@@ -156,11 +163,18 @@ export default function Navigation() {
             />
             <span
               className="font-heading font-bold text-lg tracking-tight bg-clip-text text-transparent"
-              style={{ backgroundImage: 'linear-gradient(135deg, #6ED7B4, #6DCBCA, #1FA9FF)' }}
+              style={{ backgroundImage: 'var(--gradient-brand)' }}
             >
               Simba
             </span>
           </Link>
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-surface-alt/80 transition-all duration-200"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
         </div>
       </div>
     </>

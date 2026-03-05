@@ -17,6 +17,7 @@
   --color-warning: #F59E0B;
   --color-error: #EF4444;
   --color-border: #E7E5E4;
+  --color-footer-bg: #0F0F1A;
 
   --color-carrier-stc: #4F0D7F;
   --color-carrier-mobily: #0099E5;
@@ -32,6 +33,18 @@
   --font-mono: 'IBM Plex Mono', monospace;
 }
 
+:root {
+  --gradient-brand: linear-gradient(135deg, #6ED7B4, #6DCBCA, #1FA9FF);
+  --gradient-cta: linear-gradient(135deg, #1FA9FF 0%, #6dcbca 100%);
+  --gradient-hero: linear-gradient(135deg, #1890e0 0%, #1FA9FF 30%, #6dcbca 70%, #6ee29e 100%);
+  --gradient-bg-1: #6ED7B4;
+  --gradient-bg-2: #6DCBCA;
+  --gradient-bg-3: #1FA9FF;
+  --gradient-bg-4: #6ED7B4;
+  --slider-fill: rgba(255,255,255,0.9);
+  --slider-track: rgba(255,255,255,0.2);
+}
+
 /* ---- Dark mode ---- */
 .dark {
   --color-bg: #0F0F1A;
@@ -41,6 +54,24 @@
   --color-text-secondary: #9CA3AF;
   --color-text-tertiary: #6B7280;
   --color-border: #2E2E45;
+  --color-primary: #3DBBFF;
+  --color-primary-light: #45D6D6;
+  --color-primary-dark: #2196F3;
+  --color-accent: #5EEAA0;
+  --color-accent-light: #7AF0BD;
+  --color-success: #34D399;
+  --color-warning: #FBBF24;
+  --color-error: #F87171;
+  --color-footer-bg: #080810;
+  --gradient-brand: linear-gradient(135deg, #4AEDC2, #45D6D6, #3DBBFF);
+  --gradient-cta: linear-gradient(135deg, #3DBBFF 0%, #45D6D6 100%);
+  --gradient-hero: linear-gradient(135deg, #1565C0 0%, #1A8FE0 30%, #2BA5C4 70%, #35B88A 100%);
+  --gradient-bg-1: #1A6B5A;
+  --gradient-bg-2: #1A5F6B;
+  --gradient-bg-3: #0D5FAA;
+  --gradient-bg-4: #1A6B5A;
+  --slider-fill: rgba(255,255,255,0.85);
+  --slider-track: rgba(255,255,255,0.15);
 }
 
 @layer base {

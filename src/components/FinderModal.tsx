@@ -53,7 +53,7 @@ export default function FinderModal({ show, onDismiss }: { show: boolean; onDism
             onClick={() => { onDismiss(); navigate('/finder'); }}
             className="w-full py-3 rounded-xl text-white font-bold text-sm
               hover:opacity-90 transition-all btn-press"
-            style={{ background: 'linear-gradient(135deg, #1FA9FF, #6dcbca)' }}
+            style={{ background: 'var(--gradient-cta)' }}
           >
             {t('finderCta.cta')}
           </button>
