@@ -789,7 +789,7 @@ export default function PlansPage() {
               </div>
             </div>
           </SheetHeader>
-          <div className="p-6 space-y-6">
+          <div className="p-6 pb-24 space-y-6">
             {filterContent}
           </div>
         </SheetContent>

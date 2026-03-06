@@ -240,7 +240,7 @@ export default function PlanDetailPage() {
               }
             >
               <ThumbsUp size={16} />
-              <span>{reaction.likes}</span>
+              <span>{Math.max(0, reaction.likes)}</span>
             </Button>
             <Button
               variant="ghost"
@@ -252,7 +252,7 @@ export default function PlanDetailPage() {
               }
             >
               <ThumbsDown size={16} />
-              <span>{reaction.dislikes}</span>
+              <span>{Math.max(0, reaction.dislikes)}</span>
             </Button>
           </div>
         </Card>

@@ -37,8 +37,8 @@ export async function fetchReaction(planId: number): Promise<PlanReaction> {
   const reaction: PlanReaction = !snap.exists()
     ? { ...defaultReaction }
     : {
-        likes: snap.data().likes ?? 0,
-        dislikes: snap.data().dislikes ?? 0,
+        likes: Math.max(0, snap.data().likes ?? 0),
+        dislikes: Math.max(0, snap.data().dislikes ?? 0),
         likedBy: snap.data().likedBy ?? [],
         dislikedBy: snap.data().dislikedBy ?? [],
       };
