@@ -47,37 +47,46 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop Nav */}
-      <nav className="hidden md:block sticky top-0 z-50 bg-card border-b border-border">
+      <nav className="hidden md:block sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border/60">
         <div className="w-full max-w-5xl mx-auto px-8 flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src="/icon-512.png" alt="Simba" className="w-9 h-9 rounded-xl shadow-sm" />
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <img src="/icon-512.png" alt="Simba" className="w-9 h-9 rounded-xl shadow-sm group-hover:shadow-md transition-shadow" />
             <span className="font-heading font-bold text-xl leading-none tracking-tight text-primary">
               Simba
             </span>
           </Link>
 
-          <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-muted/60 rounded-xl p-1">
             {navItems.map(item => (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={(e) => handleNav(e, item.path)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors
+                className={`relative px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200
                   ${isActive(item.path)
                     ? 'bg-card text-primary shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                   }`}
               >
                 {item.label}
+                {isActive(item.path) && (
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                )}
               </Link>
             ))}
           </div>
 
           <div className="flex items-center gap-1.5">
-            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="rounded-xl hover:bg-muted/80 transition-colors"
+            >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </Button>
-            <Button variant="ghost" size="sm" asChild className="text-[#25D366] hover:text-[#25D366] hover:bg-[#25D366]/10">
+            <Button variant="ghost" size="sm" asChild className="text-[#25D366] hover:text-[#25D366] hover:bg-[#25D366]/10 rounded-xl">
               <a href={WHATSAPP_GROUP_LINK} target="_blank" rel="noopener noreferrer">
                 <WhatsAppIcon size={16} />
                 {t('nav.support')}
@@ -89,7 +98,7 @@ export default function Navigation() {
 
       {/* Mobile Bottom Tab Bar */}
       <nav
-        className={`md:hidden fixed bottom-0 inset-x-0 z-[200] bg-card/95 backdrop-blur-md border-t border-border${location.pathname === '/finder' && !location.search.includes('results=1') ? ' hidden' : ''}`}
+        className={`md:hidden fixed bottom-0 inset-x-0 z-[200] bg-card/90 backdrop-blur-xl border-t border-border/60${location.pathname === '/finder' && !location.search.includes('results=1') ? ' hidden' : ''}`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex items-center justify-around h-16 px-2">
@@ -104,7 +113,7 @@ export default function Navigation() {
                   href={item.path}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[#25D366]"
+                  className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-[#25D366]"
                 >
                   <Icon size={20} />
                   <span className="text-[10px] font-medium">{item.label}</span>
@@ -117,9 +126,12 @@ export default function Navigation() {
                 key={item.path}
                 to={item.path}
                 onClick={(e) => handleNav(e, item.path)}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors
-                  ${active ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
+                className={`relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200
+                  ${active ? 'text-primary' : 'text-muted-foreground'}`}
               >
+                {active && (
+                  <span className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-primary" />
+                )}
                 <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
                 <span className={`text-[10px] ${active ? 'font-semibold' : 'font-medium'}`}>
                   {item.label}
@@ -131,7 +143,7 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Top Bar */}
-      <div className="md:hidden sticky top-0 z-[200] bg-card/95 backdrop-blur-md border-b border-border">
+      <div className="md:hidden sticky top-0 z-[200] bg-card/90 backdrop-blur-xl border-b border-border/60">
         <div className="flex items-center justify-between px-4 h-14">
           <Link to="/" className="flex items-center gap-2">
             <img src="/icon-512.png" alt="Simba" className="w-8 h-8 rounded-xl shadow-sm" />
@@ -139,7 +151,7 @@ export default function Navigation() {
               Simba
             </span>
           </Link>
-          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme" className="rounded-xl">
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </Button>
         </div>

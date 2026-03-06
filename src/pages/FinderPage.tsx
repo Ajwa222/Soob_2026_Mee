@@ -299,35 +299,39 @@ export default function FinderPage() {
   // --- Intro / Landing screen ---
   if (!started) {
     return (
-      <div className="relative z-10 flex flex-col min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] bg-primary">
-        <div className="relative flex flex-1 items-center justify-center pt-12 pb-10 md:pt-16 md:pb-14">
+      <div className="relative z-10 flex flex-col min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] hero-gradient grain overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-20 end-10 w-32 h-32 rounded-full bg-white/5 blob animate-float" />
+        <div className="absolute bottom-20 start-10 w-24 h-24 rounded-full bg-accent/8 blob-alt animate-float" style={{ animationDelay: '2s' }} />
+
+        <div className="relative z-10 flex flex-1 items-center justify-center pt-12 pb-10 md:pt-16 md:pb-14">
           <div className="max-w-120 w-full mx-auto px-5 text-center">
             {/* Icon */}
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-5">
+            <div className="animate-scale-in w-16 h-16 md:w-20 md:h-20 rounded-2xl glass flex items-center justify-center mx-auto mb-5">
               <Compass size={28} className="text-white md:hidden" />
               <Compass size={34} className="text-white hidden md:block" />
             </div>
 
             {/* Title & description */}
-            <h1 className="font-heading font-bold text-xl md:text-3xl text-white mb-2">
+            <h1 className="animate-fade-up delay-1 font-heading font-extrabold text-2xl md:text-4xl text-white mb-2.5 tracking-tight">
               {t('finder.introTitle')}
             </h1>
-            <p className="text-white/70 text-sm md:text-base max-w-sm mx-auto mb-4 leading-relaxed">
+            <p className="animate-fade-up delay-2 text-white/65 text-sm md:text-base max-w-sm mx-auto mb-5 leading-relaxed">
               {t('finder.introDesc')}
             </p>
 
             {/* Feature bullets */}
-            <div className="inline-flex flex-col gap-3 mx-auto">
+            <div className="animate-fade-up delay-3 inline-flex flex-col gap-3 mx-auto">
               {[
                 { icon: Zap, text: t('finder.introBullet1') },
                 { icon: Clock, text: t('finder.introBullet2') },
                 { icon: Shield, text: t('finder.introBullet3') },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg glass flex items-center justify-center shrink-0">
                     <item.icon size={16} className="text-white" />
                   </div>
-                  <span className="text-xs md:text-sm text-white font-medium">{item.text}</span>
+                  <span className="text-xs md:text-sm text-white/80 font-medium">{item.text}</span>
                 </div>
               ))}
             </div>
@@ -336,7 +340,7 @@ export default function FinderPage() {
             <Button
               onClick={() => { trackEvent('finder_started'); setStarted(true); }}
               size="lg"
-              className="w-full max-w-xs mx-auto rounded-xl text-sm font-bold shadow-md mt-10 bg-white text-primary hover:bg-white/90"
+              className="animate-fade-up delay-4 w-full max-w-xs mx-auto rounded-xl text-sm font-bold shadow-lg shadow-black/10 mt-10 bg-white text-primary hover:bg-white/90 glow-primary"
             >
               {t('finder.introStart')}
               {lang === 'ar' ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
@@ -350,19 +354,19 @@ export default function FinderPage() {
   // --- Thinking animation ---
   if (isThinking) {
     return (
-      <div className="relative z-10 flex items-center justify-center bg-primary min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)]">
-        <div className="text-center px-6">
+      <div className="relative z-10 flex items-center justify-center hero-gradient grain min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] overflow-hidden">
+        <div className="text-center px-6 animate-scale-in">
           <div className="relative w-16 h-16 mx-auto mb-5">
-            <div className="absolute inset-0 rounded-full border-4 border-white/20" />
+            <div className="absolute inset-0 rounded-full border-4 border-white/15" />
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-white animate-spin" />
             <div className="absolute inset-0 flex items-center justify-center">
               <Sparkles size={24} className="text-white" />
             </div>
           </div>
-          <h2 className="font-heading font-bold text-lg md:text-2xl text-white mb-1">
+          <h2 className="font-heading font-extrabold text-xl md:text-3xl text-white mb-1.5 tracking-tight">
             {t('finder.thinking')}
           </h2>
-          <p className="text-white/70 text-xs md:text-sm">
+          <p className="text-white/60 text-xs md:text-sm">
             {t('finder.thinkingDesc')}
           </p>
         </div>
@@ -378,11 +382,11 @@ export default function FinderPage() {
         {allNo ? (
           <section className="relative overflow-hidden bg-gradient-to-br from-amber-500/[0.06] via-background to-primary/3">
             <div className="max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10">
-              <div className="flex flex-col items-center text-center">
+              <div className="flex flex-col items-center text-center animate-fade-up">
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4">
                   <TreePalm size={32} className="text-amber-500" />
                 </div>
-                <h1 className="font-heading font-bold text-xl md:text-3xl text-foreground mb-2">
+                <h1 className="font-heading font-extrabold text-xl md:text-3xl text-foreground mb-2 tracking-tight">
                   {t('finder.allNoTitle')}
                 </h1>
                 <p className="text-muted-foreground text-sm md:text-base max-w-md leading-relaxed">
@@ -402,19 +406,19 @@ export default function FinderPage() {
             </div>
           </section>
         ) : (
-          <section className="relative overflow-hidden bg-primary">
+          <section className="relative overflow-hidden hero-gradient grain">
             <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 pb-4 md:pt-12 md:pb-10">
-              <Progress value={100} className="h-1.5 bg-white/20 mb-5 [&>div]:bg-white" />
+              <Progress value={100} className="h-1.5 bg-white/15 mb-5 [&>div]:bg-white" />
 
-              <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center justify-between flex-wrap gap-3 animate-fade-up">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Sparkles size={18} className="text-white" />
-                    <h1 className="font-heading font-bold text-xl md:text-3xl text-white">
+                    <h1 className="font-heading font-extrabold text-xl md:text-3xl text-white tracking-tight">
                       {t('finder.resultsTitle')}
                     </h1>
                   </div>
-                  <p className="text-white/70 text-xs md:text-base">
+                  <p className="text-white/60 text-xs md:text-base">
                     {t('finder.resultsSubtitle')}
                   </p>
                 </div>
@@ -423,7 +427,7 @@ export default function FinderPage() {
                     onClick={restart}
                     variant="outline"
                     size="sm"
-                    className="rounded-xl text-xs md:text-sm font-bold bg-white/15 text-white hover:bg-white/25 border-white/20 hover:text-white"
+                    className="rounded-xl text-xs md:text-sm font-bold glass text-white hover:bg-white/20 border-white/15 hover:text-white"
                   >
                     <RotateCcw size={14} />
                     {t('finder.startOver')}
@@ -459,7 +463,7 @@ export default function FinderPage() {
 
               {/* Overlay CTA */}
               <div className="absolute inset-0 flex items-start justify-center pt-6">
-                <Card className="max-w-sm w-full mx-4 text-center shadow-xl">
+                <Card className="max-w-sm w-full mx-4 text-center shadow-xl rounded-2xl">
                   <CardContent className="px-6 py-5 pt-5">
                     <h3 className="font-heading font-bold text-base text-foreground mb-4">
                       {t('finder.blurTitle')}
@@ -470,7 +474,7 @@ export default function FinderPage() {
                         localStorage.setItem('simba-finder-pending', JSON.stringify({ answers }));
                         navigate('/profile?tab=signup');
                       }}
-                      className="w-full py-3 rounded-xl font-bold text-sm"
+                      className="w-full py-3 rounded-xl font-bold text-sm shadow-md shadow-primary/20"
                     >
                       {t('finder.blurCta')}
                     </Button>
@@ -493,7 +497,7 @@ export default function FinderPage() {
                     const badge = reasonLabel(rec.label);
                     const BadgeIcon = badge.icon;
                     return (
-                      <div key={rec.plan.id}>
+                      <div key={rec.plan.id} className="animate-fade-up" style={{ animationDelay: `${i * 0.15}s` }}>
                         <Badge variant="outline" className={`gap-1.5 font-bold mb-2 ${badge.color}`}>
                           <BadgeIcon size={12} />
                           {badge.text}
@@ -504,7 +508,7 @@ export default function FinderPage() {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-16">
+                <div className="text-center py-16 animate-fade-up">
                   <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
                     <Sparkles size={24} className="text-muted-foreground" />
                   </div>
@@ -541,12 +545,16 @@ export default function FinderPage() {
 
   // --- Wizard view ---
   return (
-    <div className="relative z-10 flex flex-col min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] bg-primary">
+    <div className="relative z-10 flex flex-col min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] hero-gradient grain overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute top-1/4 end-10 w-24 h-24 rounded-full bg-white/5 blob animate-float hidden md:block" />
+      <div className="absolute bottom-1/4 start-10 w-20 h-20 rounded-full bg-accent/5 blob-alt animate-float hidden md:block" style={{ animationDelay: '1.5s' }} />
+
       {/* Progress header — compact */}
-      <section>
+      <section className="relative z-10">
         <div className="max-w-[800px] mx-auto px-4 md:px-8 pt-5 pb-4">
-          <Progress value={progress} className="h-1 bg-white/20 mb-3 [&>div]:bg-white" />
-          <div className="flex items-center justify-between text-[11px] text-white/50 font-medium">
+          <Progress value={progress} className="h-1 bg-white/15 mb-3 [&>div]:bg-white [&>div]:transition-all [&>div]:duration-500" />
+          <div className="flex items-center justify-between text-[11px] text-white/70 font-medium">
             <span>{t('finder.step')} {step + 1} / {STEPS.length}</span>
             <span>{Math.round(progress)}%</span>
           </div>
@@ -554,20 +562,20 @@ export default function FinderPage() {
       </section>
 
       {/* Question header — top area */}
-      <section className="pt-20 md:pt-28">
+      <section className="relative z-10 pt-20 md:pt-28">
         <div
           key={`q-${step}`}
-          className="max-w-[800px] w-full mx-auto px-4 md:px-8"
+          className="max-w-[800px] w-full mx-auto px-4 md:px-8 animate-fade-up"
         >
           <div className="text-center mb-0">
-            <div className="w-11 h-11 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl glass flex items-center justify-center mx-auto mb-3">
               <currentStep.icon size={20} className="text-white md:hidden" />
               <currentStep.icon size={24} className="text-white hidden md:block" />
             </div>
-            <h2 className="font-heading font-bold text-lg md:text-3xl text-white">
+            <h2 className="font-heading font-extrabold text-xl md:text-3xl text-white tracking-tight">
               {currentStep.title}
             </h2>
-            <p className="text-white/70 mt-1 text-xs md:text-base max-w-md mx-auto">
+            <p className="text-white/75 mt-1.5 text-xs md:text-base max-w-md mx-auto">
               {currentStep.subtitle}
             </p>
           </div>
@@ -575,10 +583,10 @@ export default function FinderPage() {
       </section>
 
       {/* Answers */}
-      <section className="flex-1 flex items-center justify-center">
+      <section className="relative z-10 flex-1 flex items-center justify-center">
         <div
           key={`a-${step}`}
-          className="max-w-[800px] w-full mx-auto px-4 md:px-8"
+          className="max-w-[800px] w-full mx-auto px-4 md:px-8 animate-fade-up delay-1"
         >
           {/* Yes / Sometimes / No questions (steps 0-3) */}
           {!isBudgetStep && (
@@ -593,18 +601,18 @@ export default function FinderPage() {
                     onClick={() => handleQuickAnswer(STEPS[step], option.key)}
                     className={`relative h-auto text-center p-3.5 md:p-5 rounded-xl md:rounded-2xl border-2 transition-all duration-200 group
                       ${isSelected
-                        ? 'border-white bg-white/20 shadow-md shadow-white/10 hover:bg-white/20'
-                        : 'border-white/20 bg-white/10 backdrop-blur-sm hover:border-white/40 hover:bg-white/10 hover:shadow-sm'
+                        ? 'border-white bg-white/20 shadow-lg shadow-white/10 hover:bg-white/20'
+                        : 'border-white/15 glass hover:border-white/30 hover:shadow-sm'
                       }`}
                   >
                     <div className="flex flex-col items-center gap-2 md:gap-3">
                       <div
-                        className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center transition-colors
-                          ${isSelected ? 'bg-white text-[#213E53]' : 'bg-white/15 text-white group-hover:bg-white/25'}`}
+                        className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center transition-all duration-200
+                          ${isSelected ? 'bg-white text-[#213E53] shadow-md' : 'bg-white/15 text-white group-hover:bg-white/25'}`}
                       >
                         <Icon size={20} />
                       </div>
-                      <p className={`font-heading font-bold text-sm ${isSelected ? 'text-white' : 'text-white/80'}`}>
+                      <p className={`font-heading font-bold text-sm ${isSelected ? 'text-white' : 'text-white/75'}`}>
                         {option.label}
                       </p>
                     </div>
@@ -619,10 +627,10 @@ export default function FinderPage() {
             <div className="max-w-120 mx-auto">
               {/* Budget display */}
               <div className="text-center mb-5">
-                <span className="font-heading font-bold text-3xl md:text-4xl text-white">
+                <span className="font-heading font-extrabold text-4xl md:text-5xl text-white tracking-tight">
                   {answers.budget}
                 </span>
-                <SarSymbol className="text-white/70 text-sm md:text-base ms-1.5" />
+                <SarSymbol className="text-white/80 text-sm md:text-base ms-1.5" />
               </div>
 
               {/* Slider */}
@@ -634,9 +642,9 @@ export default function FinderPage() {
                   value={[Number(answers.budget)]}
                   onValueChange={(val) => setAnswer('budget', val[0])}
                   dir="ltr"
-                  className="w-full **:data-[slot=slider-track]:bg-white/20 **:data-[slot=slider-range]:bg-white/90 **:data-[slot=slider-thumb]:bg-white **:data-[slot=slider-thumb]:border-white **:data-[slot=slider-thumb]:w-7 **:data-[slot=slider-thumb]:h-7"
+                  className="w-full **:data-[slot=slider-track]:bg-white/20 **:data-[slot=slider-range]:bg-white **:data-[slot=slider-thumb]:bg-white **:data-[slot=slider-thumb]:border-white **:data-[slot=slider-thumb]:w-7 **:data-[slot=slider-thumb]:h-7 **:data-[slot=slider-thumb]:shadow-lg"
                 />
-                <div className="flex justify-between text-[10px] text-white/50 mt-1 px-0.5" dir="ltr">
+                <div className="flex justify-between text-[11px] text-white/70 mt-1.5 px-0.5 font-medium" dir="ltr">
                   <span>{BUDGET_MIN}</span>
                   <span>{BUDGET_MAX}+</span>
                 </div>
@@ -650,10 +658,10 @@ export default function FinderPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setAnswer('budget', val)}
-                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200
                       ${answers.budget === val
-                        ? 'bg-white text-[#213E53] shadow-sm shadow-black/10 border-white hover:bg-white/90 hover:text-[#213E53]'
-                        : 'bg-white/15 text-white hover:bg-white/25 border-white/20 hover:text-white'
+                        ? 'bg-white text-[#213E53] shadow-md shadow-black/10 border-white hover:bg-white/90 hover:text-[#213E53]'
+                        : 'bg-white/15 text-white hover:bg-white/25 border-white/25 hover:text-white'
                       }`}
                   >
                     {val}
@@ -665,7 +673,7 @@ export default function FinderPage() {
               <Button
                 onClick={submitBudget}
                 size="lg"
-                className="w-full rounded-xl text-sm font-bold bg-white text-[#213E53] hover:bg-white/90 hover:shadow-lg"
+                className="w-full rounded-xl text-sm font-bold bg-white text-primary hover:bg-white/95 shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300"
               >
                 {t('finder.findMyPlans')}
                 <Sparkles size={16} />
@@ -680,7 +688,7 @@ export default function FinderPage() {
                 onClick={back}
                 variant="ghost"
                 size="sm"
-                className="text-white/60 hover:text-white hover:bg-white/10 text-xs font-semibold"
+                className="text-white/70 hover:text-white hover:bg-white/10 text-xs font-semibold rounded-xl"
               >
                 <BackIcon size={14} />
                 {t('finder.back')}

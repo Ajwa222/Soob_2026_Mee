@@ -446,12 +446,15 @@ export default function PlansPage() {
       <FinderModal show={showFinderModal} onDismiss={dismissFinderModal} />
 
       {/* ========= HEADER ========= */}
-      <section className="relative z-10 bg-primary">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10">
-          <h1 className="font-heading font-bold text-3xl md:text-4xl text-white">
+      <section className="relative z-10 hero-gradient grain overflow-hidden">
+        <div className="absolute top-0 end-0 w-64 h-64 rounded-full bg-white/[0.03] -translate-y-1/3 translate-x-1/3 blob" />
+        <div className="absolute bottom-0 start-0 w-40 h-40 rounded-full bg-accent/[0.05] translate-y-1/3 -translate-x-1/3 blob-alt" />
+
+        <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10">
+          <h1 className="font-heading font-extrabold text-3xl md:text-4xl text-white tracking-tight">
             {t('browse.title')}
           </h1>
-          <p className="text-white/80 mt-2 text-base md:text-lg">
+          <p className="text-white/70 mt-2 text-base md:text-lg">
             {t('browse.subtitle')}
           </p>
 
@@ -459,20 +462,19 @@ export default function PlansPage() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6">
             {/* Search */}
             <div className="relative flex-1">
-              <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-white/60 z-10" />
+              <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-white/50 z-10" />
               <Input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={t('browse.searchPlaceholder')}
-                className="w-full ps-11 pe-4 py-3 h-auto rounded-xl bg-white/15 border-white/20 text-sm text-white
-                  placeholder:text-white/50 focus-visible:ring-white/30 focus-visible:border-white/40
-                  backdrop-blur-sm"
+                className="w-full ps-11 pe-4 py-3 h-auto rounded-xl glass border-white/15 text-sm text-white
+                  placeholder:text-white/40 focus-visible:ring-white/25 focus-visible:border-white/30"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute top-1/2 -translate-y-1/2 end-3 text-white/50 hover:text-white/80"
+                  className="absolute top-1/2 -translate-y-1/2 end-3 text-white/50 hover:text-white/80 transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -487,9 +489,9 @@ export default function PlansPage() {
                 trackEvent('sort_changed', { sort: value });
               }}
             >
-              <SelectTrigger className="rounded-xl bg-white/15 border-white/20 text-sm font-semibold
-                text-white hover:border-white/40 backdrop-blur-sm w-full sm:w-[220px] h-auto py-3">
-                <span className="text-white/60 me-1">{t('browse.sortBy')}:</span>
+              <SelectTrigger className="rounded-xl glass border-white/15 text-sm font-semibold
+                text-white hover:border-white/30 w-full sm:w-[220px] h-auto py-3">
+                <span className="text-white/50 me-1">{t('browse.sortBy')}:</span>
                 <SelectValue>{t(activeSort.label)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -505,8 +507,8 @@ export default function PlansPage() {
             <Button
               variant="ghost"
               onClick={() => setShowMobileFilters(true)}
-              className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 h-auto rounded-xl bg-white/15 border border-white/20
-                text-sm font-semibold text-white hover:border-white/40 hover:bg-white/20 backdrop-blur-sm"
+              className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 h-auto rounded-xl glass border border-white/15
+                text-sm font-semibold text-white hover:border-white/30 hover:bg-white/15"
             >
               <SlidersHorizontal size={16} />
               {t('browse.filters')}
@@ -733,21 +735,21 @@ export default function PlansPage() {
         </div>
 
         {/* ========= FINDER CTA BANNER ========= */}
-        <div className="mt-16 relative overflow-hidden rounded-3xl p-8 md:p-12 text-center bg-primary">
-          <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
-          <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/3" />
-          <div className="relative">
-            <Badge variant="secondary" className="gap-2 px-3 py-1 bg-white/15 text-white/90 border-0 text-xs font-medium mb-4">
+        <div className="mt-16 relative overflow-hidden rounded-3xl p-8 md:p-12 text-center hero-gradient grain">
+          <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
+          <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-accent/[0.06] translate-y-1/3 -translate-x-1/3 blob-alt" />
+          <div className="relative z-10">
+            <Badge variant="secondary" className="gap-2 px-3 py-1 glass text-white/90 border-0 text-xs font-semibold mb-4">
               <Sparkles size={12} />
               {t('home.just30Seconds')}
             </Badge>
-            <h3 className="font-heading font-bold text-2xl md:text-3xl text-white">
+            <h3 className="font-heading font-extrabold text-2xl md:text-3xl text-white tracking-tight">
               {t('finderCta.title')}
             </h3>
-            <p className="text-white/60 mt-2 text-sm max-w-md mx-auto">
+            <p className="text-white/55 mt-2 text-sm max-w-md mx-auto">
               {t('finderCta.subtitle')}
             </p>
-            <Button asChild className="mt-6 px-6 py-3 h-auto rounded-xl bg-white text-primary font-bold text-sm hover:bg-white/95 shadow-md hover:shadow-lg">
+            <Button asChild className="mt-6 px-6 py-3 h-auto rounded-xl bg-white text-primary font-bold text-sm hover:bg-white/90 shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300">
               <Link to="/finder">
                 {t('finderCta.cta')}
                 <ArrowRight size={16} className="rtl:rotate-180" />

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
+import { Sparkles, ArrowRight, ChevronRight, Zap, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CommunityBanner from '../components/CommunityBanner';
 import { useLang } from '../context/LanguageContext';
@@ -22,42 +22,50 @@ export default function HomePage() {
   return (
     <div className="safe-pb">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-primary">
-        <div className="absolute top-0 end-0 w-60 h-60 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
-        <div className="absolute bottom-0 start-0 w-40 h-40 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/3" />
+      <section className="relative overflow-hidden hero-gradient grain">
+        {/* Decorative elements */}
+        <div className="absolute top-0 end-0 w-80 h-80 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob animate-float" />
+        <div className="absolute bottom-0 start-0 w-52 h-52 rounded-full bg-white/[0.04] translate-y-1/3 -translate-x-1/3 blob-alt" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 end-1/4 w-32 h-32 rounded-full bg-accent/10 animate-float hidden md:block" style={{ animationDelay: '1s' }} />
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-10 md:pt-16 md:pb-20">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-10 pb-12 md:pt-20 md:pb-24">
           <div className="max-w-lg md:max-w-2xl">
-            <h1 className="font-heading font-extrabold text-[28px] md:text-[44px] lg:text-[52px] text-white leading-[1.15] tracking-tight">
+            {/* Eyebrow badge */}
+            <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-white/90 text-[11px] font-semibold tracking-wide uppercase mb-4">
+              <Zap size={11} className="text-accent" />
+              {t('home.popularNow')}
+            </div>
+
+            <h1 className="animate-fade-up delay-1 font-heading font-extrabold text-[30px] md:text-[48px] lg:text-[56px] text-white leading-[1.1] tracking-tight">
               {t('hero.headline')}
             </h1>
-            <p className="mt-3 text-[15px] md:text-[17px] text-white/80 leading-relaxed max-w-md">
+            <p className="animate-fade-up delay-2 mt-4 text-[15px] md:text-[18px] text-white/75 leading-relaxed max-w-md">
               {t('hero.subheadline')}
             </p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 font-bold shadow-md">
+            <div className="animate-fade-up delay-3 mt-7 flex flex-wrap items-center gap-3">
+              <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 font-bold shadow-lg shadow-black/10 glow-primary rounded-xl h-12 px-6 text-[14px]">
                 <Link to="/finder" onClick={() => trackEvent('homepage_cta_clicked', { cta: 'finder' })}>
                   {t('hero.ctaFinder')}
                   <ArrowRight size={17} className="rtl:rotate-180" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="bg-white/10 text-white border-white/20 hover:bg-white/20 font-semibold">
+              <Button asChild variant="outline" size="lg" className="glass text-white border-white/15 hover:bg-white/15 font-semibold rounded-xl h-12 px-6 text-[14px]">
                 <Link to="/plans" onClick={() => trackEvent('homepage_cta_clicked', { cta: 'browse_plans' })}>
                   {t('hero.ctaBrowse')}
                 </Link>
               </Button>
             </div>
 
-            <div className="mt-5 pt-4 border-t border-white/20">
-              <div className="flex items-center gap-4">
+            <div className="animate-fade-up delay-4 mt-7 pt-5 border-t border-white/15">
+              <div className="flex items-center gap-6">
                 {[
                   { value: '150+', label: t('stats.plans') },
                   { value: '8', label: t('stats.carriers') },
                 ].map((stat, i) => (
-                  <div key={i} className="flex items-center gap-1.5">
-                    <span className="font-heading font-bold text-[15px] md:text-[17px] text-white">{stat.value}</span>
-                    <span className="text-[13px] text-white/70 font-medium">{stat.label}</span>
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="font-heading font-extrabold text-[20px] md:text-[24px] text-white">{stat.value}</span>
+                    <span className="text-[13px] text-white/60 font-medium">{stat.label}</span>
                   </div>
                 ))}
               </div>
@@ -68,9 +76,9 @@ export default function HomePage() {
 
       {/* Carrier Strip */}
       <div className="border-b border-border overflow-hidden bg-background">
-        <div className="py-4 flex justify-center">
+        <div className="py-5 flex justify-center">
           <div
-            className="flex items-center gap-12 w-max"
+            className="flex items-center gap-14 w-max"
             style={{ animation: `${lang === 'ar' ? 'marquee-rtl' : 'marquee'} 25s linear infinite` }}
           >
             {[...CARRIERS, ...CARRIERS, ...CARRIERS].map((carrier, i) => (
@@ -78,7 +86,7 @@ export default function HomePage() {
                 key={`${carrier.name}-${i}`}
                 src={carrier.logo}
                 alt={carrier.name}
-                className="h-6 md:h-7 w-auto object-contain shrink-0"
+                className="h-6 md:h-7 w-auto object-contain shrink-0 opacity-50 hover:opacity-100 transition-opacity duration-300"
               />
             ))}
           </div>
@@ -86,17 +94,18 @@ export default function HomePage() {
       </div>
 
       {/* Trending Plans */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-10 md:pt-16 pb-10 md:pb-14">
-        <div className="flex items-end justify-between mb-5 md:mb-7">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-12 md:pt-20 pb-10 md:pb-14">
+        <div className="flex items-end justify-between mb-6 md:mb-8">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-primary">
+              <Sparkles size={12} />
               {t('home.popularNow')}
             </span>
-            <h2 className="font-heading font-bold text-xl md:text-[28px] text-foreground mt-1">
+            <h2 className="font-heading font-bold text-2xl md:text-[32px] text-foreground mt-1.5 tracking-tight">
               {t('trending.title')}
             </h2>
           </div>
-          <Button variant="link" asChild className="text-primary">
+          <Button variant="link" asChild className="text-primary font-semibold">
             <Link to="/plans">
               {t('trending.seeAll')}
               <ChevronRight size={16} className="rtl:rotate-180" />
@@ -121,25 +130,25 @@ export default function HomePage() {
         <Link
           to="/finder"
           onClick={() => trackEvent('homepage_cta_clicked', { cta: 'finder_banner' })}
-          className="relative block overflow-hidden rounded-xl p-6 md:p-10 group bg-primary"
+          className="relative block overflow-hidden rounded-2xl p-7 md:p-10 group hero-gradient grain"
         >
-          <div className="absolute top-0 end-0 w-40 h-40 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
-          <div className="absolute bottom-0 start-0 w-28 h-28 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/3" />
+          <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
+          <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-white/[0.04] translate-y-1/3 -translate-x-1/3 blob-alt" />
 
-          <div className="relative flex items-center justify-between gap-4">
+          <div className="relative z-10 flex items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 text-white/90 text-[11px] font-medium mb-2.5">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full glass text-white/90 text-[11px] font-medium mb-3">
                 <Sparkles size={11} />
                 {t('home.just30Seconds')}
               </div>
               <h2 className="font-heading font-bold text-lg md:text-2xl text-white leading-tight">
                 {t('finderCta.title')}
               </h2>
-              <p className="mt-1 text-white/70 text-sm max-w-sm leading-relaxed">
+              <p className="mt-1.5 text-white/65 text-sm max-w-sm leading-relaxed">
                 {t('finderCta.subtitle')}
               </p>
             </div>
-            <div className="shrink-0 w-11 h-11 rounded-xl bg-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+            <div className="shrink-0 w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
               <ArrowRight size={18} className="text-primary rtl:rotate-180" />
             </div>
           </div>

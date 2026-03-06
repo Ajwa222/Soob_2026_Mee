@@ -13,9 +13,9 @@ import { Link } from 'react-router-dom';
 import type { Plan } from '../types';
 
 const typeBadgeVariant: Record<string, string> = {
-  Prepaid: 'bg-emerald-500/10 text-emerald-600',
-  Postpaid: 'bg-purple-500/10 text-purple-600',
-  'Data-only': 'bg-amber-500/10 text-amber-600',
+  Prepaid: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  Postpaid: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+  'Data-only': 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
 };
 
 export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CSSProperties }) {
@@ -44,12 +44,12 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
 
   return (
     <Card
-      className={`relative flex flex-col overflow-hidden transition-shadow hover:shadow-md
+      className={`relative flex flex-col overflow-hidden card-hover gradient-border
         ${selected ? 'ring-2 ring-primary shadow-lg' : ''}`}
       style={{ borderInlineStart: `4px solid ${carrierColor}`, ...style }}
     >
       {selected && (
-        <div className="absolute top-3 end-3 w-7 h-7 rounded-full bg-primary flex items-center justify-center z-10">
+        <div className="absolute top-3 end-3 w-7 h-7 rounded-full bg-primary flex items-center justify-center z-10 shadow-md shadow-primary/30">
           <Check size={14} className="text-white" strokeWidth={3} />
         </div>
       )}
@@ -65,20 +65,20 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
               {plan.provider}
             </span>
           </div>
-          <Badge variant="secondary" className={`${badgeClass} text-[11px] border-0`}>
+          <Badge variant="secondary" className={`${badgeClass} text-[11px] border-0 font-semibold`}>
             {t(`types.${plan.planType}`)}
           </Badge>
         </div>
 
         {/* Plan name */}
-        <h3 className="font-heading font-bold text-lg text-foreground leading-snug mt-2 line-clamp-2 min-h-[2.75rem]">
+        <h3 className="font-heading font-bold text-lg text-foreground leading-snug mt-2.5 line-clamp-2 min-h-[2.75rem]">
           {plan.planName}
         </h3>
 
         {/* Price */}
         <div className="plan-price mt-3 flex items-baseline gap-1">
           <SarSymbol className="text-sm font-medium text-muted-foreground" />
-          <span className="text-2xl sm:text-3xl font-heading font-bold text-foreground">
+          <span className="text-2xl sm:text-3xl font-heading font-extrabold text-foreground tracking-tight">
             {plan.priceSAR}
           </span>
           <span className="text-sm text-muted-foreground">{t('planCard.perMonth')}</span>
@@ -93,10 +93,10 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
             { icon: Phone, value: isValidValue(plan.localCallMinutes) ? (plan.localCallMinutes === 'Unlimited' ? t('detail.unlimited') : `${plan.localCallMinutes}`) : '—', label: t('planCard.mins') },
             { icon: MessageSquare, value: isValidValue(plan.sms) && plan.sms !== '-' ? (plan.sms === 'Unlimited' ? t('detail.unlimited') : plan.sms) : '—', label: t('planCard.sms') },
           ].map(({ icon: Icon, value, label }) => (
-            <div key={label} className="flex flex-col items-center gap-1 py-2 px-1 rounded-lg bg-muted/60">
+            <div key={label} className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl bg-muted/50 dark:bg-muted/30 transition-colors">
               <Icon size={14} className="text-primary" />
               <p className="font-bold text-foreground text-[13px] leading-tight text-center">{value}</p>
-              <p className="text-[12px] text-muted-foreground">{label}</p>
+              <p className="text-[11px] text-muted-foreground">{label}</p>
             </div>
           ))}
         </div>
@@ -104,7 +104,7 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
         {/* Perks */}
         <div className="min-h-[2rem] mt-3 flex flex-wrap items-start gap-1.5">
           {perks.slice(0, 2).map((perk, i) => (
-            <Badge key={i} variant="outline" className="text-[11px] font-medium">
+            <Badge key={i} variant="outline" className="text-[11px] font-medium border-border/60">
               {perk}
             </Badge>
           ))}
@@ -112,15 +112,15 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
 
         {/* Engagement */}
         <div className="flex items-center gap-3 mt-2 text-muted-foreground">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 hover:text-primary transition-colors">
             <ThumbsUp size={12} />
             <span className="text-[11px] font-medium">{likes}</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 hover:text-destructive transition-colors">
             <ThumbsDown size={12} />
             <span className="text-[11px] font-medium">{dislikes}</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 hover:text-primary transition-colors">
             <MessageCircle size={12} />
             <span className="text-[11px] font-medium">{commentCount}</span>
           </div>
@@ -130,13 +130,13 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
       </CardContent>
 
       <CardFooter className="gap-2.5 px-5 pb-5">
-        <Button variant="secondary" className="flex-1" asChild>
+        <Button variant="secondary" className="flex-1 rounded-xl font-semibold" asChild>
           <Link to={`/plan/${plan.id}`}>{t('planCard.viewDetails')}</Link>
         </Button>
         <Button
           variant={selected ? 'default' : 'outline'}
           onClick={(e) => { e.preventDefault(); togglePlan(plan); }}
-          className={selected ? '' : 'text-primary border-primary/30 hover:bg-primary/10'}
+          className={`rounded-xl font-semibold ${selected ? 'shadow-md shadow-primary/20' : 'text-primary border-primary/30 hover:bg-primary/10'}`}
         >
           {selected ? <Check size={15} /> : <Plus size={15} />}
           {selected ? t('planCard.selected') : t('planCard.compare')}

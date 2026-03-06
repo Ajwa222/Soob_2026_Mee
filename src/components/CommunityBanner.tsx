@@ -22,20 +22,22 @@ export default function CommunityBanner() {
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-xl p-6 md:p-10 bg-primary">
-        <div className="absolute top-0 end-0 w-40 h-40 rounded-full bg-white/[0.06] -translate-y-1/3 translate-x-1/3" />
-        <div className="absolute bottom-0 start-0 w-28 h-28 rounded-full bg-white/[0.06] translate-y-1/3 -translate-x-1/3" />
+      <div className="relative overflow-hidden rounded-2xl p-7 md:p-10 bg-gradient-to-br from-[#0D7FD9] via-primary to-[#15B3E8] grain">
+        {/* Decorative blobs */}
+        <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.05] -translate-y-1/3 translate-x-1/3 blob" />
+        <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-accent/[0.08] translate-y-1/3 -translate-x-1/3 blob-alt" />
+        <div className="absolute top-1/2 end-1/3 w-20 h-20 rounded-full bg-white/[0.03] hidden md:block" />
 
-        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 text-white/90 text-[11px] font-medium mb-2.5">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full glass text-white/90 text-[11px] font-semibold tracking-wide uppercase mb-3">
               <Users size={11} />
               {isArabic ? 'مجتمع سيمبا' : 'Community'}
             </div>
-            <h2 className="font-heading font-bold text-lg md:text-2xl text-white leading-tight">
+            <h2 className="font-heading font-bold text-xl md:text-2xl text-white leading-tight">
               {isArabic ? 'انضم لمجتمع سيمبا' : 'Join the Simba Community'}
             </h2>
-            <p className="mt-1 text-white/70 text-sm max-w-sm leading-relaxed">
+            <p className="mt-1.5 text-white/65 text-sm max-w-sm leading-relaxed">
               {isArabic
                 ? 'كن أول من يعرف عن أفضل العروض والباقات الجديدة'
                 : 'Connect with others and be the first to know about the best deals'}
@@ -45,7 +47,7 @@ export default function CommunityBanner() {
           <Button
             onClick={handleJoin}
             variant="secondary"
-            className="bg-white text-[#213E53] hover:bg-white/90 font-bold shrink-0 self-start md:self-center h-12 px-6"
+            className="bg-white text-[#213E53] hover:bg-white/90 font-bold shrink-0 self-start md:self-center h-12 px-6 rounded-xl shadow-lg shadow-black/10 hover:shadow-xl transition-all duration-300"
           >
             {isArabic ? 'انضم الآن' : 'Join Now'}
             <ArrowRight size={17} className="rtl:rotate-180" />
@@ -54,12 +56,12 @@ export default function CommunityBanner() {
       </div>
 
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-2xl">
           <div className="flex flex-col items-center text-center mb-4">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
               <Users size={28} className="text-primary" />
             </div>
-            <DialogTitle>Choose your community</DialogTitle>
+            <DialogTitle className="font-heading">Choose your community</DialogTitle>
             <p className="text-sm text-muted-foreground mt-1">Pick the language you're most comfortable with</p>
           </div>
 
@@ -69,13 +71,13 @@ export default function CommunityBanner() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setShowModal(false)}
-              className="flex items-center gap-3 px-4 py-3.5 rounded-lg bg-primary/10 hover:bg-primary/15 transition-colors"
+              className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-primary/8 hover:bg-primary/12 transition-all duration-200 group"
             >
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
                 <Users size={20} className="text-white" />
               </div>
               <p className="font-bold text-sm text-foreground">المجتمع العربي</p>
-              <ArrowRight size={16} className="text-muted-foreground ms-auto rtl:rotate-180" />
+              <ArrowRight size={16} className="text-muted-foreground ms-auto rtl:rotate-180 group-hover:translate-x-0.5 transition-transform" />
             </a>
 
             <a
@@ -83,13 +85,13 @@ export default function CommunityBanner() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setShowModal(false)}
-              className="flex items-center gap-3 px-4 py-3.5 rounded-lg bg-primary/10 hover:bg-primary/15 transition-colors"
+              className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-primary/8 hover:bg-primary/12 transition-all duration-200 group"
             >
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
                 <Users size={20} className="text-white" />
               </div>
               <p className="font-bold text-sm text-foreground">English Community</p>
-              <ArrowRight size={16} className="text-muted-foreground ms-auto rtl:rotate-180" />
+              <ArrowRight size={16} className="text-muted-foreground ms-auto rtl:rotate-180 group-hover:translate-x-0.5 transition-transform" />
             </a>
           </div>
         </DialogContent>
