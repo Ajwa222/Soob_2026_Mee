@@ -7,12 +7,10 @@ import { AuthProvider } from './context/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
-// import ChatBubble from './components/ChatBubble';
 import CompareBar from './components/CompareBar';
 import Onboarding from './components/Onboarding';
 import PhoneGate from './components/PhoneGate';
 import HomePage from './pages/HomePage';
-import GradientBackground from './components/GradientBackground';
 
 const PlansPage = lazy(() => import('./pages/PlansPage'));
 const PlanDetailPage = lazy(() => import('./pages/PlanDetailPage'));
@@ -58,8 +56,7 @@ function App() {
       <AnalyticsTracker />
         <AuthProvider>
         <CompareProvider>
-          <div className="relative min-h-screen flex flex-col">
-            <GradientBackground />
+          <div className="relative min-h-screen flex flex-col bg-background">
             <Navigation />
             <main className="flex-1">
               <Suspense fallback={<div className="flex-1 flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>}>
@@ -72,14 +69,11 @@ function App() {
                 <Route path="/help" element={<Navigate to="/" replace />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/about" element={<AboutPage />} />
-                {/* <Route path="/game" element={<GamePage />} /> */}
-                {/* <Route path="/chat" element={<ChatPage />} /> */}
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
               </Suspense>
             </main>
             <Footer />
-            {/* <ChatBubble /> */}
             <CompareBar />
           </div>
           <Onboarding />

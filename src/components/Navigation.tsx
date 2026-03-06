@@ -1,5 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Smartphone, Search, /* Gamepad2, Users, */ User, Sun, Moon } from 'lucide-react';
+import { Home, Smartphone, Search, Sun, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useLang } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 function WhatsAppIcon({ size = 16 }: { size?: number }) {
   return (
@@ -8,14 +11,12 @@ function WhatsAppIcon({ size = 16 }: { size?: number }) {
     </svg>
   );
 }
-import { useLang } from '../context/LanguageContext';
-import { useAuth } from '../context/AuthContext';
 
 const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/IuixL2fLPFgD5aAraoFz6D?mode=gi_t';
 
 export default function Navigation() {
   const { t, theme, toggleTheme } = useLang();
-  const { user, isLoggedIn, hasAccount } = useAuth();
+  const { hasAccount } = useAuth();
   const location = useLocation();
 
   if (!hasAccount) return null;
@@ -31,7 +32,6 @@ export default function Navigation() {
     { path: '/home', label: t('nav.home') },
     { path: '/plans', label: t('nav.plans') },
     { path: '/finder', label: t('nav.finder') },
-    // { path: '/game', label: t('nav.game') },
   ];
 
   const mobileNavItems = [
@@ -47,35 +47,25 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop Nav */}
-      <nav className="hidden md:block sticky top-0 z-50 bg-surface border-b border-border/60">
-        <div className="w-full max-w-[1280px] mx-auto px-8 flex items-center justify-between h-[72px]">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <img
-              src="/icon-512.png"
-              alt="Simba"
-              className="w-10 h-10 shadow-md shadow-primary/20 group-hover:shadow-lg group-hover:shadow-primary/30 transition-all duration-200"
-              style={{ borderRadius: '25%' }}
-            />
-            <span
-              className="font-heading font-bold text-[22px] leading-none tracking-tight bg-clip-text text-transparent"
-              style={{ backgroundImage: 'var(--gradient-brand)' }}
-            >
+      <nav className="hidden md:block sticky top-0 z-50 bg-card border-b border-border">
+        <div className="w-full max-w-5xl mx-auto px-8 flex items-center justify-between h-16">
+          <Link to="/" className="flex items-center gap-2.5">
+            <img src="/icon-512.png" alt="Simba" className="w-9 h-9 rounded-xl shadow-sm" />
+            <span className="font-heading font-bold text-xl leading-none tracking-tight text-primary">
               Simba
             </span>
           </Link>
 
-          {/* Center nav links */}
-          <div className="flex items-center gap-1 bg-surface-alt/80 rounded-2xl p-1.5">
+          <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
             {navItems.map(item => (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={(e) => handleNav(e, item.path)}
-                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors
                   ${isActive(item.path)
-                    ? 'bg-surface text-primary shadow-sm'
-                    : 'text-text-secondary hover:text-text-primary'
+                    ? 'bg-card text-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                   }`}
               >
                 {item.label}
@@ -83,33 +73,26 @@ export default function Navigation() {
             ))}
           </div>
 
-          {/* Right side */}
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={toggleTheme}
-              className="p-2.5 rounded-xl text-text-secondary hover:text-text-primary hover:bg-surface-alt/80 transition-all duration-200"
-              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            <a
-              href={WHATSAPP_GROUP_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold
-                text-[#25D366] bg-[#25D366]/10 hover:bg-[#25D366]/20 transition-all duration-200"
-            >
-              <WhatsAppIcon size={16} />
-              {t('nav.support')}
-            </a>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="text-[#25D366] hover:text-[#25D366] hover:bg-[#25D366]/10">
+              <a href={WHATSAPP_GROUP_LINK} target="_blank" rel="noopener noreferrer">
+                <WhatsAppIcon size={16} />
+                {t('nav.support')}
+              </a>
+            </Button>
           </div>
         </div>
       </nav>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className={`md:hidden fixed bottom-0 inset-x-0 z-[200] glass border-t border-border/60${location.pathname === '/finder' ? ' hidden' : ''}`}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        <div className="flex items-center justify-around h-[68px] px-3">
+      <nav
+        className={`md:hidden fixed bottom-0 inset-x-0 z-[200] bg-card/95 backdrop-blur-md border-t border-border${location.pathname === '/finder' && !location.search.includes('results=1') ? ' hidden' : ''}`}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        <div className="flex items-center justify-around h-16 px-2">
           {mobileNavItems.map(item => {
             const Icon = item.icon;
             const active = !item.external && isActive(item.path);
@@ -121,10 +104,10 @@ export default function Navigation() {
                   href={item.path}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all duration-200 min-h-11 justify-center"
+                  className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[#25D366]"
                 >
-                  <Icon size={22} strokeWidth={1.5} className="text-[#25D366]" />
-                  <span className="text-[11px] font-semibold text-[#25D366]">{item.label}</span>
+                  <Icon size={20} />
+                  <span className="text-[10px] font-medium">{item.label}</span>
                 </a>
               );
             }
@@ -134,15 +117,11 @@ export default function Navigation() {
                 key={item.path}
                 to={item.path}
                 onClick={(e) => handleNav(e, item.path)}
-                className="flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all duration-200 min-h-11 justify-center"
-                style={active ? { backgroundColor: 'color-mix(in srgb, var(--color-primary) 8%, transparent)' } : {}}
+                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors
+                  ${active ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
               >
-                <Icon
-                  size={22}
-                  strokeWidth={active ? 2.5 : 1.5}
-                  className={active ? 'text-primary' : 'text-text-tertiary'}
-                />
-                <span className={`text-[11px] font-semibold ${active ? 'text-primary' : 'text-text-tertiary'}`}>
+                <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
+                <span className={`text-[10px] ${active ? 'font-semibold' : 'font-medium'}`}>
                   {item.label}
                 </span>
               </Link>
@@ -152,29 +131,17 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Top Bar */}
-      <div className="md:hidden sticky top-0 z-[200] bg-surface border-b border-border/60">
-        <div className="flex items-center justify-between px-3 sm:px-5 h-[60px]">
+      <div className="md:hidden sticky top-0 z-[200] bg-card/95 backdrop-blur-md border-b border-border">
+        <div className="flex items-center justify-between px-4 h-14">
           <Link to="/" className="flex items-center gap-2">
-            <img
-              src="/icon-512.png"
-              alt="Simba"
-              className="w-9 h-9 shadow-sm shadow-primary/20"
-              style={{ borderRadius: '25%' }}
-            />
-            <span
-              className="font-heading font-bold text-lg tracking-tight bg-clip-text text-transparent"
-              style={{ backgroundImage: 'var(--gradient-brand)' }}
-            >
+            <img src="/icon-512.png" alt="Simba" className="w-8 h-8 rounded-xl shadow-sm" />
+            <span className="font-heading font-bold text-lg tracking-tight text-primary">
               Simba
             </span>
           </Link>
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-surface-alt/80 transition-all duration-200"
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
+          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          </Button>
         </div>
       </div>
     </>

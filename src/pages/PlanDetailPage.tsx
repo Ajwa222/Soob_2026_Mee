@@ -15,12 +15,11 @@ import {
   PLANS_DATA, getCarrierLogo, isValidValue,
 } from '../data/plans';
 import { trackEvent } from '../lib/analytics';
-
-const typeBadgeStyles: Record<string, { bg: string; color: string }> = {
-  Prepaid: { bg: '#2563EB12', color: '#2563EB' },
-  Postpaid: { bg: '#F59E0B12', color: '#D97706' },
-  'Data-only': { bg: '#64748B12', color: '#64748B' },
-};
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 
 function timeAgo(ts: number, t: (k: string, p?: Record<string, string>) => string): string {
   const diff = Date.now() - ts;
@@ -57,24 +56,22 @@ export default function PlanDetailPage() {
   if (!plan) {
     return (
       <div className="max-w-[1280px] mx-auto px-6 py-24 text-center">
-        <h1 className="font-heading font-bold text-2xl text-text-primary">
+        <h1 className="font-heading font-bold text-2xl text-foreground">
           {t('detail.notFound')}
         </h1>
-        <p className="text-text-secondary mt-2">
+        <p className="text-muted-foreground mt-2">
           {t('detail.notFoundDesc')}
         </p>
-        <Link
-          to="/plans"
-          className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-primary text-white font-bold text-sm btn-press"
-        >
-          {t('detail.backToPlans')}
-        </Link>
+        <Button asChild className="mt-6">
+          <Link to="/plans">
+            {t('detail.backToPlans')}
+          </Link>
+        </Button>
       </div>
     );
   }
 
   const carrierLogo = getCarrierLogo(plan.provider);
-  const badge = typeBadgeStyles[plan.planType] || typeBadgeStyles['Prepaid'];
   const selected = isSelected(plan.id);
   const Chevron = lang === 'ar' ? ChevronLeft : ChevronRight;
   const BackArrow = lang === 'ar' ? ArrowRight : ArrowLeft;
@@ -94,20 +91,20 @@ export default function PlanDetailPage() {
   const hasFeatures = isValidValue(plan.specialFeatures);
 
   return (
-    <div className="relative z-10 safe-pb backdrop-blur-xl bg-[var(--color-bg)]/80">
+    <div className="relative z-10 safe-pb">
       {/* ========= BREADCRUMB ========= */}
-      <div className="bg-surface-alt/50 border-b border-border/50">
+      <div className="bg-muted/50 border-b border-border/50">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-3">
-          <nav className="flex items-center gap-1.5 text-sm text-text-tertiary">
-            <Link to="/" className="hover:text-text-primary transition-colors">
+          <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Link to="/" className="hover:text-foreground transition-colors">
               {t('nav.home')}
             </Link>
             <Chevron size={14} />
-            <Link to="/plans" className="hover:text-text-primary transition-colors">
+            <Link to="/plans" className="hover:text-foreground transition-colors">
               {t('nav.plans')}
             </Link>
             <Chevron size={14} />
-            <span className="text-text-primary font-medium truncate max-w-[200px]">
+            <span className="text-foreground font-medium truncate max-w-50">
               {plan.planName}
             </span>
           </nav>
@@ -117,15 +114,17 @@ export default function PlanDetailPage() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 md:px-8">
 
         {/* ========= PLAN HEADER ========= */}
-        <div className="pt-6 pb-5" style={{ animation: 'fadeUp 0.4s ease-out both' }}>
+        <div className="pt-6 pb-5">
           {/* Back */}
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors mb-5"
+            className="mb-5 text-muted-foreground hover:text-foreground"
           >
             <BackArrow size={16} />
             {t('detail.back')}
-          </button>
+          </Button>
 
           {/* Carrier + badge */}
           <div className="flex items-center gap-3 flex-wrap">
@@ -137,158 +136,145 @@ export default function PlanDetailPage() {
                 {plan.provider}
               </span>
             </div>
-            <span
-              className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
-              style={{ backgroundColor: badge.bg, color: badge.color }}
-            >
+            <Badge variant="secondary" className="text-[11px] font-bold">
               {t(`types.${plan.planType}`)}
-            </span>
+            </Badge>
           </div>
 
           {/* Plan name */}
-          <h1 className="font-heading font-bold text-2xl md:text-3xl text-text-primary mt-3 leading-tight">
+          <h1 className="font-heading font-bold text-2xl md:text-3xl text-foreground mt-3 leading-tight">
             {plan.planName}
           </h1>
 
           {/* Price */}
           <div className="mt-4 flex items-baseline gap-1.5">
-            <SarSymbol className="text-base text-text-secondary" />
-            <span className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold text-text-primary">
+            <SarSymbol className="text-base text-muted-foreground" />
+            <span className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold text-foreground">
               {plan.priceSAR}
             </span>
-            <span className="text-base text-text-tertiary">/{t('compare.perMonth')}</span>
+            <span className="text-base text-muted-foreground">/{t('compare.perMonth')}</span>
           </div>
         </div>
 
         {/* ========= PLAN DETAILS ========= */}
-        <div
-          className="bg-surface rounded-2xl border border-border/60 overflow-hidden"
-          style={{ animation: 'fadeUp 0.4s ease-out 0.1s both' }}
-        >
-          <div className="divide-y divide-border/40">
-            {activeSpecs.map((spec, i) => {
-              const Icon = spec.icon;
-              return (
-                <div key={i} className="flex items-center gap-4 px-5 py-4">
-                  <div
-                    className="w-10 h-10 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0"
-                  >
-                    <Icon size={18} className="text-primary" />
+        <Card>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border/40">
+              {activeSpecs.map((spec, i) => {
+                const Icon = spec.icon;
+                return (
+                  <div key={i} className="flex items-center gap-4 px-5 py-4">
+                    <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
+                      <Icon size={18} className="text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium">{spec.label}</p>
+                      <p className="font-bold text-sm mt-0.5 text-foreground">
+                        {spec.highlight && (
+                          <Zap size={12} className="inline-block me-1 -mt-0.5 text-accent" />
+                        )}
+                        {spec.value}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Special Features */}
+              {hasFeatures && (
+                <div className="flex items-center gap-4 px-5 py-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
+                    <Zap size={18} className="text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-text-tertiary font-medium">{spec.label}</p>
-                    <p className="font-bold text-sm mt-0.5 text-text-primary">
-                      {spec.highlight && (
-                        <Zap size={12} className="inline-block me-1 -mt-0.5 text-accent" />
-                      )}
-                      {spec.value}
+                    <p className="text-xs text-muted-foreground font-medium">{t('detail.features')}</p>
+                    <p className="font-bold text-sm mt-0.5 text-foreground">
+                      {plan.specialFeatures}
                     </p>
                   </div>
                 </div>
-              );
-            })}
-
-            {/* Special Features */}
-            {hasFeatures && (
-              <div className="flex items-center gap-4 px-5 py-4">
-                <div
-                  className="w-10 h-10 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0"
-                >
-                  <Zap size={18} className="text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-text-tertiary font-medium">{t('detail.features')}</p>
-                  <p className="font-bold text-sm mt-0.5 text-text-primary">
-                    {plan.specialFeatures}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* ========= ACTION BUTTONS ========= */}
-        <div
-          className="mt-5 pb-12 flex flex-col gap-3"
-          style={{ animation: 'fadeUp 0.4s ease-out 0.2s both' }}
-        >
-          <a
-            href={plan.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackEvent('get_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider })}
-            className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-[15px]
-              bg-gradient-to-r from-primary-dark to-primary text-white
-              hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 btn-press"
+        <div className="mt-5 pb-12 flex flex-col gap-3">
+          <Button
+            asChild
+            size="lg"
+            className="w-full py-3.5 font-bold text-[15px] bg-primary hover:bg-primary/90"
           >
-            {t('detail.getThisPlan')}
-            <ExternalLink size={16} />
-          </a>
+            <a
+              href={plan.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackEvent('get_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider })}
+            >
+              {t('detail.getThisPlan')}
+              <ExternalLink size={16} />
+            </a>
+          </Button>
 
-          <button
+          <Button
+            variant={selected ? 'default' : 'outline'}
+            size="lg"
+            className="w-full py-3.5 font-bold text-[15px]"
             onClick={() => togglePlan(plan)}
-            className={`flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-[15px] transition-all duration-200 btn-press
-              ${selected
-                ? 'bg-primary text-white'
-                : 'bg-surface border-2 border-border text-text-primary hover:border-primary/30'
-              }`}
           >
             {selected ? <Check size={16} /> : <Plus size={16} />}
             {selected ? t('planCard.selected') : t('detail.addToCompare')}
-          </button>
-
+          </Button>
         </div>
 
         {/* ========= LIKE / DISLIKE ========= */}
-        <div
-          className="bg-surface rounded-2xl border border-border/60 p-5"
-          style={{ animation: 'fadeUp 0.4s ease-out 0.25s both' }}
-        >
+        <Card className="p-5">
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant="ghost"
               onClick={isLoggedIn ? toggleLike : loginWithGoogle}
-              className={`flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold transition-all duration-200 btn-press
-                ${user && reaction.likedBy.includes(user.uid)
-                  ? 'bg-green-500/15 text-green-600 ring-1 ring-green-500/30'
-                  : 'bg-surface-alt text-text-secondary hover:bg-green-500/10 hover:text-green-600'
-                }`}
+              className={
+                user && reaction.likedBy.includes(user.uid)
+                  ? 'bg-green-500/15 text-green-600 ring-1 ring-green-500/30 hover:bg-green-500/20'
+                  : 'bg-muted text-muted-foreground hover:bg-green-500/10 hover:text-green-600'
+              }
             >
               <ThumbsUp size={16} />
               <span>{reaction.likes}</span>
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
               onClick={isLoggedIn ? toggleDislike : loginWithGoogle}
-              className={`flex items-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold transition-all duration-200 btn-press
-                ${user && reaction.dislikedBy.includes(user.uid)
-                  ? 'bg-red-500/15 text-red-500 ring-1 ring-red-500/30'
-                  : 'bg-surface-alt text-text-secondary hover:bg-red-500/10 hover:text-red-500'
-                }`}
+              className={
+                user && reaction.dislikedBy.includes(user.uid)
+                  ? 'bg-red-500/15 text-red-500 ring-1 ring-red-500/30 hover:bg-red-500/20'
+                  : 'bg-muted text-muted-foreground hover:bg-red-500/10 hover:text-red-500'
+              }
             >
               <ThumbsDown size={16} />
               <span>{reaction.dislikes}</span>
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
 
         {/* ========= COMMENTS ========= */}
-        <div
-          className="bg-surface rounded-2xl border border-border/60 overflow-hidden mt-4"
-          style={{ animation: 'fadeUp 0.4s ease-out 0.3s both' }}
-        >
+        <Card className="mt-4 overflow-hidden">
           {/* Header */}
-          <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2">
+          <CardHeader className="flex-row items-center gap-2 py-4 px-5">
             <MessageCircle size={18} className="text-primary" />
-            <h2 className="font-bold text-text-primary text-sm">
+            <h2 className="font-bold text-foreground text-sm">
               {t('interactions.comments')}
               {comments.length > 0 && (
-                <span className="ms-1.5 text-text-tertiary font-normal">({comments.length})</span>
+                <span className="ms-1.5 text-muted-foreground font-normal">({comments.length})</span>
               )}
             </h2>
-          </div>
+          </CardHeader>
+
+          <Separator />
 
           {/* Comment Input */}
           {isLoggedIn ? (
-            <div className="px-5 py-4 border-b border-border/40 flex items-center gap-3">
+            <div className="px-5 py-4 flex items-center gap-3">
               {user?.photoURL ? (
                 <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full shrink-0 object-cover" />
               ) : (
@@ -296,7 +282,7 @@ export default function PlanDetailPage() {
                   <span className="text-xs font-bold text-primary">{user?.name?.[0] ?? '?'}</span>
                 </div>
               )}
-              <input
+              <Input
                 type="text"
                 value={commentText}
                 onChange={e => setCommentText(e.target.value)}
@@ -307,10 +293,11 @@ export default function PlanDetailPage() {
                   }
                 }}
                 placeholder={t('interactions.commentPlaceholder')}
-                className="flex-1 bg-surface-alt rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:ring-2 focus:ring-primary/30 border border-border/50"
+                className="flex-1"
                 maxLength={500}
               />
-              <button
+              <Button
+                size="icon"
                 onClick={() => {
                   if (commentText.trim()) {
                     addComment(commentText);
@@ -318,25 +305,28 @@ export default function PlanDetailPage() {
                   }
                 }}
                 disabled={!commentText.trim()}
-                className="p-2.5 rounded-xl bg-primary text-white disabled:opacity-40 transition-opacity btn-press shrink-0"
+                className="shrink-0"
               >
                 <Send size={16} />
-              </button>
+              </Button>
             </div>
           ) : (
-            <button
+            <Button
+              variant="ghost"
               onClick={loginWithGoogle}
-              className="w-full px-5 py-4 border-b border-border/40 flex items-center justify-center gap-2 text-sm text-primary font-medium hover:bg-primary/5 transition-colors"
+              className="w-full rounded-none px-5 py-4 h-auto flex items-center justify-center gap-2 text-sm text-primary font-medium"
             >
               <LogIn size={16} />
               {t('interactions.signInToInteract')}
-            </button>
+            </Button>
           )}
+
+          <Separator />
 
           {/* Comments List */}
           <div className="divide-y divide-border/30">
             {comments.length === 0 && !interactionsLoading && (
-              <p className="px-5 py-8 text-center text-sm text-text-tertiary">
+              <p className="px-5 py-8 text-center text-sm text-muted-foreground">
                 {t('interactions.noComments')}
               </p>
             )}
@@ -351,24 +341,26 @@ export default function PlanDetailPage() {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-text-primary truncate">{comment.userName}</span>
-                    <span className="text-[11px] text-text-tertiary shrink-0">{timeAgo(comment.createdAt, t)}</span>
+                    <span className="text-sm font-bold text-foreground truncate">{comment.userName}</span>
+                    <span className="text-[11px] text-muted-foreground shrink-0">{timeAgo(comment.createdAt, t)}</span>
                   </div>
-                  <p className="text-sm text-text-secondary mt-1 break-words">{comment.text}</p>
+                  <p className="text-sm text-muted-foreground mt-1 wrap-break-word">{comment.text}</p>
                 </div>
                 {user?.uid === comment.userId && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => removeComment(comment.id)}
-                    className="p-1.5 rounded-lg text-text-tertiary hover:text-red-500 hover:bg-red-500/10 transition-colors shrink-0 self-start"
+                    className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 shrink-0 self-start"
                     title={t('interactions.deleteComment')}
                   >
                     <Trash2 size={14} />
-                  </button>
+                  </Button>
                 )}
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
         <div className="pb-12" />
       </div>

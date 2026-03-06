@@ -13,6 +13,12 @@ import { PLANS_DATA, getValueScore, isValidValue } from '../data/plans';
 import PlanCard from '../components/PlanCard';
 import SarSymbol from '../components/SarSymbol';
 import { trackEvent } from '../lib/analytics';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Slider } from '@/components/ui/slider';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 const SaudiRiyalIcon = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 1124.14 1256.39" className={className} fill="currentColor">
@@ -173,8 +179,15 @@ export default function FinderPage() {
   useEffect(() => {
     if (showResults) {
       sessionStorage.setItem('simba-finder-session', JSON.stringify({ answers }));
+      if (!searchParams.has('results')) {
+        setSearchParams({ results: '1' }, { replace: true });
+      }
+    } else {
+      if (searchParams.has('results')) {
+        setSearchParams({}, { replace: true });
+      }
     }
-  }, [showResults, answers]);
+  }, [showResults, answers, searchParams, setSearchParams]);
 
   const isBudgetStep = STEPS[step] === 'budget';
 
@@ -276,9 +289,9 @@ export default function FinderPage() {
 
   const reasonLabel = (label: string) => {
     const map: Record<string, { icon: typeof Trophy; text: string; color: string }> = {
-      best: { icon: Trophy, text: t('finder.labelBest') as string, color: 'text-amber-500 bg-amber-500/10' },
-      runner: { icon: Star, text: t('finder.labelRunner') as string, color: 'text-primary bg-primary/10' },
-      value: { icon: ThumbsUp, text: t('finder.labelValue') as string, color: 'text-green-500 bg-green-500/10' },
+      best: { icon: Trophy, text: t('finder.labelBest') as string, color: 'text-amber-500 bg-amber-500/10 border-amber-500/20' },
+      runner: { icon: Star, text: t('finder.labelRunner') as string, color: 'text-primary bg-primary/10 border-primary/20' },
+      value: { icon: ThumbsUp, text: t('finder.labelValue') as string, color: 'text-green-500 bg-green-500/10 border-green-500/20' },
     };
     return map[label] || map.value;
   };
@@ -286,14 +299,13 @@ export default function FinderPage() {
   // --- Intro / Landing screen ---
   if (!started) {
     return (
-      <div className="relative z-10 safe-pb flex flex-col" style={{ animation: 'fadeUp 0.4s ease-out both' }}>
-        {/* Gradient area — content inside */}
-        <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
-          <div className="max-w-[480px] w-full mx-auto px-5 text-center">
+      <div className="relative z-10 flex flex-col min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] bg-primary">
+        <div className="relative flex flex-1 items-center justify-center pt-12 pb-10 md:pt-16 md:pb-14">
+          <div className="max-w-120 w-full mx-auto px-5 text-center">
             {/* Icon */}
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-[#213E53]/15 flex items-center justify-center mx-auto mb-5">
-              <Compass size={28} className="text-[#213E53] md:hidden" />
-              <Compass size={34} className="text-[#213E53] hidden md:block" />
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-5">
+              <Compass size={28} className="text-white md:hidden" />
+              <Compass size={34} className="text-white hidden md:block" />
             </div>
 
             {/* Title & description */}
@@ -319,21 +331,16 @@ export default function FinderPage() {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
 
-        {/* White area — button outside gradient */}
-        <div className="relative z-20 bg-[var(--color-bg)]" style={{ minHeight: '30vh' }}>
-          <div className="max-w-[480px] w-full mx-auto px-5 pt-10 md:pt-14 text-center">
-            <button
+            {/* CTA button */}
+            <Button
               onClick={() => { trackEvent('finder_started'); setStarted(true); }}
-              className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold
-                bg-primary text-white hover:bg-primary-dark hover:shadow-lg shadow-md shadow-primary/25
-                active:scale-[0.98] transition-all btn-press"
+              size="lg"
+              className="w-full max-w-xs mx-auto rounded-xl text-sm font-bold shadow-md mt-10 bg-white text-primary hover:bg-white/90"
             >
               {t('finder.introStart')}
               {lang === 'ar' ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -343,14 +350,11 @@ export default function FinderPage() {
   // --- Thinking animation ---
   if (isThinking) {
     return (
-      <div className={`relative z-10 safe-pb flex items-center justify-center ${hasAccount ? 'min-h-[80dvh]' : 'min-h-[100dvh]'}`}>
-        <div className="text-center px-6" style={{ animation: 'fadeUp 0.4s ease-out both' }}>
+      <div className="relative z-10 flex items-center justify-center bg-primary min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)]">
+        <div className="text-center px-6">
           <div className="relative w-16 h-16 mx-auto mb-5">
             <div className="absolute inset-0 rounded-full border-4 border-white/20" />
-            <div
-              className="absolute inset-0 rounded-full border-4 border-transparent border-t-white"
-              style={{ animation: 'spin 1s linear infinite' }}
-            />
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-white animate-spin" />
             <div className="absolute inset-0 flex items-center justify-center">
               <Sparkles size={24} className="text-white" />
             </div>
@@ -369,51 +373,44 @@ export default function FinderPage() {
   // --- Results view ---
   if (showResults) {
     return (
-      <div className="relative z-10 safe-pb min-h-[100dvh]">
+      <div className="relative z-10 min-h-dvh safe-pb">
         {/* All-No easter egg header */}
         {allNo ? (
-          <section className="relative overflow-hidden bg-gradient-to-br from-amber-500/[0.06] via-bg to-primary/[0.03]">
-            <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10">
-              <div className="flex flex-col items-center text-center" style={{ animation: 'fadeUp 0.5s ease-out both' }}>
+          <section className="relative overflow-hidden bg-gradient-to-br from-amber-500/[0.06] via-background to-primary/3">
+            <div className="max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10">
+              <div className="flex flex-col items-center text-center">
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4">
                   <TreePalm size={32} className="text-amber-500" />
                 </div>
-                <h1 className="font-heading font-bold text-xl md:text-3xl text-text-primary mb-2">
+                <h1 className="font-heading font-bold text-xl md:text-3xl text-foreground mb-2">
                   {t('finder.allNoTitle')}
                 </h1>
-                <p className="text-text-secondary text-sm md:text-base max-w-md leading-relaxed">
+                <p className="text-muted-foreground text-sm md:text-base max-w-md leading-relaxed">
                   {t('finder.allNoDesc')}
                 </p>
-                <button
+                <Button
                   onClick={restart}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 mt-4 rounded-xl text-xs md:text-sm font-bold
-                    bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border border-amber-500/20 transition-all btn-press"
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 rounded-xl text-xs md:text-sm font-bold bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-amber-500/20"
                 >
                   <RotateCcw size={14} />
                   {t('finder.startOver')}
-                </button>
+                </Button>
               </div>
 
             </div>
           </section>
         ) : (
-          <section className="relative overflow-hidden">
-            <div className="max-w-[1280px] mx-auto px-4 md:px-8 pt-6 pb-4 md:pt-12 md:pb-10">
-              <div className="w-full h-1.5 bg-white/20 rounded-full mb-5 overflow-hidden">
-                <div
-                  className="h-full bg-white rounded-full"
-                  style={{ width: '100%' }}
-                />
-              </div>
+          <section className="relative overflow-hidden bg-primary">
+            <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 pb-4 md:pt-12 md:pb-10">
+              <Progress value={100} className="h-1.5 bg-white/20 mb-5 [&>div]:bg-white" />
 
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Sparkles size={18} className="text-white" />
-                    <h1
-                      className="font-heading font-bold text-xl md:text-3xl text-white"
-                      style={{ animation: 'fadeUp 0.5s ease-out both' }}
-                    >
+                    <h1 className="font-heading font-bold text-xl md:text-3xl text-white">
                       {t('finder.resultsTitle')}
                     </h1>
                   </div>
@@ -422,24 +419,25 @@ export default function FinderPage() {
                   </p>
                 </div>
                 {isLoggedIn && (
-                  <button
+                  <Button
                     onClick={restart}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs md:text-sm font-bold
-                      bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all btn-press"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl text-xs md:text-sm font-bold bg-white/15 text-white hover:bg-white/25 border-white/20 hover:text-white"
                   >
                     <RotateCcw size={14} />
                     {t('finder.startOver')}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
           </section>
         )}
 
-        <div className="bg-[var(--color-bg)] rounded-t-3xl max-w-[1280px] mx-auto px-4 md:px-8 py-6">
+        <div className="bg-background rounded-t-3xl max-w-7xl mx-auto px-4 md:px-8 py-6">
           {/* Blur gate for non-logged-in users */}
           {!isLoggedIn && recommendations.length > 0 ? (
-            <div className="relative" style={{ animation: 'fadeUp 0.5s ease-out both' }}>
+            <div className="relative">
               {/* Blurred results underneath */}
               <div className="blur-gate blur-[2px] pointer-events-none select-none opacity-75">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -448,10 +446,10 @@ export default function FinderPage() {
                     const BadgeIcon = badge.icon;
                     return (
                       <div key={rec.plan.id}>
-                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold mb-2 ${badge.color}`}>
+                        <Badge variant="outline" className={`gap-1.5 font-bold mb-2 ${badge.color}`}>
                           <BadgeIcon size={12} />
                           {badge.text}
-                        </div>
+                        </Badge>
                         <PlanCard plan={rec.plan} />
                       </div>
                     );
@@ -461,31 +459,30 @@ export default function FinderPage() {
 
               {/* Overlay CTA */}
               <div className="absolute inset-0 flex items-start justify-center pt-6">
-                <div className="bg-surface rounded-2xl border border-border shadow-xl px-6 py-5 max-w-sm w-full mx-4 text-center"
-                     style={{ animation: 'scaleIn 0.3s ease-out 0.2s both' }}>
-                  <h3 className="font-heading font-bold text-base text-text-primary mb-4">
-                    {t('finder.blurTitle')}
-                  </h3>
-                  <button
-                    onClick={() => {
-                      trackEvent('finder_signup_required');
-                      localStorage.setItem('simba-finder-pending', JSON.stringify({ answers }));
-                      navigate('/profile?tab=signup');
-                    }}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-bold text-sm
-                      hover:shadow-lg hover:shadow-primary/25 transition-all btn-press"
-                  >
-                    {t('finder.blurCta')}
-                  </button>
-                </div>
+                <Card className="max-w-sm w-full mx-4 text-center shadow-xl">
+                  <CardContent className="px-6 py-5 pt-5">
+                    <h3 className="font-heading font-bold text-base text-foreground mb-4">
+                      {t('finder.blurTitle')}
+                    </h3>
+                    <Button
+                      onClick={() => {
+                        trackEvent('finder_signup_required');
+                        localStorage.setItem('simba-finder-pending', JSON.stringify({ answers }));
+                        navigate('/profile?tab=signup');
+                      }}
+                      className="w-full py-3 rounded-xl font-bold text-sm"
+                    >
+                      {t('finder.blurCta')}
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           ) : (
             <>
               {/* "Just in case" label for all-No */}
               {allNo && recommendations.length > 0 && (
-                <p className="text-center text-xs md:text-sm text-text-secondary mb-5 font-medium"
-                   style={{ animation: 'fadeUp 0.5s ease-out 0.2s both' }}>
+                <p className="text-center text-xs md:text-sm text-muted-foreground mb-5 font-medium">
                   {t('finder.allNoJustInCase')}
                 </p>
               )}
@@ -496,11 +493,11 @@ export default function FinderPage() {
                     const badge = reasonLabel(rec.label);
                     const BadgeIcon = badge.icon;
                     return (
-                      <div key={rec.plan.id} style={{ animation: `fadeUp 0.5s ease-out ${i * 0.1 + (allNo ? 0.3 : 0)}s both` }}>
-                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold mb-2 ${badge.color}`}>
+                      <div key={rec.plan.id}>
+                        <Badge variant="outline" className={`gap-1.5 font-bold mb-2 ${badge.color}`}>
                           <BadgeIcon size={12} />
                           {badge.text}
-                        </div>
+                        </Badge>
                         <PlanCard plan={rec.plan} />
                       </div>
                     );
@@ -508,30 +505,29 @@ export default function FinderPage() {
                 </div>
               ) : (
                 <div className="text-center py-16">
-                  <div className="w-14 h-14 rounded-2xl bg-surface-alt flex items-center justify-center mx-auto mb-3">
-                    <Sparkles size={24} className="text-text-tertiary" />
+                  <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
+                    <Sparkles size={24} className="text-muted-foreground" />
                   </div>
-                  <h3 className="font-heading font-bold text-lg text-text-primary">
+                  <h3 className="font-heading font-bold text-lg text-foreground">
                     {t('finder.noResults')}
                   </h3>
-                  <p className="text-text-secondary mt-1.5 text-xs max-w-sm mx-auto">
+                  <p className="text-muted-foreground mt-1.5 text-xs max-w-sm mx-auto">
                     {t('finder.noResultsDesc')}
                   </p>
                   <div className="flex items-center justify-center gap-3 mt-5">
-                    <button
+                    <Button
                       onClick={restart}
-                      className="px-5 py-2 rounded-xl bg-primary/10 text-primary font-bold text-xs
-                        hover:bg-primary/20 transition-colors btn-press"
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-xl bg-primary/10 text-primary font-bold text-xs hover:bg-primary/20"
                     >
                       {t('finder.startOver')}
-                    </button>
-                    <Link
-                      to="/plans"
-                      className="px-5 py-2 rounded-xl bg-primary text-white font-bold text-xs
-                        hover:bg-primary-dark transition-colors btn-press"
-                    >
-                      {t('nav.plans')}
-                    </Link>
+                    </Button>
+                    <Button asChild size="sm" className="rounded-xl font-bold text-xs">
+                      <Link to="/plans">
+                        {t('nav.plans')}
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -545,24 +541,11 @@ export default function FinderPage() {
 
   // --- Wizard view ---
   return (
-    <div className={`relative z-10 safe-pb flex flex-col min-h-[calc(100dvh-60px)] md:min-h-[calc(100dvh-72px)] transition-[backdrop-filter] duration-500 ${step === 3 ? 'backdrop-blur-lg' : ''}`}>
-      {/* Decorative dark swirls for white text contrast */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="absolute top-[15%] left-[10%] w-72 h-72 bg-black/35 rounded-full blur-3xl" />
-        <div className="absolute top-[40%] right-[5%] w-96 h-96 bg-black/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-[20%] left-[30%] w-64 h-64 bg-black/25 rounded-full blur-2xl" />
-        <div className="absolute top-[65%] left-[5%] w-56 h-56 bg-black/20 rounded-full blur-3xl" />
-        <div className="absolute top-[10%] right-[25%] w-48 h-48 bg-black/25 rounded-full blur-2xl" />
-      </div>
+    <div className="relative z-10 flex flex-col min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] bg-primary">
       {/* Progress header — compact */}
       <section>
         <div className="max-w-[800px] mx-auto px-4 md:px-8 pt-5 pb-4">
-          <div className="w-full h-1 bg-white/20 rounded-full mb-3 overflow-hidden">
-            <div
-              className="h-full bg-white rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <Progress value={progress} className="h-1 bg-white/20 mb-3 [&>div]:bg-white" />
           <div className="flex items-center justify-between text-[11px] text-white/50 font-medium">
             <span>{t('finder.step')} {step + 1} / {STEPS.length}</span>
             <span>{Math.round(progress)}%</span>
@@ -575,7 +558,6 @@ export default function FinderPage() {
         <div
           key={`q-${step}`}
           className="max-w-[800px] w-full mx-auto px-4 md:px-8"
-          style={{ animation: 'fadeUp 0.35s ease-out both' }}
         >
           <div className="text-center mb-0">
             <div className="w-11 h-11 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-3">
@@ -597,22 +579,22 @@ export default function FinderPage() {
         <div
           key={`a-${step}`}
           className="max-w-[800px] w-full mx-auto px-4 md:px-8"
-          style={{ animation: 'fadeUp 0.35s ease-out 0.1s both' }}
         >
           {/* Yes / Sometimes / No questions (steps 0-3) */}
           {!isBudgetStep && (
-            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 md:gap-4 max-w-[480px] mx-auto">
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 md:gap-4 max-w-120 mx-auto">
               {answerOptions.map(option => {
                 const Icon = option.icon;
                 const isSelected = answers[STEPS[step]] === option.key;
                 return (
-                  <button
+                  <Button
                     key={option.key}
+                    variant="outline"
                     onClick={() => handleQuickAnswer(STEPS[step], option.key)}
-                    className={`relative text-center p-3.5 md:p-5 rounded-xl md:rounded-2xl border-2 transition-all duration-200 btn-press group
+                    className={`relative h-auto text-center p-3.5 md:p-5 rounded-xl md:rounded-2xl border-2 transition-all duration-200 group
                       ${isSelected
-                        ? 'border-white bg-white/20 shadow-md shadow-white/10'
-                        : 'border-white/20 bg-white/10 backdrop-blur-sm hover:border-white/40 hover:shadow-sm'
+                        ? 'border-white bg-white/20 shadow-md shadow-white/10 hover:bg-white/20'
+                        : 'border-white/20 bg-white/10 backdrop-blur-sm hover:border-white/40 hover:bg-white/10 hover:shadow-sm'
                       }`}
                   >
                     <div className="flex flex-col items-center gap-2 md:gap-3">
@@ -626,7 +608,7 @@ export default function FinderPage() {
                         {option.label}
                       </p>
                     </div>
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -634,7 +616,7 @@ export default function FinderPage() {
 
           {/* Budget step (step 4) — slider + shortcuts */}
           {isBudgetStep && (
-            <div className="max-w-[480px] mx-auto">
+            <div className="max-w-120 mx-auto">
               {/* Budget display */}
               <div className="text-center mb-5">
                 <span className="font-heading font-bold text-3xl md:text-4xl text-white">
@@ -645,25 +627,14 @@ export default function FinderPage() {
 
               {/* Slider */}
               <div className="px-1 mb-5">
-                <input
-                  type="range"
+                <Slider
                   min={BUDGET_MIN}
                   max={BUDGET_MAX}
                   step={5}
-                  value={answers.budget}
-                  onChange={(e) => setAnswer('budget', Number(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer
-                    [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:h-7
-                    [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg
-                    [&::-webkit-slider-thumb]:shadow-black/20 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
-                    [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:rounded-full
-                    [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white"
+                  value={[Number(answers.budget)]}
+                  onValueChange={(val) => setAnswer('budget', val[0])}
                   dir="ltr"
-                  style={{
-                    direction: 'ltr',
-                    transform: lang === 'ar' ? 'scaleX(-1)' : undefined,
-                    background: `linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.9) ${((Number(answers.budget) - BUDGET_MIN) / (BUDGET_MAX - BUDGET_MIN)) * 100}%, rgba(255,255,255,0.2) ${((Number(answers.budget) - BUDGET_MIN) / (BUDGET_MAX - BUDGET_MIN)) * 100}%, rgba(255,255,255,0.2) 100%)`,
-                  }}
+                  className="w-full **:data-[slot=slider-track]:bg-white/20 **:data-[slot=slider-range]:bg-white/90 **:data-[slot=slider-thumb]:bg-white **:data-[slot=slider-thumb]:border-white **:data-[slot=slider-thumb]:w-7 **:data-[slot=slider-thumb]:h-7"
                 />
                 <div className="flex justify-between text-[10px] text-white/50 mt-1 px-0.5" dir="ltr">
                   <span>{BUDGET_MIN}</span>
@@ -674,44 +645,46 @@ export default function FinderPage() {
               {/* Shortcut pills */}
               <div className="flex flex-wrap justify-center gap-2 mb-6">
                 {BUDGET_SHORTCUTS.map(val => (
-                  <button
+                  <Button
                     key={val}
+                    variant="outline"
+                    size="sm"
                     onClick={() => setAnswer('budget', val)}
-                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all btn-press
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all
                       ${answers.budget === val
-                        ? 'bg-white text-[#213E53] shadow-sm shadow-black/10'
-                        : 'bg-white/15 text-white hover:bg-white/25 border border-white/20'
+                        ? 'bg-white text-[#213E53] shadow-sm shadow-black/10 border-white hover:bg-white/90 hover:text-[#213E53]'
+                        : 'bg-white/15 text-white hover:bg-white/25 border-white/20 hover:text-white'
                       }`}
                   >
                     {val}
-                  </button>
+                  </Button>
                 ))}
               </div>
 
               {/* Confirm button */}
-              <button
+              <Button
                 onClick={submitBudget}
-                className="w-full flex items-center justify-center gap-2 px-8 py-3 rounded-xl text-sm font-bold
-                  bg-white text-[#213E53] hover:bg-white/90 hover:shadow-lg
-                  transition-all btn-press"
+                size="lg"
+                className="w-full rounded-xl text-sm font-bold bg-white text-[#213E53] hover:bg-white/90 hover:shadow-lg"
               >
                 {t('finder.findMyPlans')}
                 <Sparkles size={16} />
-              </button>
+              </Button>
             </div>
           )}
 
           {/* Back button (all steps) */}
           {step > 0 && (
-            <div className="mt-6 max-w-[480px] mx-auto">
-              <button
+            <div className="mt-6 max-w-120 mx-auto">
+              <Button
                 onClick={back}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold
-                  text-white/60 hover:text-white hover:bg-white/10 transition-all btn-press"
+                variant="ghost"
+                size="sm"
+                className="text-white/60 hover:text-white hover:bg-white/10 text-xs font-semibold"
               >
                 <BackIcon size={14} />
                 {t('finder.back')}
-              </button>
+              </Button>
             </div>
           )}
         </div>

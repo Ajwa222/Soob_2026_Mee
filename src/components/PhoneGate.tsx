@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Phone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { trackEvent } from '../lib/analytics';
@@ -67,28 +69,16 @@ export default function PhoneGate() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] backdrop-blur-2xl bg-black/30 flex flex-col items-center justify-center px-6">
-      <div
-        className="w-full max-w-[420px] mx-auto text-center"
-        style={{ animation: 'fadeUp 0.4s ease-out both' }}
-      >
-        {/* Avatar */}
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6 bg-primary">
+      <div className="w-full max-w-[420px] mx-auto text-center">
         {user?.photoURL ? (
-          <img
-            src={user.photoURL}
-            alt=""
-            className="w-20 h-20 rounded-full mx-auto mb-5 shadow-lg shadow-black/15"
-            referrerPolicy="no-referrer"
-          />
+          <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full mx-auto mb-5 shadow-lg" referrerPolicy="no-referrer" />
         ) : (
-          <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-5 shadow-lg shadow-black/15">
-            <span className="text-2xl font-bold text-white">
-              {(user?.name || '?')[0].toUpperCase()}
-            </span>
+          <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-5 shadow-lg">
+            <span className="text-2xl font-bold text-white">{(user?.name || '?')[0].toUpperCase()}</span>
           </div>
         )}
 
-        {/* Title */}
         <h1 className="font-heading font-bold text-2xl md:text-3xl text-white mb-1">
           {t('profile.almostDone')}
         </h1>
@@ -96,47 +86,40 @@ export default function PhoneGate() {
           {t('profile.phonePrompt')}
         </p>
 
-        {/* Phone form */}
-        <form onSubmit={handleSubmit} className="w-full">
-          <div className="relative mb-4">
-            <Phone size={16} className="absolute top-1/2 -translate-y-1/2 start-4 text-white/50" />
-            <input
+        <form onSubmit={handleSubmit} className="w-full space-y-4">
+          <div className="relative">
+            <Phone size={16} className="absolute top-1/2 -translate-y-1/2 start-3 text-white/50 z-10" />
+            <Input
               type="tel"
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value)}
               placeholder={t('profile.phonePlaceholder')}
               dir="ltr"
-              className="w-full ps-11 pe-4 py-3.5 rounded-xl bg-white/15 border border-white/20 text-sm text-white
-                placeholder:text-white/40 outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40
-                transition-all backdrop-blur-sm"
+              className="ps-10 bg-white/15 border-white/20 text-white placeholder:text-white/40 focus-visible:ring-white/30"
             />
           </div>
 
           {error && (
-            <p className="text-xs font-semibold text-red-400 mb-3 text-start">{error}</p>
+            <p className="text-xs font-semibold text-red-300 text-start">{error}</p>
           )}
 
-          <button
+          <Button
             type="submit"
             disabled={saving}
-            className="w-full py-3.5 rounded-xl font-bold text-[15px] transition-all duration-200 btn-press
-              bg-white text-[#213E53] hover:bg-white/90 shadow-md shadow-black/10
-              disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full bg-white text-[#213E53] hover:bg-white/90 font-bold"
           >
-            {saving
-              ? (lang === 'ar' ? 'جاري الحفظ...' : 'Saving...')
-              : t('profile.savePhone')}
-          </button>
+            {saving ? (lang === 'ar' ? 'جاري الحفظ...' : 'Saving...') : t('profile.savePhone')}
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={handleSkip}
             disabled={saving}
-            className="w-full py-3 mt-2 rounded-xl font-medium text-[14px] text-white/60 hover:text-white/80
-              transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full text-white/60 hover:text-white hover:bg-white/10"
           >
             {lang === 'ar' ? 'تخطي' : 'Skip'}
-          </button>
+          </Button>
         </form>
       </div>
     </div>
