@@ -9,7 +9,10 @@
       "Bash(npm run build)",
       "Bash(npx tsc -b --noEmit)",
       "Bash(npx vite build)",
-      "WebFetch(domain:kevinhufnagl.com)"
+      "WebFetch(domain:kevinhufnagl.com)",
+      "Bash(npm install tailwindcss-animate class-variance-authority clsx tailwind-merge @radix-ui/react-dialog @radix-ui/react-select @radix-ui/react-slider @radix-ui/react-checkbox @radix-ui/react-radio-group @radix-ui/react-progress @radix-ui/react-separator @radix-ui/react-tabs @radix-ui/react-slot @radix-ui/react-label)",
+      "Bash(npm install embla-carousel-react)",
+      "Bash(npx tsc --noEmit --pretty)"
     ]
   }
 }

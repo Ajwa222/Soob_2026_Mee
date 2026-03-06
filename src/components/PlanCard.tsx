@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Wifi, Phone, MessageSquare, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { useLang } from '../context/LanguageContext';
 import SarSymbol from './SarSymbol';
 import { useCompare } from '../context/CompareContext';
@@ -8,10 +12,10 @@ import { fetchReaction, fetchCommentCount } from '../lib/planInteractions';
 import { Link } from 'react-router-dom';
 import type { Plan } from '../types';
 
-const typeBadgeStyles: Record<string, { bg: string; color: string }> = {
-  Prepaid: { bg: '#10B98118', color: '#059669' },
-  Postpaid: { bg: '#A855F718', color: '#9333EA' },
-  'Data-only': { bg: '#F59E0B18', color: '#D97706' },
+const typeBadgeVariant: Record<string, string> = {
+  Prepaid: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  Postpaid: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+  'Data-only': 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
 };
 
 export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CSSProperties }) {
@@ -20,7 +24,7 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
   const selected = isSelected(plan.id);
   const carrierColor = getCarrierColor(plan.provider);
   const carrierLogo = getCarrierLogo(plan.provider);
-  const badge = typeBadgeStyles[plan.planType] || typeBadgeStyles['Prepaid'];
+  const badgeClass = typeBadgeVariant[plan.planType] || typeBadgeVariant['Prepaid'];
   const [likes, setLikes] = useState(0);
   const [dislikes, setDislikes] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
@@ -39,154 +43,105 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
   }
 
   return (
-    <div
-      className={`relative bg-surface rounded-2xl overflow-hidden card-hover group flex flex-col
-        ${selected
-          ? 'ring-2 ring-primary shadow-lg'
-          : 'shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.1)]'
-        }`}
-      style={{
-        borderInlineStart: `4px solid ${carrierColor}`,
-        ...style,
-      }}
+    <Card
+      className={`relative flex flex-col overflow-hidden card-hover gradient-border
+        ${selected ? 'ring-2 ring-primary shadow-lg' : ''}`}
+      style={{ borderInlineStart: `4px solid ${carrierColor}`, ...style }}
     >
-      {/* Selected checkmark badge */}
       {selected && (
-        <div
-          className="absolute top-3 end-3 w-7 h-7 rounded-full flex items-center justify-center z-10"
-          style={{ backgroundColor: '#1FA9FF', animation: 'scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
-        >
+        <div className="absolute top-3 end-3 w-7 h-7 rounded-full bg-primary flex items-center justify-center z-10 shadow-md shadow-primary/30">
           <Check size={14} className="text-white" strokeWidth={3} />
         </div>
       )}
 
-      <div className="p-5 flex flex-col flex-1">
-        {/* ---- TOP: Carrier + Type ---- */}
+      <CardContent className="p-5 flex flex-col flex-1">
+        {/* Carrier + Type */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             {carrierLogo && (
-              <img
-                src={carrierLogo}
-                alt={plan.provider}
-                className="h-5 w-auto object-contain max-w-[48px] shrink-0"
-              />
+              <img src={carrierLogo} alt={plan.provider} className="h-5 w-auto object-contain max-w-[48px] shrink-0" />
             )}
-            <span
-              className="text-[11px] font-bold uppercase tracking-wider truncate"
-              style={{ color: carrierColor }}
-            >
+            <span className="text-[11px] font-bold uppercase tracking-wider truncate" style={{ color: carrierColor }}>
               {plan.provider}
             </span>
           </div>
-          <span
-            className="text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0"
-            style={{ backgroundColor: badge.bg, color: badge.color }}
-          >
+          <Badge variant="secondary" className={`${badgeClass} text-[11px] border-0 font-semibold`}>
             {t(`types.${plan.planType}`)}
-          </span>
+          </Badge>
         </div>
 
-        {/* ---- Plan name (fixed 2-line height) ---- */}
-        <h3 className="font-heading font-bold text-lg text-text-primary leading-snug mt-2 line-clamp-2 min-h-[2.75rem]">
+        {/* Plan name */}
+        <h3 className="font-heading font-bold text-lg text-foreground leading-snug mt-2.5 line-clamp-2 min-h-[2.75rem]">
           {plan.planName}
         </h3>
 
-        {/* ---- Price ---- */}
+        {/* Price */}
         <div className="plan-price mt-3 flex items-baseline gap-1">
-          <SarSymbol className="text-sm font-medium text-text-secondary" />
-          <span className="text-2xl sm:text-3xl font-heading font-bold text-text-primary">
+          <SarSymbol className="text-sm font-medium text-muted-foreground" />
+          <span className="text-2xl sm:text-3xl font-heading font-extrabold text-foreground tracking-tight">
             {plan.priceSAR}
           </span>
-          <span className="text-sm text-text-tertiary">{t('planCard.perMonth')}</span>
+          <span className="text-sm text-muted-foreground">{t('planCard.perMonth')}</span>
         </div>
 
-        {/* ---- Divider ---- */}
-        <div className="h-px bg-border my-4" />
+        <Separator className="my-4" />
 
-        {/* ---- Key metrics (fixed 3-slot grid) ---- */}
+        {/* Key metrics */}
         <div className="grid grid-cols-3 gap-2 text-sm">
-          <div className="flex flex-col items-center gap-1 py-2 px-1 rounded-lg bg-surface-alt/70">
-            <Wifi size={14} className="text-primary" />
-            <p className="font-bold text-text-primary text-[13px] leading-tight text-center">
-              {isValidValue(plan.dataGB)
-                ? (plan.dataGB === 'Unlimited' ? t('detail.unlimited') : `${plan.dataGB} GB`)
-                : '—'}
-            </p>
-            <p className="text-[12px] text-text-tertiary">{t('planCard.data')}</p>
-          </div>
-          <div className="flex flex-col items-center gap-1 py-2 px-1 rounded-lg bg-surface-alt/70">
-            <Phone size={14} className="text-primary" />
-            <p className="font-bold text-text-primary text-[13px] leading-tight text-center">
-              {isValidValue(plan.localCallMinutes)
-                ? (plan.localCallMinutes === 'Unlimited' ? t('detail.unlimited') : `${plan.localCallMinutes}`)
-                : '—'}
-            </p>
-            <p className="text-[12px] text-text-tertiary">{t('planCard.mins')}</p>
-          </div>
-          <div className="flex flex-col items-center gap-1 py-2 px-1 rounded-lg bg-surface-alt/70">
-            <MessageSquare size={14} className="text-primary" />
-            <p className="font-bold text-text-primary text-[13px] leading-tight text-center">
-              {isValidValue(plan.sms) && plan.sms !== '-'
-                ? (plan.sms === 'Unlimited' ? t('detail.unlimited') : plan.sms)
-                : '—'}
-            </p>
-            <p className="text-[12px] text-text-tertiary">{t('planCard.sms')}</p>
-          </div>
-        </div>
-
-        {/* ---- Perks (fixed height slot) ---- */}
-        <div className="min-h-[2rem] mt-3 flex flex-wrap items-start gap-1.5">
-          {perks.slice(0, 2).map((perk, i) => (
-            <span
-              key={i}
-              className="text-[11px] px-2.5 py-1 rounded-full bg-surface-alt text-text-secondary font-medium border border-border leading-tight"
-            >
-              {perk}
-            </span>
+          {[
+            { icon: Wifi, value: isValidValue(plan.dataGB) ? (plan.dataGB === 'Unlimited' ? t('detail.unlimited') : `${plan.dataGB} GB`) : '—', label: t('planCard.data') },
+            { icon: Phone, value: isValidValue(plan.localCallMinutes) ? (plan.localCallMinutes === 'Unlimited' ? t('detail.unlimited') : `${plan.localCallMinutes}`) : '—', label: t('planCard.mins') },
+            { icon: MessageSquare, value: isValidValue(plan.sms) && plan.sms !== '-' ? (plan.sms === 'Unlimited' ? t('detail.unlimited') : plan.sms) : '—', label: t('planCard.sms') },
+          ].map(({ icon: Icon, value, label }) => (
+            <div key={label} className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl bg-muted/50 dark:bg-muted/30 transition-colors">
+              <Icon size={14} className="text-primary" />
+              <p className="font-bold text-foreground text-[13px] leading-tight text-center">{value}</p>
+              <p className="text-[11px] text-muted-foreground">{label}</p>
+            </div>
           ))}
         </div>
 
-        {/* ---- Like & comment counts ---- */}
-        <div className="flex items-center gap-3 mt-2 text-text-tertiary">
-          <div className="flex items-center gap-1">
+        {/* Perks */}
+        <div className="min-h-[2rem] mt-3 flex flex-wrap items-start gap-1.5">
+          {perks.slice(0, 2).map((perk, i) => (
+            <Badge key={i} variant="outline" className="text-[11px] font-medium border-border/60">
+              {perk}
+            </Badge>
+          ))}
+        </div>
+
+        {/* Engagement */}
+        <div className="flex items-center gap-3 mt-2 text-muted-foreground">
+          <div className="flex items-center gap-1 hover:text-primary transition-colors">
             <ThumbsUp size={12} />
             <span className="text-[11px] font-medium">{likes}</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 hover:text-destructive transition-colors">
             <ThumbsDown size={12} />
             <span className="text-[11px] font-medium">{dislikes}</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 hover:text-primary transition-colors">
             <MessageCircle size={12} />
             <span className="text-[11px] font-medium">{commentCount}</span>
           </div>
         </div>
 
-        {/* ---- Spacer to push actions to bottom ---- */}
         <div className="flex-1" />
+      </CardContent>
 
-        {/* ---- Actions (always at bottom) ---- */}
-        <div className="flex items-center gap-2.5 mt-4">
-          <Link
-            to={`/plan/${plan.id}`}
-            className="flex-1 text-center py-3 px-4 rounded-xl text-sm font-bold min-h-11
-              bg-surface-alt text-text-primary hover:bg-border transition-colors duration-150 btn-press flex items-center justify-center"
-          >
-            {t('planCard.viewDetails')}
-          </Link>
-          <button
-            onClick={(e) => { e.preventDefault(); togglePlan(plan); }}
-            className={`flex items-center gap-1.5 py-3 px-4 rounded-xl text-sm font-bold min-h-11 transition-all duration-200 btn-press
-              ${selected
-                ? 'bg-primary text-white shadow-md shadow-primary/20'
-                : 'bg-primary/10 text-primary hover:bg-primary/20'
-              }`}
-          >
-            {selected ? <Check size={15} /> : <Plus size={15} />}
-            <span>{selected ? t('planCard.selected') : t('planCard.compare')}</span>
-          </button>
-        </div>
-      </div>
-    </div>
+      <CardFooter className="gap-2.5 px-5 pb-5">
+        <Button variant="secondary" className="flex-1 rounded-xl font-semibold" asChild>
+          <Link to={`/plan/${plan.id}`}>{t('planCard.viewDetails')}</Link>
+        </Button>
+        <Button
+          variant={selected ? 'default' : 'outline'}
+          onClick={(e) => { e.preventDefault(); togglePlan(plan); }}
+          className={`rounded-xl font-semibold ${selected ? 'shadow-md shadow-primary/20' : 'text-primary border-primary/30 hover:bg-primary/10'}`}
+        >
+          {selected ? <Check size={15} /> : <Plus size={15} />}
+          {selected ? t('planCard.selected') : t('planCard.compare')}
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

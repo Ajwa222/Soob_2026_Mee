@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import {
-  User,
-  LogOut, /* MessageCircle, */
-} from 'lucide-react';
-import { /* Link, */ useNavigate, useSearchParams } from 'react-router-dom';
+import { User, LogOut } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { trackEvent } from '../lib/analytics';
@@ -14,9 +13,7 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [signingIn, setSigningIn] = useState(false);
   const [searchParams] = useSearchParams();
-  // simba-has-account is only set after a successful login, not after onboarding
   const isSignUp = !localStorage.getItem('simba-has-account') || searchParams.get('tab') === 'signup';
-
   const navTo = useNavigate();
 
   const redirectAfterLogin = (signup: boolean) => {
@@ -29,7 +26,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Handle post-redirect navigation (when signInWithRedirect was used as fallback)
   useEffect(() => {
     if (isLoggedIn && !needsPhone && localStorage.getItem('simba-auth-redirect') === 'pending') {
       const wasSignUp = localStorage.getItem('simba-auth-flow') === 'signup';
@@ -53,11 +49,8 @@ export default function ProfilePage() {
     } catch (err: unknown) {
       if (import.meta.env.DEV) console.error('Google sign-in failed:', err);
       const code = (err as { code?: string })?.code;
-      // User cancelled or popup was replaced — no error needed
       if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return;
-      // Popup blocked is handled in AuthContext via redirect fallback
       if (code === 'auth/popup-blocked') return;
-
       if (code === 'auth/network-request-failed') {
         setError(lang === 'ar' ? 'خطأ في الاتصال. تحقق من الإنترنت وحاول مرة ثانية.' : 'Network error. Check your connection and try again.');
       } else if (code === 'auth/user-disabled') {
@@ -72,31 +65,26 @@ export default function ProfilePage() {
     }
   };
 
-  // ───────── Loading (prevents flash during redirect auth) ─────────
   if (loading) {
     return (
-      <div className="relative z-10 safe-pb flex items-center justify-center min-h-[calc(100dvh-72px)]">
+      <div className="safe-pb flex items-center justify-center min-h-[calc(100dvh-72px)]">
         <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
-  // ───────── Logged-in view ─────────
+  // Logged-in view
   if (isLoggedIn) {
     return (
-      <div className="relative z-10 safe-pb flex flex-col md:min-h-[calc(100dvh-72px)]">
-        {/* ── Mobile: gradient header ── */}
-        <div className="md:hidden relative flex items-center justify-center pt-24 pb-10">
-          <div className="max-w-[480px] w-full mx-auto px-6 text-center"
-            style={{ animation: 'fadeUp 0.5s ease-out both' }}>
+      <div className="safe-pb flex flex-col md:min-h-[calc(100dvh-72px)]">
+        {/* Mobile header */}
+        <div className="md:hidden relative flex items-center justify-center pt-16 pb-10 bg-primary">
+          <div className="max-w-md w-full mx-auto px-6 text-center">
             {user?.photoURL ? (
-              <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 shadow-lg shadow-black/10" referrerPolicy="no-referrer" />
+              <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 shadow-lg" referrerPolicy="no-referrer" />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm
-                flex items-center justify-center mx-auto mb-4 shadow-lg shadow-black/10">
-                <span className="text-2xl font-bold text-white">
-                  {(user?.name || user?.phone || '?')[0].toUpperCase()}
-                </span>
+              <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <span className="text-2xl font-bold text-white">{(user?.name || user?.phone || '?')[0].toUpperCase()}</span>
               </div>
             )}
             <h1 className="font-heading font-bold text-2xl text-white">
@@ -107,71 +95,47 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ── Content area ── */}
-        <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl
-          md:flex md:flex-1 md:items-center md:justify-center md:bg-transparent md:rounded-none md:py-12 md:px-8">
-          <div className="max-w-[480px] md:max-w-[520px] w-full mx-auto
-            md:bg-surface md:rounded-3xl md:shadow-xl md:border md:border-border/60">
-
-            {/* Desktop header (hidden on mobile) */}
-            <div className="hidden md:block text-center px-10 pt-10 pb-2"
-              style={{ animation: 'fadeUp 0.5s ease-out both' }}>
+        {/* Content */}
+        <div className="bg-background md:flex md:flex-1 md:items-center md:justify-center md:py-12 md:px-8">
+          <Card className="max-w-md w-full mx-auto md:shadow-lg">
+            {/* Desktop header */}
+            <div className="hidden md:block text-center px-10 pt-10 pb-2">
               {user?.photoURL ? (
-                <img src={user.photoURL} alt="" className="w-24 h-24 rounded-full mx-auto mb-4 shadow-md shadow-black/5" referrerPolicy="no-referrer" />
+                <img src={user.photoURL} alt="" className="w-24 h-24 rounded-full mx-auto mb-4 shadow-md" referrerPolicy="no-referrer" />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-primary/10
-                  flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl font-bold text-primary">
-                    {(user?.name || user?.phone || '?')[0].toUpperCase()}
-                  </span>
+                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl font-bold text-primary">{(user?.name || user?.phone || '?')[0].toUpperCase()}</span>
                 </div>
               )}
-              <h1 className="font-heading font-bold text-3xl text-text-primary">
+              <h1 className="font-heading font-bold text-3xl text-foreground">
                 {t('profile.welcome')}, {user?.name || user?.phone}!
               </h1>
-              {user?.phone && user.phone !== 'skipped' && <p className="text-text-secondary mt-1.5 text-sm" dir="ltr">{user.phone}</p>}
-              {user?.email && <p className="text-text-secondary mt-1 text-sm">{user.email}</p>}
+              {user?.phone && user.phone !== 'skipped' && <p className="text-muted-foreground mt-1.5 text-sm" dir="ltr">{user.phone}</p>}
+              {user?.email && <p className="text-muted-foreground mt-1 text-sm">{user.email}</p>}
             </div>
 
-            {/* Actions */}
-            <div className="px-4 sm:px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10"
-              style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}>
-              <div className="bg-surface rounded-2xl border border-border/60 p-5 shadow-sm space-y-3
-                md:bg-surface-alt md:border-border/40">
-                {/* <Link
-                  to="/chat"
-                  className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl bg-primary/10 hover:bg-primary/15 transition-colors"
-                >
-                  <MessageCircle size={20} className="text-primary" />
-                  <div className="text-start">
-                    <p className="text-sm font-bold text-text-primary">{t('meetChat.title')}</p>
-                    <p className="text-xs text-text-secondary">{t('profile.chatDesc')}</p>
-                  </div>
-                </Link> */}
-
-                <button
-                  onClick={() => { trackEvent('logout'); logout(); }}
-                  className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl hover:bg-red-500/10 transition-colors"
-                >
-                  <LogOut size={20} className="text-red-500" />
-                  <span className="text-sm font-semibold text-red-500">{t('profile.logout')}</span>
-                </button>
-              </div>
-
-            </div>
-          </div>
+            <CardContent className="px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10">
+              <Button
+                variant="ghost"
+                onClick={() => { trackEvent('logout'); logout(); }}
+                className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <LogOut size={20} />
+                {t('profile.logout')}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
 
-  // ───────── Not logged in — Google sign-in ─────────
+  // Not logged in
   return (
-    <div className="relative z-10 safe-pb flex flex-col md:min-h-[calc(100dvh-72px)]">
-      {/* ── Mobile: gradient header ── */}
-      <div className="md:hidden relative flex items-center justify-center pt-24 pb-10">
-        <div className="max-w-[480px] w-full mx-auto px-6 text-center"
-          style={{ animation: 'fadeUp 0.5s ease-out both' }}>
+    <div className="safe-pb flex flex-col md:min-h-[calc(100dvh-72px)]">
+      {/* Mobile header */}
+      <div className="md:hidden relative flex items-center justify-center pt-16 pb-10 bg-primary">
+        <div className="max-w-md w-full mx-auto px-6 text-center">
           <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-4">
             <User size={28} className="text-white" />
           </div>
@@ -184,39 +148,31 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* ── Content area (card on desktop, white section on mobile) ── */}
-      <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl
-        md:flex md:flex-1 md:items-center md:justify-center md:bg-transparent md:rounded-none md:py-12 md:px-8">
-        <div className="max-w-[480px] md:max-w-[520px] w-full mx-auto
-          md:bg-surface md:rounded-3xl md:shadow-xl md:border md:border-border/60">
-
-          {/* Desktop header (hidden on mobile) */}
-          <div className="hidden md:block text-center px-10 pt-10 pb-2"
-            style={{ animation: 'fadeUp 0.5s ease-out both' }}>
+      {/* Content */}
+      <div className="bg-background md:flex md:flex-1 md:items-center md:justify-center md:py-12 md:px-8">
+        <Card className="max-w-md w-full mx-auto md:shadow-lg">
+          {/* Desktop header */}
+          <div className="hidden md:block text-center px-10 pt-10 pb-2">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
               <User size={28} className="text-primary" />
             </div>
-            <h1 className="font-heading font-bold text-3xl text-text-primary">
+            <h1 className="font-heading font-bold text-3xl text-foreground">
               {isSignUp ? t('profile.signUpTitle') : t('profile.title')}
             </h1>
-            <p className="text-text-secondary mt-2 text-base leading-relaxed max-w-sm mx-auto">
+            <p className="text-muted-foreground mt-2 text-base leading-relaxed max-w-sm mx-auto">
               {isSignUp ? t('profile.signUpSubtitle') : t('profile.subtitle')}
             </p>
           </div>
 
-          {/* Sign-in content */}
-          <div className="px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10"
-            style={{ animation: 'fadeUp 0.5s ease-out 0.1s both' }}>
-            <button
+          <CardContent className="px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10">
+            <Button
+              variant="outline"
               onClick={handleGoogleSignIn}
               disabled={signingIn}
-              className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl
-                bg-surface border border-border hover:bg-surface-alt
-                transition-all duration-200 shadow-sm btn-press
-                md:py-4 md:text-base disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-6"
             >
               {signingIn ? (
-                <div className="w-5 h-5 border-2 border-text-tertiary/30 border-t-text-primary rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-muted-foreground/30 border-t-foreground rounded-full animate-spin" />
               ) : (
                 <svg width="20" height="20" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -225,19 +181,18 @@ export default function ProfilePage() {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
               )}
-              <span className="text-sm font-bold text-text-primary">
+              <span className="font-bold">
                 {signingIn
                   ? (lang === 'ar' ? 'جاري تسجيل الدخول...' : 'Signing in...')
                   : isSignUp ? t('profile.googleSignUp') : t('profile.googleSignIn')}
               </span>
-            </button>
+            </Button>
 
             {error && (
-              <p className="text-center text-xs font-semibold text-error mt-3">{error}</p>
+              <p className="text-center text-xs font-semibold text-destructive mt-3">{error}</p>
             )}
-
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
-import {
-  ArrowRight, Users, Target, Award,
-} from 'lucide-react';
+import { ArrowRight, Users, Target, Award } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { useLang } from '../context/LanguageContext';
-import { CARRIERS, PLANS_DATA } from '../data/plans';
+import { CARRIERS } from '../data/plans';
 
 export default function AboutPage() {
   const { t } = useLang();
@@ -15,13 +16,10 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="relative z-10 safe-pb flex flex-col">
-      {/* Hero — gradient area */}
-      <div className="relative flex items-center justify-center pt-24 pb-10 md:pt-32 md:pb-14">
-        <div
-          className="max-w-[800px] w-full mx-auto px-4 sm:px-6 md:px-8 text-center"
-          style={{ animation: 'fadeUp 0.5s ease-out both' }}
-        >
+    <div className="safe-pb flex flex-col">
+      {/* Hero */}
+      <div className="relative flex items-center justify-center pt-16 pb-10 md:pt-24 md:pb-14 bg-primary">
+        <div className="max-w-3xl w-full mx-auto px-4 sm:px-6 md:px-8 text-center">
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight">
             {t('about.title')}
           </h1>
@@ -29,7 +27,6 @@ export default function AboutPage() {
             {t('about.subtitle')}
           </p>
 
-          {/* Stats */}
           <div className="flex items-center justify-center gap-8 md:gap-12 mt-10">
             {stats.map((stat, i) => {
               const Icon = stat.icon;
@@ -45,83 +42,67 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* White area — content */}
-      <div className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
-      <div className="max-w-[900px] mx-auto px-4 sm:px-6 md:px-8 py-12 md:py-16">
-        {/* Mission */}
+      {/* Content */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-12 md:py-16">
         <section className="mb-16">
-          <h2 className="font-heading font-bold text-2xl text-text-primary mb-4">
-            {t('about.missionTitle')}
-          </h2>
-          <p className="text-text-secondary leading-relaxed">
-            {t('about.missionDesc')}
-          </p>
+          <h2 className="font-heading font-bold text-2xl text-foreground mb-4">{t('about.missionTitle')}</h2>
+          <p className="text-muted-foreground leading-relaxed">{t('about.missionDesc')}</p>
         </section>
 
-        {/* Vision */}
         <section className="mb-16">
-          <h2 className="font-heading font-bold text-2xl text-text-primary mb-4">
-            {t('about.visionTitle')}
-          </h2>
-          <p className="text-text-secondary leading-relaxed">
-            {t('about.visionDesc')}
-          </p>
+          <h2 className="font-heading font-bold text-2xl text-foreground mb-4">{t('about.visionTitle')}</h2>
+          <p className="text-muted-foreground leading-relaxed">{t('about.visionDesc')}</p>
         </section>
 
-        {/* Values */}
         <section className="mb-16">
-          <h2 className="font-heading font-bold text-2xl text-text-primary mb-4">
-            {t('about.valuesTitle')}
-          </h2>
-          <p className="text-text-secondary leading-relaxed">
-            {t('about.valuesDesc')}
-          </p>
+          <h2 className="font-heading font-bold text-2xl text-foreground mb-4">{t('about.valuesTitle')}</h2>
+          <p className="text-muted-foreground leading-relaxed">{t('about.valuesDesc')}</p>
         </section>
+
+        <Separator className="my-12" />
 
         {/* How it works */}
         <section className="mb-16">
-          <h2 className="font-heading font-bold text-2xl text-text-primary mb-8 text-center">
+          <h2 className="font-heading font-bold text-2xl text-foreground mb-8 text-center">
             {t('about.howTitle')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map(step => (
-              <div key={step} className="text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <span className="font-heading font-bold text-lg text-primary">{step}</span>
-                </div>
-                <h3 className="font-heading font-bold text-sm text-text-primary">
-                  {t(`howItWorks.step${step}Title`)}
-                </h3>
-                <p className="text-xs text-text-secondary mt-1.5 leading-relaxed">
-                  {t(`howItWorks.step${step}Desc`)}
-                </p>
-              </div>
+              <Card key={step} className="text-center border-0 shadow-none bg-transparent">
+                <CardContent className="pt-6">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                    <span className="font-heading font-bold text-lg text-primary">{step}</span>
+                  </div>
+                  <h3 className="font-heading font-bold text-sm text-foreground">
+                    {t(`howItWorks.step${step}Title`)}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                    {t(`howItWorks.step${step}Desc`)}
+                  </p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </section>
 
         {/* Carriers */}
         <section className="mb-16">
-          <h2 className="font-heading font-bold text-2xl text-text-primary mb-8 text-center">
+          <h2 className="font-heading font-bold text-2xl text-foreground mb-8 text-center">
             {t('about.carriersTitle')}
           </h2>
-          <div className="flex flex-wrap items-center justify-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-4">
             {CARRIERS.map(c => (
-              <div
-                key={c.name}
-                className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-surface border border-border/60"
-              >
+              <Card key={c.name} className="flex items-center gap-2.5 px-5 py-3">
                 <img src={c.logo} alt={c.name} className="h-6 w-auto object-contain" />
-                <span className="text-sm font-semibold text-text-primary">{c.name}</span>
-              </div>
+                <span className="text-sm font-semibold text-foreground">{c.name}</span>
+              </Card>
             ))}
           </div>
         </section>
 
         {/* CTA */}
         <section className="text-center">
-          <div className="relative overflow-hidden rounded-3xl p-8 md:p-12"
-            style={{ background: 'var(--gradient-hero)' }}>
+          <div className="relative overflow-hidden rounded-xl p-8 md:p-12 bg-primary">
             <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
             <div className="relative">
               <h3 className="font-heading font-bold text-2xl md:text-3xl text-white">
@@ -131,26 +112,19 @@ export default function AboutPage() {
                 {t('about.ctaSubtitle')}
               </p>
               <div className="flex items-center justify-center gap-3 mt-6">
-                <Link
-                  to="/finder"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-primary
-                    font-bold text-sm hover:bg-white/95 hover:shadow-lg transition-all duration-200 btn-press shadow-md"
-                >
-                  {t('finderCta.cta')}
-                  <ArrowRight size={16} className="rtl:rotate-180" />
-                </Link>
-                <Link
-                  to="/plans"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 text-white
-                    font-bold text-sm hover:bg-white/20 transition-all duration-200 btn-press"
-                >
-                  {t('nav.plans')}
-                </Link>
+                <Button asChild className="bg-white text-primary hover:bg-white/95 font-bold shadow-md">
+                  <Link to="/finder">
+                    {t('finderCta.cta')}
+                    <ArrowRight size={16} className="rtl:rotate-180" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="bg-white/10 text-white border-white/20 hover:bg-white/20 font-bold">
+                  <Link to="/plans">{t('nav.plans')}</Link>
+                </Button>
               </div>
             </div>
           </div>
         </section>
-      </div>
       </div>
     </div>
   );

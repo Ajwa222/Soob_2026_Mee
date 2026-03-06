@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Search, SlidersHorizontal, X, ChevronDown,
+  Search, SlidersHorizontal, X,
   ArrowRight, Sparkles, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
@@ -9,6 +9,13 @@ import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
 import PlanCard from '../components/PlanCard';
 import FinderModal, { useFinderModal } from '../components/FinderModal';
 import { trackEvent } from '../lib/analytics';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Slider } from '@/components/ui/slider';
+import { Separator } from '@/components/ui/separator';
 
 const PLAN_TYPES = ['Prepaid', 'Postpaid', 'Data-only'] as const;
 const PLANS_PER_PAGE = 6;
@@ -50,7 +57,6 @@ export default function PlansPage() {
   const [socialFilter, setSocialFilter] = useState('any'); // 'any' | 'has' | 'unlimited'
   const [sortBy, setSortBy] = useState('bestValue');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [showSort, setShowSort] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const plansGridRef = useRef<HTMLDivElement>(null);
 
@@ -248,25 +254,27 @@ export default function PlansPage() {
     <>
       {/* Carrier filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
           {t('browse.allCarriers')}
         </p>
         <div className="flex flex-wrap gap-2">
           {CARRIERS.map(carrier => {
             const active = selectedCarriers.includes(carrier.name);
             return (
-              <button
+              <Button
                 key={carrier.name}
+                variant={active ? 'default' : 'ghost'}
+                size="sm"
                 onClick={() => toggleCarrier(carrier.name)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 btn-press
+                className={`flex items-center gap-2 rounded-xl font-medium
                   ${active
-                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
-                    : 'bg-surface-alt text-text-secondary hover:bg-border'
+                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30 hover:bg-primary/20'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
                 <img src={carrier.logo} alt={carrier.name} className="h-4 w-auto object-contain" />
                 <span className="text-xs font-semibold">{carrier.name}</span>
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -274,7 +282,7 @@ export default function PlansPage() {
 
       {/* Type filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
           {t('browse.allTypes')}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -282,85 +290,41 @@ export default function PlansPage() {
             const active = selectedTypes.includes(type);
             const tc = TYPE_COLORS[type];
             return (
-              <button
+              <Button
                 key={type}
+                variant="ghost"
+                size="sm"
                 onClick={() => toggleType(type)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 btn-press
+                className={`rounded-xl text-sm font-semibold
                   ${active
                     ? 'ring-1'
-                    : 'bg-surface-alt text-text-secondary hover:bg-border'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
                 style={active ? { backgroundColor: tc.bg, color: tc.active, '--tw-ring-color': tc.ring } as React.CSSProperties : {}}
               >
                 {t(`types.${type}`)}
-              </button>
+              </Button>
             );
           })}
         </div>
       </div>
 
-      {/* Price range — dual-thumb slider */}
+      {/* Price range — shadcn dual-thumb slider */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
           {t('browse.priceRange')}
         </p>
-        <div className="relative h-6" dir="ltr">
-          {/* Track background */}
-          <div className="absolute top-1/2 -translate-y-1/2 inset-x-0 h-1.5 rounded-full bg-border" />
-          {/* Active track */}
-          <div
-            className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-primary"
-            style={{
-              left: `${(priceRange[0] / PRICE_MAX) * 100}%`,
-              right: `${100 - (priceRange[1] / PRICE_MAX) * 100}%`,
-            }}
-          />
-          {/* Min thumb */}
-          <input
-            type="range"
+        <div dir="ltr">
+          <Slider
             min={0}
             max={PRICE_MAX}
             step={10}
-            value={priceRange[0]}
-            onChange={e => {
-              const v = parseInt(e.target.value);
-              setPriceRange(prev => [Math.min(v, prev[1] - 10), prev[1]]);
-            }}
-            className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none
-              [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none
-              [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full
-              [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
-              [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer
-              [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none
-              [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full
-              [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white
-              [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
-            style={{ zIndex: priceRange[0] > PRICE_MAX - 20 ? 5 : 3 }}
-          />
-          {/* Max thumb */}
-          <input
-            type="range"
-            min={0}
-            max={PRICE_MAX}
-            step={10}
-            value={priceRange[1]}
-            onChange={e => {
-              const v = parseInt(e.target.value);
-              setPriceRange(prev => [prev[0], Math.max(v, prev[0] + 10)]);
-            }}
-            className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none
-              [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none
-              [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full
-              [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
-              [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer
-              [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none
-              [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full
-              [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white
-              [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
-            style={{ zIndex: 4 }}
+            value={priceRange}
+            onValueChange={(value) => setPriceRange(value)}
+            className="w-full"
           />
         </div>
-        <div className="flex justify-between mt-2 text-xs text-text-secondary font-medium">
+        <div className="flex justify-between mt-2 text-xs text-muted-foreground font-medium">
           <span>SAR {priceRange[0]}</span>
           <span>SAR {priceRange[1] >= PRICE_MAX ? `${PRICE_MAX}+` : priceRange[1]}</span>
         </div>
@@ -368,24 +332,26 @@ export default function PlansPage() {
 
       {/* Data filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
           {t('browse.dataRange')}
         </p>
         <div className="flex flex-wrap gap-2">
           {dataOptions.map(opt => {
             const active = dataFilter === opt.key;
             return (
-              <button
+              <Button
                 key={opt.key}
+                variant="ghost"
+                size="sm"
                 onClick={() => setDataFilter(opt.key)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 btn-press
+                className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
-                    : 'bg-surface-alt text-text-secondary hover:bg-border'
+                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30 hover:bg-primary/20'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
                 {opt.label}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -393,24 +359,26 @@ export default function PlansPage() {
 
       {/* Local calls filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
           {t('browse.localCalls')}
         </p>
         <div className="flex flex-wrap gap-2">
           {localCallsOptions.map(opt => {
             const active = localCallsFilter === opt.key;
             return (
-              <button
+              <Button
                 key={opt.key}
+                variant="ghost"
+                size="sm"
                 onClick={() => setLocalCallsFilter(opt.key)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 btn-press
+                className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
-                    : 'bg-surface-alt text-text-secondary hover:bg-border'
+                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30 hover:bg-primary/20'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
                 {opt.label}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -418,24 +386,26 @@ export default function PlansPage() {
 
       {/* International calls filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
           {t('browse.intlCalls')}
         </p>
         <div className="flex flex-wrap gap-2">
           {intlCallsOptions.map(opt => {
             const active = intlCallsFilter === opt.key;
             return (
-              <button
+              <Button
                 key={opt.key}
+                variant="ghost"
+                size="sm"
                 onClick={() => setIntlCallsFilter(opt.key)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 btn-press
+                className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
-                    : 'bg-surface-alt text-text-secondary hover:bg-border'
+                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30 hover:bg-primary/20'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
                 {opt.label}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -443,24 +413,26 @@ export default function PlansPage() {
 
       {/* Social media data filter */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
           {t('browse.socialMedia')}
         </p>
         <div className="flex flex-wrap gap-2">
           {socialOptions.map(opt => {
             const active = socialFilter === opt.key;
             return (
-              <button
+              <Button
                 key={opt.key}
+                variant="ghost"
+                size="sm"
                 onClick={() => setSocialFilter(opt.key)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 btn-press
+                className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
-                    : 'bg-surface-alt text-text-secondary hover:bg-border'
+                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30 hover:bg-primary/20'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
                 {opt.label}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -474,15 +446,15 @@ export default function PlansPage() {
       <FinderModal show={showFinderModal} onDismiss={dismissFinderModal} />
 
       {/* ========= HEADER ========= */}
-      <section className="relative z-10">
-        <div
-          className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10"
-          style={{ animation: 'fadeUp 0.5s ease-out both' }}
-        >
-          <h1 className="font-heading font-bold text-3xl md:text-4xl text-white">
+      <section className="relative z-10 hero-gradient grain overflow-hidden">
+        <div className="absolute top-0 end-0 w-64 h-64 rounded-full bg-white/[0.03] -translate-y-1/3 translate-x-1/3 blob" />
+        <div className="absolute bottom-0 start-0 w-40 h-40 rounded-full bg-accent/[0.05] translate-y-1/3 -translate-x-1/3 blob-alt" />
+
+        <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10">
+          <h1 className="font-heading font-extrabold text-3xl md:text-4xl text-white tracking-tight">
             {t('browse.title')}
           </h1>
-          <p className="text-white/80 mt-2 text-base md:text-lg">
+          <p className="text-white/70 mt-2 text-base md:text-lg">
             {t('browse.subtitle')}
           </p>
 
@@ -490,20 +462,19 @@ export default function PlansPage() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6">
             {/* Search */}
             <div className="relative flex-1">
-              <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-white/60" />
-              <input
+              <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-white/50 z-10" />
+              <Input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={t('browse.searchPlaceholder')}
-                className="w-full ps-11 pe-4 py-3 rounded-xl bg-white/15 border border-white/20 text-sm text-white
-                  placeholder:text-white/50 outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40
-                  transition-all backdrop-blur-sm"
+                className="w-full ps-11 pe-4 py-3 h-auto rounded-xl glass border-white/15 text-sm text-white
+                  placeholder:text-white/40 focus-visible:ring-white/25 focus-visible:border-white/30"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute top-1/2 -translate-y-1/2 end-3 text-white/50 hover:text-white/80"
+                  className="absolute top-1/2 -translate-y-1/2 end-3 text-white/50 hover:text-white/80 transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -511,82 +482,46 @@ export default function PlansPage() {
             </div>
 
             {/* Sort dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowSort(!showSort)}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/15 border border-white/20 text-sm font-semibold
-                  text-white hover:border-white/40 transition-all backdrop-blur-sm w-full sm:w-auto"
-              >
-                <span className="text-white/60">{t('browse.sortBy')}:</span>
-                <span>{t(activeSort.label)}</span>
-                <ChevronDown size={16} className={`text-white/60 transition-transform ${showSort ? 'rotate-180' : ''}`} />
-              </button>
-              {showSort && (
-                <div className="fixed inset-0 z-[70] flex items-end sm:items-start sm:justify-end"
-                  onClick={(e) => { if (e.target === e.currentTarget) setShowSort(false); }}>
-                  <div className="absolute inset-0 bg-black/40 sm:bg-transparent" />
-                  <div className="relative w-full sm:absolute sm:top-full sm:end-0 sm:mt-2 sm:w-72 bg-surface rounded-t-2xl sm:rounded-2xl
-                    shadow-2xl border border-border overflow-hidden"
-                    style={{ animation: 'springUp 0.25s ease-out both' }}>
-
-                    {/* Title */}
-                    <div className="px-5 pt-5 pb-3">
-                      <p className="font-heading font-bold text-base text-text-primary">
-                        {t('browse.sortBy')}
-                      </p>
-                    </div>
-
-                    {/* Options */}
-                    <div className="px-3 pb-2">
-                      {SORT_OPTIONS.map(opt => (
-                        <button
-                          key={opt.key}
-                          onClick={() => { setSortBy(opt.key); trackEvent('sort_changed', { sort: opt.key }); setShowSort(false); }}
-                          className={`w-full text-start px-4 py-3 text-sm rounded-lg transition-colors mb-0.5
-                            ${sortBy === opt.key
-                              ? 'text-primary font-bold bg-primary/10'
-                              : 'text-text-primary hover:bg-surface-alt'}`}
-                        >
-                          {t(opt.label)}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Close button */}
-                    <div className="px-4 pb-5 pt-2">
-                      <button
-                        onClick={() => setShowSort(false)}
-                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl
-                          bg-surface-alt text-text-secondary text-sm font-semibold
-                          hover:bg-border/40 active:scale-[0.98] transition-all"
-                      >
-                        <X size={16} />
-                        {t('common.close')}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <Select
+              value={sortBy}
+              onValueChange={(value) => {
+                setSortBy(value);
+                trackEvent('sort_changed', { sort: value });
+              }}
+            >
+              <SelectTrigger className="rounded-xl glass border-white/15 text-sm font-semibold
+                text-white hover:border-white/30 w-full sm:w-[220px] h-auto py-3">
+                <span className="text-white/50 me-1">{t('browse.sortBy')}:</span>
+                <SelectValue>{t(activeSort.label)}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {SORT_OPTIONS.map(opt => (
+                  <SelectItem key={opt.key} value={opt.key}>
+                    {t(opt.label)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             {/* Mobile filter toggle */}
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setShowMobileFilters(true)}
-              className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/15 border border-white/20
-                text-sm font-semibold text-white hover:border-white/40 transition-all backdrop-blur-sm"
+              className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 h-auto rounded-xl glass border border-white/15
+                text-sm font-semibold text-white hover:border-white/30 hover:bg-white/15"
             >
               <SlidersHorizontal size={16} />
               {t('browse.filters')}
               {hasActiveFilters && (
                 <span className="w-2 h-2 rounded-full bg-primary" />
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </section>
 
       {/* ========= MAIN CONTENT ========= */}
-      <div ref={plansGridRef} className="relative z-20 bg-[var(--color-bg)] rounded-t-3xl">
+      <div ref={plansGridRef} className="relative z-20 bg-background rounded-t-3xl">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-8">
         <div className="flex gap-8">
 
@@ -594,16 +529,18 @@ export default function PlansPage() {
           <aside className="hidden lg:block w-[260px] shrink-0">
             <div className="sticky top-24 space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="font-heading font-bold text-sm text-text-primary">
+                <h3 className="font-heading font-bold text-sm text-foreground">
                   {t('browse.filters')}
                 </h3>
                 {hasActiveFilters && (
-                  <button
+                  <Button
+                    variant="link"
+                    size="sm"
                     onClick={clearFilters}
-                    className="text-xs font-semibold text-primary hover:text-primary-dark transition-colors"
+                    className="text-xs font-semibold text-primary h-auto p-0"
                   >
                     {t('browse.clearFilters')}
-                  </button>
+                  </Button>
                 )}
               </div>
               {filterContent}
@@ -614,15 +551,15 @@ export default function PlansPage() {
           <div className="flex-1 min-w-0">
             {/* Results count + active filter chips */}
             <div className="flex items-center justify-between mb-5">
-              <p className="text-sm text-text-secondary font-medium">
+              <p className="text-sm text-muted-foreground font-medium">
                 {t('browse.showing')}{' '}
-                <span className="font-bold text-text-primary">
+                <span className="font-bold text-foreground">
                   {filteredPlans.length > 0
                     ? `${(currentPage - 1) * PLANS_PER_PAGE + 1}–${Math.min(currentPage * PLANS_PER_PAGE, filteredPlans.length)}`
                     : '0'}
                 </span>{' '}
                 {t('browse.of')}{' '}
-                <span className="font-bold text-text-primary">{filteredPlans.length}</span>{' '}
+                <span className="font-bold text-foreground">{filteredPlans.length}</span>{' '}
                 {t('browse.plans')}
               </p>
             </div>
@@ -631,70 +568,72 @@ export default function PlansPage() {
             {hasActiveFilters && (
               <div className="hidden md:flex flex-wrap gap-2 mb-5">
                 {selectedCarriers.map(c => (
-                  <span
+                  <Badge
                     key={c}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 text-primary text-xs font-semibold"
+                    variant="secondary"
+                    className="gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border-0"
                   >
                     {c}
-                    <button onClick={() => toggleCarrier(c)} className="hover:text-primary-dark">
+                    <button onClick={() => toggleCarrier(c)} className="hover:opacity-70">
                       <X size={12} />
                     </button>
-                  </span>
+                  </Badge>
                 ))}
                 {selectedTypes.map(type => {
                   const tc = TYPE_COLORS[type];
                   return (
-                    <span
+                    <Badge
                       key={type}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+                      variant="secondary"
+                      className="gap-1.5 px-3 py-1.5 border-0"
                       style={{ backgroundColor: tc.bg, color: tc.active }}
                     >
                       {t(`types.${type}`)}
                       <button onClick={() => toggleType(type)} className="hover:opacity-70">
                         <X size={12} />
                       </button>
-                    </span>
+                    </Badge>
                   );
                 })}
                 {dataFilter !== 'any' && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success/10 text-success text-xs font-semibold">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-green-500/10 text-green-600 border-0">
                     {dataOptions.find(d => d.key === dataFilter)?.label}
                     <button onClick={() => setDataFilter('any')}>
                       <X size={12} />
                     </button>
-                  </span>
+                  </Badge>
                 )}
                 {(priceRange[0] > 0 || priceRange[1] < PRICE_MAX) && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 text-primary text-xs font-semibold">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border-0">
                     SAR {priceRange[0]}–{priceRange[1] >= PRICE_MAX ? `${PRICE_MAX}+` : priceRange[1]}
                     <button onClick={() => setPriceRange([0, PRICE_MAX])}>
                       <X size={12} />
                     </button>
-                  </span>
+                  </Badge>
                 )}
                 {localCallsFilter !== 'any' && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success/10 text-success text-xs font-semibold">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-green-500/10 text-green-600 border-0">
                     {localCallsOptions.find(o => o.key === localCallsFilter)?.label}
                     <button onClick={() => setLocalCallsFilter('any')}>
                       <X size={12} />
                     </button>
-                  </span>
+                  </Badge>
                 )}
                 {intlCallsFilter !== 'any' && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/10 text-accent text-xs font-semibold">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border-0">
                     {t('browse.hasIntl')}
                     <button onClick={() => setIntlCallsFilter('any')}>
                       <X size={12} />
                     </button>
-                  </span>
+                  </Badge>
                 )}
                 {socialFilter !== 'any' && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 text-primary text-xs font-semibold">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border-0">
                     {socialOptions.find(o => o.key === socialFilter)?.label}
                     <button onClick={() => setSocialFilter('any')}>
                       <X size={12} />
                     </button>
-                  </span>
+                  </Badge>
                 )}
               </div>
             )}
@@ -713,14 +652,15 @@ export default function PlansPage() {
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 mt-10 py-4">
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => goToPage(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="w-11 h-11 rounded-xl flex items-center justify-center text-text-secondary
-                        hover:bg-surface-alt transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="w-11 h-11 rounded-xl text-muted-foreground"
                     >
                       <ChevronLeft size={18} className="rtl:rotate-180" />
-                    </button>
+                    </Button>
 
                     {Array.from({ length: totalPages }, (_, i) => i + 1)
                       .filter(page => {
@@ -738,135 +678,122 @@ export default function PlansPage() {
                       }, [])
                       .map((item, i) =>
                         item === '...' ? (
-                          <span key={`dot-${i}`} className="w-11 h-11 flex items-center justify-center text-text-tertiary text-sm">
+                          <span key={`dot-${i}`} className="w-11 h-11 flex items-center justify-center text-muted-foreground text-sm">
                             ...
                           </span>
                         ) : (
-                          <button
+                          <Button
                             key={item}
+                            variant={currentPage === item ? 'default' : 'ghost'}
                             onClick={() => goToPage(item as number)}
-                            className={`w-11 h-11 rounded-xl text-sm font-bold transition-all
+                            className={`w-11 h-11 rounded-xl text-sm font-bold
                               ${currentPage === item
                                 ? 'bg-primary text-white shadow-md shadow-primary/20'
-                                : 'text-text-secondary hover:bg-surface-alt'
+                                : 'text-muted-foreground'
                               }`}
                           >
                             {item}
-                          </button>
+                          </Button>
                         )
                       )}
 
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => goToPage(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="w-11 h-11 rounded-xl flex items-center justify-center text-text-secondary
-                        hover:bg-surface-alt transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="w-11 h-11 rounded-xl text-muted-foreground"
                     >
                       <ChevronRight size={18} className="rtl:rotate-180" />
-                    </button>
+                    </Button>
                   </div>
                 )}
               </>
             ) : (
               /* Empty state */
               <div className="text-center py-20">
-                <div className="w-16 h-16 rounded-2xl bg-surface-alt flex items-center justify-center mx-auto mb-4">
-                  <Search size={28} className="text-text-tertiary" />
+                <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                  <Search size={28} className="text-muted-foreground" />
                 </div>
-                <h3 className="font-heading font-bold text-xl text-text-primary">
+                <h3 className="font-heading font-bold text-xl text-foreground">
                   {t('browse.noResults')}
                 </h3>
-                <p className="text-text-secondary mt-2 text-sm max-w-sm mx-auto">
+                <p className="text-muted-foreground mt-2 text-sm max-w-sm mx-auto">
                   {t('browse.noResultsDesc')}
                 </p>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={clearFilters}
                   className="mt-5 px-6 py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-sm
-                    hover:bg-primary/20 transition-colors btn-press"
+                    hover:bg-primary/20"
                 >
                   {t('browse.clearFilters')}
-                </button>
+                </Button>
               </div>
             )}
           </div>
         </div>
 
         {/* ========= FINDER CTA BANNER ========= */}
-        <div className="mt-16 relative overflow-hidden rounded-3xl p-8 md:p-12 text-center"
-          style={{
-            background: 'var(--gradient-hero)',
-          }}
-        >
-          <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
-          <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/3" />
-          <div className="relative">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-white/90 text-xs font-medium mb-4">
+        <div className="mt-16 relative overflow-hidden rounded-3xl p-8 md:p-12 text-center hero-gradient grain">
+          <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
+          <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-accent/[0.06] translate-y-1/3 -translate-x-1/3 blob-alt" />
+          <div className="relative z-10">
+            <Badge variant="secondary" className="gap-2 px-3 py-1 glass text-white/90 border-0 text-xs font-semibold mb-4">
               <Sparkles size={12} />
               {t('home.just30Seconds')}
-            </div>
-            <h3 className="font-heading font-bold text-2xl md:text-3xl text-white">
+            </Badge>
+            <h3 className="font-heading font-extrabold text-2xl md:text-3xl text-white tracking-tight">
               {t('finderCta.title')}
             </h3>
-            <p className="text-white/60 mt-2 text-sm max-w-md mx-auto">
+            <p className="text-white/55 mt-2 text-sm max-w-md mx-auto">
               {t('finderCta.subtitle')}
             </p>
-            <Link
-              to="/finder"
-              className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-white text-primary
-                font-bold text-sm hover:bg-white/95 hover:shadow-lg
-                transition-all duration-200 btn-press shadow-md"
-            >
-              {t('finderCta.cta')}
-              <ArrowRight size={16} className="rtl:rotate-180" />
-            </Link>
+            <Button asChild className="mt-6 px-6 py-3 h-auto rounded-xl bg-white text-primary font-bold text-sm hover:bg-white/90 shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300">
+              <Link to="/finder">
+                {t('finderCta.cta')}
+                <ArrowRight size={16} className="rtl:rotate-180" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
       </div>
 
-      {/* ========= MOBILE FILTER DRAWER ========= */}
-      {showMobileFilters && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/40 z-50 md:hidden"
-            onClick={() => setShowMobileFilters(false)}
-            style={{ animation: 'fadeIn 0.2s ease-out both' }}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Filters"
-            className="fixed inset-x-0 bottom-0 z-50 md:hidden bg-surface rounded-t-3xl max-h-[85dvh] overflow-y-auto"
-            style={{ animation: 'slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
-          >
-            <div className="sticky top-0 bg-surface z-10 px-6 pt-4 pb-3 border-b border-border flex items-center justify-between">
-              <h3 className="font-heading font-bold text-lg text-text-primary">
+      {/* ========= MOBILE FILTER DRAWER (shadcn Sheet) ========= */}
+      <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+        <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto rounded-t-3xl p-0 md:hidden">
+          <SheetHeader className="sticky top-0 bg-background z-10 px-6 pt-4 pb-3 border-b border-border">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="font-heading font-bold text-lg text-foreground">
                 {t('browse.filters')}
-              </h3>
+              </SheetTitle>
               <div className="flex items-center gap-3">
                 {hasActiveFilters && (
-                  <button
+                  <Button
+                    variant="link"
+                    size="sm"
                     onClick={clearFilters}
-                    className="text-xs font-semibold text-primary"
+                    className="text-xs font-semibold text-primary h-auto p-0"
                   >
                     {t('browse.clearFilters')}
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
+                  size="sm"
                   onClick={() => setShowMobileFilters(false)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold btn-press"
-                  style={{ background: 'var(--gradient-brand)' }}
+                  className="rounded-xl text-white text-sm font-bold bg-primary"
                 >
                   {t('browse.showResults', { count: String(filteredPlans.length) })}
-                </button>
+                </Button>
               </div>
             </div>
-            <div className="p-6 space-y-6">
-              {filterContent}
-            </div>
+          </SheetHeader>
+          <div className="p-6 space-y-6">
+            {filterContent}
           </div>
-        </>
-      )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
