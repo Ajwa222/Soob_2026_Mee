@@ -30,7 +30,7 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
   const [commentCount, setCommentCount] = useState(0);
 
   useEffect(() => {
-    fetchReaction(plan.id).then(r => { setLikes(r.likes); setDislikes(r.dislikes); }).catch(() => {});
+    fetchReaction(plan.id).then(r => { setLikes(Math.max(0, r.likes)); setDislikes(Math.max(0, r.dislikes)); }).catch(() => {});
     fetchCommentCount(plan.id).then(c => setCommentCount(c)).catch(() => {});
   }, [plan.id]);
 
