@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, ChevronRight, Zap, Shield } from 'lucide-react';
+import { Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CommunityBanner from '../components/CommunityBanner';
 import { useLang } from '../context/LanguageContext';
@@ -30,13 +30,7 @@ export default function HomePage() {
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-10 pb-12 md:pt-20 md:pb-24">
           <div className="max-w-lg md:max-w-2xl">
-            {/* Eyebrow badge */}
-            <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-white/90 text-[11px] font-semibold tracking-wide uppercase mb-4">
-              <Zap size={11} className="text-accent" />
-              {t('home.popularNow')}
-            </div>
-
-            <h1 className="animate-fade-up delay-1 font-heading font-extrabold text-[30px] md:text-[48px] lg:text-[56px] text-white leading-[1.1] tracking-tight">
+            <h1 className="animate-fade-up font-heading font-extrabold text-[30px] md:text-[48px] lg:text-[56px] text-white leading-[1.1] tracking-tight">
               {t('hero.headline')}
             </h1>
             <p className="animate-fade-up delay-2 mt-4 text-[15px] md:text-[18px] text-white/75 leading-relaxed max-w-md">
