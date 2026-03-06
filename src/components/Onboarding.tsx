@@ -120,7 +120,7 @@ export default function Onboarding() {
 
   if (isLangPage) {
     return (
-      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6 bg-primary">
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6 hero-gradient">
         <img src="/icon-512.png" alt="Simba" className="w-16 h-16 md:w-20 md:h-20 mb-5 rounded-2xl shadow-lg" />
         <h1 className="font-heading font-bold text-[26px] md:text-[34px] text-white text-center leading-tight mb-1">
           Welcome to Simba
@@ -155,7 +155,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-primary">
+    <div className="fixed inset-0 z-[100] flex flex-col hero-gradient">
       <div className="flex justify-end px-6 pt-6">
         <button onClick={complete} className="text-sm text-white/60 font-medium hover:text-white transition-colors">
           {lang === 'ar' ? 'تخطي' : 'Skip'}

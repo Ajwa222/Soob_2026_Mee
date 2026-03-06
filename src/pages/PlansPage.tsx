@@ -9,6 +9,7 @@ import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
 import PlanCard from '../components/PlanCard';
 import FinderModal, { useFinderModal } from '../components/FinderModal';
 import { trackEvent } from '../lib/analytics';
+import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -263,12 +264,12 @@ export default function PlansPage() {
             return (
               <Button
                 key={carrier.name}
-                variant={active ? 'default' : 'ghost'}
+                variant="ghost"
                 size="sm"
                 onClick={() => toggleCarrier(carrier.name)}
                 className={`flex items-center gap-2 rounded-xl font-medium
                   ${active
-                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30 hover:bg-primary/20'
+                    ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -346,7 +347,7 @@ export default function PlansPage() {
                 onClick={() => setDataFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30 hover:bg-primary/20'
+                    ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -373,7 +374,7 @@ export default function PlansPage() {
                 onClick={() => setLocalCallsFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30 hover:bg-primary/20'
+                    ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -400,7 +401,7 @@ export default function PlansPage() {
                 onClick={() => setIntlCallsFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30 hover:bg-primary/20'
+                    ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -427,7 +428,7 @@ export default function PlansPage() {
                 onClick={() => setSocialFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-primary/10 text-primary ring-1 ring-primary/30 hover:bg-primary/20'
+                    ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -447,11 +448,12 @@ export default function PlansPage() {
 
       {/* ========= HEADER ========= */}
       <section className="relative z-10 hero-gradient grain overflow-hidden">
+        <WaveLines />
         <div className="absolute top-0 end-0 w-64 h-64 rounded-full bg-white/[0.03] -translate-y-1/3 translate-x-1/3 blob" />
         <div className="absolute bottom-0 start-0 w-40 h-40 rounded-full bg-accent/[0.05] translate-y-1/3 -translate-x-1/3 blob-alt" />
 
         <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10">
-          <h1 className="font-heading font-extrabold text-3xl md:text-4xl text-white tracking-tight">
+          <h1 className="font-heading font-normal text-3xl md:text-4xl text-white tracking-tight">
             {t('browse.title')}
           </h1>
           <p className="text-white/70 mt-2 text-base md:text-lg">
@@ -462,19 +464,19 @@ export default function PlansPage() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6">
             {/* Search */}
             <div className="relative flex-1">
-              <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-white/50 z-10" />
+              <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-[#213E53]/50 z-10" />
               <Input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={t('browse.searchPlaceholder')}
-                className="w-full ps-11 pe-4 py-3 h-auto rounded-xl glass border-white/15 text-sm text-white
-                  placeholder:text-white/40 focus-visible:ring-white/25 focus-visible:border-white/30"
+                className="w-full ps-11 pe-4 py-3 h-auto rounded-xl bg-white border-white/80 text-sm text-[#213E53]
+                  placeholder:text-[#213E53]/40 focus-visible:ring-white/50 focus-visible:border-white shadow-sm"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute top-1/2 -translate-y-1/2 end-3 text-white/50 hover:text-white/80 transition-colors"
+                  className="absolute top-1/2 -translate-y-1/2 end-3 text-[#213E53]/50 hover:text-[#213E53]/80 transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -489,9 +491,9 @@ export default function PlansPage() {
                 trackEvent('sort_changed', { sort: value });
               }}
             >
-              <SelectTrigger className="rounded-xl glass border-white/15 text-sm font-semibold
-                text-white hover:border-white/30 w-full sm:w-[220px] h-auto py-3">
-                <span className="text-white/50 me-1">{t('browse.sortBy')}:</span>
+              <SelectTrigger className="rounded-xl bg-white border-white/80 text-sm font-semibold
+                text-[#213E53] hover:border-white w-full sm:w-[220px] h-auto py-3 shadow-sm">
+                <span className="text-[#213E53]/50 me-1">{t('browse.sortBy')}:</span>
                 <SelectValue>{t(activeSort.label)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -507,8 +509,8 @@ export default function PlansPage() {
             <Button
               variant="ghost"
               onClick={() => setShowMobileFilters(true)}
-              className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 h-auto rounded-xl glass border border-white/15
-                text-sm font-semibold text-white hover:border-white/30 hover:bg-white/15"
+              className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 h-auto rounded-xl bg-white border border-white/80
+                text-sm font-semibold text-[#213E53] hover:border-white hover:bg-white/90 shadow-sm"
             >
               <SlidersHorizontal size={16} />
               {t('browse.filters')}
@@ -571,7 +573,7 @@ export default function PlansPage() {
                   <Badge
                     key={c}
                     variant="secondary"
-                    className="gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border-0"
+                    className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm"
                   >
                     {c}
                     <button onClick={() => toggleCarrier(c)} className="hover:opacity-70">
@@ -604,7 +606,7 @@ export default function PlansPage() {
                   </Badge>
                 )}
                 {(priceRange[0] > 0 || priceRange[1] < PRICE_MAX) && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border-0">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
                     SAR {priceRange[0]}–{priceRange[1] >= PRICE_MAX ? `${PRICE_MAX}+` : priceRange[1]}
                     <button onClick={() => setPriceRange([0, PRICE_MAX])}>
                       <X size={12} />
@@ -620,7 +622,7 @@ export default function PlansPage() {
                   </Badge>
                 )}
                 {intlCallsFilter !== 'any' && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border-0">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
                     {t('browse.hasIntl')}
                     <button onClick={() => setIntlCallsFilter('any')}>
                       <X size={12} />
@@ -628,7 +630,7 @@ export default function PlansPage() {
                   </Badge>
                 )}
                 {socialFilter !== 'any' && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border-0">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
                     {socialOptions.find(o => o.key === socialFilter)?.label}
                     <button onClick={() => setSocialFilter('any')}>
                       <X size={12} />
@@ -736,6 +738,7 @@ export default function PlansPage() {
 
         {/* ========= FINDER CTA BANNER ========= */}
         <div className="mt-16 relative overflow-hidden rounded-3xl p-8 md:p-12 text-center hero-gradient grain">
+          <WaveLines />
           <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
           <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-accent/[0.06] translate-y-1/3 -translate-x-1/3 blob-alt" />
           <div className="relative z-10">
@@ -743,7 +746,7 @@ export default function PlansPage() {
               <Sparkles size={12} />
               {t('home.just30Seconds')}
             </Badge>
-            <h3 className="font-heading font-extrabold text-2xl md:text-3xl text-white tracking-tight">
+            <h3 className="font-heading font-normal text-2xl md:text-3xl text-white tracking-tight">
               {t('finderCta.title')}
             </h3>
             <p className="text-white/55 mt-2 text-sm max-w-md mx-auto">

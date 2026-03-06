@@ -18,9 +18,9 @@ export default function AboutPage() {
   return (
     <div className="safe-pb flex flex-col">
       {/* Hero */}
-      <div className="relative flex items-center justify-center pt-16 pb-10 md:pt-24 md:pb-14 bg-primary">
+      <div className="relative flex items-center justify-center pt-16 pb-10 md:pt-24 md:pb-14 hero-gradient">
         <div className="max-w-3xl w-full mx-auto px-4 sm:px-6 md:px-8 text-center">
-          <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight">
+          <h1 className="font-heading font-normal text-3xl md:text-5xl text-white leading-tight">
             {t('about.title')}
           </h1>
           <p className="text-white/70 mt-4 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
@@ -102,7 +102,7 @@ export default function AboutPage() {
 
         {/* CTA */}
         <section className="text-center">
-          <div className="relative overflow-hidden rounded-xl p-8 md:p-12 bg-primary">
+          <div className="relative overflow-hidden rounded-xl p-8 md:p-12 hero-gradient">
             <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
             <div className="relative">
               <h3 className="font-heading font-bold text-2xl md:text-3xl text-white">

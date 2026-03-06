@@ -19,8 +19,6 @@ export default function Navigation() {
   const { hasAccount } = useAuth();
   const location = useLocation();
 
-  if (!hasAccount) return null;
-
   const handleNav = (e: React.MouseEvent, path: string) => {
     if (location.pathname === path || (path === '/home' && location.pathname === '/')) {
       e.preventDefault();
@@ -51,7 +49,7 @@ export default function Navigation() {
         <div className="w-full max-w-5xl mx-auto px-8 flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2.5 group">
             <img src="/icon-512.png" alt="Simba" className="w-9 h-9 rounded-xl shadow-sm group-hover:shadow-md transition-shadow" />
-            <span className="font-heading font-bold text-xl leading-none tracking-tight text-primary">
+            <span className="font-heading font-bold text-xl leading-none tracking-tight bg-gradient-to-r from-[#1FA9FF] via-[#6DCBCA] to-[#6ED7B4] bg-clip-text text-transparent">
               Simba
             </span>
           </Link>
@@ -147,7 +145,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between px-4 h-14">
           <Link to="/" className="flex items-center gap-2">
             <img src="/icon-512.png" alt="Simba" className="w-8 h-8 rounded-xl shadow-sm" />
-            <span className="font-heading font-bold text-lg tracking-tight text-primary">
+            <span className="font-heading font-bold text-lg tracking-tight bg-gradient-to-r from-[#1FA9FF] via-[#6DCBCA] to-[#6ED7B4] bg-clip-text text-transparent">
               Simba
             </span>
           </Link>

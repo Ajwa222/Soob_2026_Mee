@@ -10,7 +10,6 @@ export default function Footer() {
   const { hasAccount } = useAuth();
   const location = useLocation();
 
-  if (!hasAccount) return null;
   if (location.pathname === '/finder') return null;
 
   return (

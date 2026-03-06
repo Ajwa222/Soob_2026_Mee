@@ -253,11 +253,12 @@
 /* Gradient mesh hero background */
 .hero-gradient {
   background:
-    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(110, 226, 158, 0.15) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(61, 187, 255, 0.2) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(109, 203, 202, 0.1) 0%, transparent 60%),
-    linear-gradient(135deg, #0D7FD9 0%, #1FA9FF 30%, #15B3E8 60%, #1A8FCC 100%);
-  background-size: 200% 200%, 200% 200%, 100% 100%, 100% 100%;
+    radial-gradient(ellipse 80% 60% at 10% 20%, #6ED7B4 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 90% 30%, #1FA9FF 0%, transparent 55%),
+    radial-gradient(ellipse 60% 70% at 50% 80%, #6DCBCA 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 30% 50%, #5BC4A8 0%, transparent 50%),
+    linear-gradient(135deg, #6ED7B4, #1FA9FF);
+  background-size: 200% 200%, 200% 200%, 100% 100%, 100% 100%, 100% 100%;
   animation: gradient-shift 12s ease infinite;
 }
 
