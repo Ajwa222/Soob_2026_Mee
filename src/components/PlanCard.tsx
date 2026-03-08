@@ -69,14 +69,6 @@ export default function PlanCard({ plan, style, compact }: { plan: Plan; style?:
     }
   }, [plan.id]);
 
-  const perks = [];
-  if (isValidValue(plan.socialMediaData) && plan.socialMediaData !== '1') {
-    perks.push(plan.socialMediaData === 'Unlimited' ? t('planCard.unlimitedSocial') : `${plan.socialMediaData} ${t('planCard.social')}`);
-  }
-  if (isValidValue(plan.specialFeatures)) {
-    perks.push(plan.specialFeatures);
-  }
-
   return (
     <Card
       className={`relative flex flex-col overflow-hidden card-hover gradient-border
@@ -111,9 +103,9 @@ export default function PlanCard({ plan, style, compact }: { plan: Plan; style?:
         </h3>
 
         {/* Price */}
-        <div className={`plan-price ${compact ? 'mt-2' : 'mt-3'} flex items-baseline gap-1`}>
+        <div className={`plan-price ${compact ? 'mt-1' : 'mt-2'} flex items-baseline gap-1`}>
           <SarSymbol className="text-sm font-medium text-muted-foreground" />
-          <span className={`${compact ? 'text-xl' : 'text-2xl sm:text-3xl'} font-heading font-extrabold text-foreground tracking-tight`}>
+          <span className={`${compact ? 'text-lg' : 'text-2xl sm:text-3xl'} font-heading font-extrabold text-foreground tracking-tight`}>
             {plan.priceSAR}
           </span>
           <span className="text-sm text-muted-foreground">{getBillingLabel(plan.contractTerms, t)}</span>
@@ -136,19 +128,6 @@ export default function PlanCard({ plan, style, compact }: { plan: Plan; style?:
           ))}
         </div>
 
-        {/* Perks */}
-        {perks.length > 0 && (
-          <div className={`${compact ? 'mt-1.5' : 'mt-3'}`}>
-            <p className={`${compact ? 'text-[9px] mb-1' : 'text-[10px] mb-1.5'} font-semibold uppercase tracking-wider text-muted-foreground`}>{t('planCard.perks')}</p>
-            <div className="flex flex-wrap items-start gap-1.5">
-              {perks.slice(0, compact ? 1 : 2).map((perk, i) => (
-                <Badge key={i} variant="outline" className={`${compact ? 'text-[10px]' : 'text-[11px]'} font-medium border-border/60`}>
-                  {perk}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Engagement */}
         <div className={`flex items-center gap-4 ${compact ? 'mt-2' : 'mt-3'} text-muted-foreground`}>
@@ -169,15 +148,15 @@ export default function PlanCard({ plan, style, compact }: { plan: Plan; style?:
         <div className="flex-1" />
       </CardContent>
 
-      <CardFooter className={`gap-2 ${compact ? 'px-3.5 pb-3' : 'px-5 pb-5'}`}>
-        <Button variant="secondary" size={compact ? 'sm' : 'default'} className={`flex-1 rounded-xl ${compact ? 'text-xs font-medium' : 'font-semibold'}`} asChild>
+      <CardFooter className={`gap-2 ${compact ? 'px-3.5 pb-2 pt-0' : 'px-5 pb-5'}`}>
+        <Button variant="secondary" size={compact ? 'sm' : 'default'} className={`flex-1 rounded-xl ${compact ? 'text-xs font-medium h-7' : 'font-semibold'}`} asChild>
           <Link to={`/plan/${plan.id}`}>{t('planCard.viewDetails')}</Link>
         </Button>
         <Button
           variant={selected ? 'default' : 'outline'}
           size={compact ? 'sm' : 'default'}
           onClick={(e) => { e.preventDefault(); togglePlan(plan); }}
-          className={`rounded-xl ${compact ? 'text-xs font-medium' : 'font-semibold'} ${selected ? 'shadow-md shadow-primary/20' : 'text-primary border-primary/30 hover:bg-primary/10'}`}
+          className={`rounded-xl ${compact ? 'text-xs font-medium h-7' : 'font-semibold'} ${selected ? 'shadow-md shadow-primary/20' : 'text-primary border-primary/30 hover:bg-primary/10'}`}
         >
           {selected ? <Check size={compact ? 13 : 15} /> : <Plus size={compact ? 13 : 15} />}
           {selected ? t('planCard.selected') : t('planCard.compare')}
