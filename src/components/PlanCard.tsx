@@ -35,7 +35,7 @@ function getBillingLabel(term: string, t: (k: string) => string): string {
   return t('planCard.perMonth');
 }
 
-export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CSSProperties }) {
+export default function PlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
   const { t } = useLang();
   const { togglePlan, isSelected } = useCompare();
   const selected = isSelected(plan.id);
@@ -89,7 +89,7 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
         </div>
       )}
 
-      <CardContent className="p-5 flex flex-col flex-1">
+      <CardContent className={`${compact ? 'p-3.5' : 'p-5'} flex flex-col flex-1`}>
         {/* Carrier + Type */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -106,20 +106,20 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
         </div>
 
         {/* Plan name */}
-        <h3 className="font-heading font-bold text-lg text-foreground leading-snug mt-2.5 line-clamp-2 min-h-[2.75rem]">
+        <h3 className={`font-heading font-bold ${compact ? 'text-base' : 'text-lg'} text-foreground leading-snug mt-2 line-clamp-2 ${compact ? 'min-h-[2.25rem]' : 'min-h-[2.75rem]'}`}>
           {plan.planName}
         </h3>
 
         {/* Price */}
-        <div className="plan-price mt-3 flex items-baseline gap-1">
+        <div className={`plan-price ${compact ? 'mt-2' : 'mt-3'} flex items-baseline gap-1`}>
           <SarSymbol className="text-sm font-medium text-muted-foreground" />
-          <span className="text-2xl sm:text-3xl font-heading font-extrabold text-foreground tracking-tight">
+          <span className={`${compact ? 'text-xl' : 'text-2xl sm:text-3xl'} font-heading font-extrabold text-foreground tracking-tight`}>
             {plan.priceSAR}
           </span>
           <span className="text-sm text-muted-foreground">{getBillingLabel(plan.contractTerms, t)}</span>
         </div>
 
-        <Separator className="my-4" />
+        <Separator className={compact ? 'my-2.5' : 'my-4'} />
 
         {/* Key metrics */}
         <div className="grid grid-cols-3 gap-2 text-sm">
@@ -128,52 +128,58 @@ export default function PlanCard({ plan, style }: { plan: Plan; style?: React.CS
             { icon: Phone, value: isValidValue(plan.localCallMinutes) ? (plan.localCallMinutes === 'Unlimited' ? t('detail.unlimited') : `${plan.localCallMinutes}`) : '—', label: t('planCard.mins') },
             { icon: MessageSquare, value: isValidValue(plan.sms) && plan.sms !== '-' ? (plan.sms === 'Unlimited' ? t('detail.unlimited') : plan.sms) : '—', label: t('planCard.sms') },
           ].map(({ icon: Icon, value, label }) => (
-            <div key={label} className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl bg-muted/50 dark:bg-muted/30 transition-colors">
-              <Icon size={14} className="text-primary" />
-              <p className="font-bold text-foreground text-[13px] leading-tight text-center">{value}</p>
+            <div key={label} className={`flex flex-col items-center gap-1 ${compact ? 'py-1.5' : 'py-2.5'} px-1 rounded-xl bg-muted/50 dark:bg-muted/30 transition-colors`}>
+              <Icon size={compact ? 12 : 14} className="text-primary" />
+              <p className={`font-bold text-foreground ${compact ? 'text-[12px]' : 'text-[13px]'} leading-tight text-center`}>{value}</p>
               <p className="text-[11px] text-muted-foreground">{label}</p>
             </div>
           ))}
         </div>
 
         {/* Perks */}
-        <div className="min-h-[2rem] mt-3 flex flex-wrap items-start gap-1.5">
-          {perks.slice(0, 2).map((perk, i) => (
-            <Badge key={i} variant="outline" className="text-[11px] font-medium border-border/60">
-              {perk}
-            </Badge>
-          ))}
-        </div>
+        {perks.length > 0 && (
+          <div className={`${compact ? 'mt-1.5' : 'mt-3'}`}>
+            <p className={`${compact ? 'text-[9px] mb-1' : 'text-[10px] mb-1.5'} font-semibold uppercase tracking-wider text-muted-foreground`}>{t('planCard.perks')}</p>
+            <div className="flex flex-wrap items-start gap-1.5">
+              {perks.slice(0, compact ? 1 : 2).map((perk, i) => (
+                <Badge key={i} variant="outline" className={`${compact ? 'text-[10px]' : 'text-[11px]'} font-medium border-border/60`}>
+                  {perk}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Engagement */}
-        <div className="flex items-center gap-4 mt-3 text-muted-foreground">
+        <div className={`flex items-center gap-4 ${compact ? 'mt-2' : 'mt-3'} text-muted-foreground`}>
           <div className="flex items-center gap-1.5 hover:text-primary transition-colors">
-            <ThumbsUp size={16} />
-            <span className="text-xs font-medium">{likes}</span>
+            <ThumbsUp size={compact ? 13 : 16} />
+            <span className={`${compact ? 'text-[11px]' : 'text-xs'} font-medium`}>{likes}</span>
           </div>
           <div className="flex items-center gap-1.5 hover:text-destructive transition-colors">
-            <ThumbsDown size={16} />
-            <span className="text-xs font-medium">{dislikes}</span>
+            <ThumbsDown size={compact ? 13 : 16} />
+            <span className={`${compact ? 'text-[11px]' : 'text-xs'} font-medium`}>{dislikes}</span>
           </div>
           <div className="flex items-center gap-1.5 hover:text-primary transition-colors">
-            <MessageCircle size={16} />
-            <span className="text-xs font-medium">{commentCount}</span>
+            <MessageCircle size={compact ? 13 : 16} />
+            <span className={`${compact ? 'text-[11px]' : 'text-xs'} font-medium`}>{commentCount}</span>
           </div>
         </div>
 
         <div className="flex-1" />
       </CardContent>
 
-      <CardFooter className="gap-2.5 px-5 pb-5">
-        <Button variant="secondary" className="flex-1 rounded-xl font-semibold" asChild>
+      <CardFooter className={`gap-2 ${compact ? 'px-3.5 pb-3' : 'px-5 pb-5'}`}>
+        <Button variant="secondary" size={compact ? 'sm' : 'default'} className={`flex-1 rounded-xl ${compact ? 'text-xs font-medium' : 'font-semibold'}`} asChild>
           <Link to={`/plan/${plan.id}`}>{t('planCard.viewDetails')}</Link>
         </Button>
         <Button
           variant={selected ? 'default' : 'outline'}
+          size={compact ? 'sm' : 'default'}
           onClick={(e) => { e.preventDefault(); togglePlan(plan); }}
-          className={`rounded-xl font-semibold ${selected ? 'shadow-md shadow-primary/20' : 'text-primary border-primary/30 hover:bg-primary/10'}`}
+          className={`rounded-xl ${compact ? 'text-xs font-medium' : 'font-semibold'} ${selected ? 'shadow-md shadow-primary/20' : 'text-primary border-primary/30 hover:bg-primary/10'}`}
         >
-          {selected ? <Check size={15} /> : <Plus size={15} />}
+          {selected ? <Check size={compact ? 13 : 15} /> : <Plus size={compact ? 13 : 15} />}
           {selected ? t('planCard.selected') : t('planCard.compare')}
         </Button>
       </CardFooter>

@@ -17,7 +17,7 @@ export default function HomePage() {
   const trendingPlans = useMemo(() => {
     return [...PLANS_DATA]
       .sort((a, b) => getValueScore(b) - getValueScore(a))
-      .slice(0, 3);
+      .slice(0, 8);
   }, []);
 
   return (
@@ -111,9 +111,11 @@ export default function HomePage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+        <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {trendingPlans.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} />
+            <div key={plan.id} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px]">
+              <PlanCard plan={plan} compact style={{ height: '100%' }} />
+            </div>
           ))}
         </div>
       </div>

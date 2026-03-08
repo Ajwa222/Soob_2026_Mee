@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Smartphone, Search, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,19 @@ export default function Navigation() {
   const { t, theme, toggleTheme } = useLang();
   const { hasAccount } = useAuth();
   const location = useLocation();
+  const [onboarded, setOnboarded] = useState(() => !!localStorage.getItem('simba-onboarded'));
+
+  useEffect(() => {
+    if (onboarded) return;
+    const check = () => {
+      if (localStorage.getItem('simba-onboarded')) setOnboarded(true);
+    };
+    window.addEventListener('storage', check);
+    const interval = setInterval(check, 500);
+    return () => { window.removeEventListener('storage', check); clearInterval(interval); };
+  }, [onboarded]);
+
+  if (!onboarded) return null;
 
   const handleNav = (e: React.MouseEvent, path: string) => {
     if (location.pathname === path || (path === '/home' && location.pathname === '/')) {

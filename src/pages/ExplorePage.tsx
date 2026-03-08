@@ -156,9 +156,9 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
   if (plans.length === 0) return null;
 
   return (
-    <section id={id} className="mb-10 scroll-mt-4">
+    <section id={id} className="mb-6 scroll-mt-4">
       {/* Row header */}
-      <div className="flex items-center gap-2.5 md:gap-3 mb-3 md:mb-4 px-4 sm:px-6 md:px-8">
+      <div className="flex items-center gap-2.5 md:gap-3 mb-2.5 md:mb-3 px-4 sm:px-6 md:px-8">
         <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-[#1FA9FF]/10 flex items-center justify-center shrink-0">
           <Icon size={16} className="text-[#1FA9FF] md:hidden" />
           <Icon size={18} className="text-[#1FA9FF] hidden md:block" />
@@ -194,7 +194,7 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
           {[0, 1, 2].map((copy) =>
             plans.map((plan) => (
               <div key={`${copy}-${plan.id}`} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px] self-stretch">
-                <PlanCard plan={plan} style={{ height: '100%' }} />
+                <PlanCard plan={plan} compact style={{ height: '100%' }} />
               </div>
             ))
           )}
@@ -237,11 +237,12 @@ export default function ExplorePage() {
     setLocalCallsFilter('any');
     setIntlCallsFilter(null);
     setSocialFilter(null);
+    setActiveCategory(null);
   }, []);
 
   const hasActiveFilters = search || selectedCarriers.length > 0 || selectedTypes.length > 0 ||
     priceRange[0] > 0 || priceRange[1] < PRICE_MAX ||
-    dataFilter !== 'any' || localCallsFilter !== 'any' || intlCallsFilter !== null || socialFilter !== null;
+    dataFilter !== 'any' || localCallsFilter !== 'any' || intlCallsFilter !== null || socialFilter !== null || activeCategory !== null;
 
   const dataOptions = [
     { key: 'any', label: t('browse.anyData') },
@@ -327,12 +328,6 @@ export default function ExplorePage() {
   const visibleCategories = activeCategory
     ? categoryData.filter(c => c.key === activeCategory)
     : categoryData;
-
-  const scrollToCategory = (key: string) => {
-    setActiveCategory(prev => prev === key ? null : key);
-    // Scroll to top of content area
-    document.getElementById('explore-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
 
   /* ---- filter panel content (shared desktop + mobile) ---- */
   const filterContent = (
@@ -517,43 +512,68 @@ export default function ExplorePage() {
     <div className="safe-pb">
       {/* ========= HEADER ========= */}
       <section className="relative z-10 hero-gradient grain overflow-hidden">
+        <div className="absolute inset-0 bg-black/35 backdrop-blur-sm" />
         <WaveLines />
         <div className="absolute top-0 end-0 w-64 h-64 rounded-full bg-white/[0.03] -translate-y-1/3 translate-x-1/3 blob" />
 
-        <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10">
-          <h1 className="font-heading font-normal text-3xl md:text-4xl text-white tracking-tight">
+        <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-5 pb-4 md:pt-8 md:pb-6">
+          <h1 className="font-heading font-normal text-2xl md:text-3xl text-white tracking-tight">
             {t('explore.title')}
           </h1>
-          <p className="text-white/70 mt-2 text-base md:text-lg">
+          <p className="text-white/70 mt-1 text-sm md:text-base">
             {t('explore.subtitle')}
           </p>
 
           {/* Search + mobile filter toggle */}
-          <div className="flex items-stretch gap-3 mt-6">
-            <div className="relative flex-1">
-              <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-[#213E53]/50 z-10" />
-              <Input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder={t('browse.searchPlaceholder')}
-                className="w-full ps-11 pe-4 py-3 h-auto rounded-xl bg-white border-white/80 text-sm text-[#213E53]
-                  placeholder:text-[#213E53]/40 focus-visible:ring-white/50 focus-visible:border-white shadow-sm"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch('')}
-                  className="absolute top-1/2 -translate-y-1/2 end-3 text-[#213E53]/50 hover:text-[#213E53]/80 transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              )}
+          <div className="flex items-start gap-3 mt-4">
+            <div className="flex-1 min-w-0">
+              <div className="relative">
+                <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-[#213E53]/50 z-10" />
+                <Input
+                  type="text"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder={t('browse.searchPlaceholder')}
+                  className="w-full ps-11 pe-4 py-3 h-auto rounded-xl bg-white border-white/80 text-sm text-[#213E53]
+                    placeholder:text-[#213E53]/40 focus-visible:ring-white/50 focus-visible:border-white shadow-sm"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch('')}
+                    className="absolute top-1/2 -translate-y-1/2 end-3 text-[#213E53]/50 hover:text-[#213E53]/80 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+              {/* Category chips — under search, same width */}
+              <div className="flex gap-1 overflow-x-auto mt-2 pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {CATEGORIES.map((cat) => {
+                  const Icon = cat.icon;
+                  const isActive = activeCategory === cat.key;
+                  return (
+                    <button
+                      key={cat.key}
+                      onClick={() => setActiveCategory(prev => prev === cat.key ? null : cat.key)}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap
+                        transition-all duration-200 shrink-0
+                        ${isActive
+                          ? 'bg-white text-[#213E53] shadow-sm'
+                          : 'bg-white/15 text-white/80 hover:bg-white/25'
+                        }`}
+                    >
+                      <Icon size={11} />
+                      {t(`explore.${cat.key}`)}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <Button
               variant="ghost"
               onClick={() => setShowMobileFilters(true)}
               className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 h-auto rounded-xl bg-white border border-white/80
-                text-sm font-semibold text-[#213E53] hover:border-white hover:bg-white/90 shadow-sm"
+                text-sm font-semibold text-[#213E53] hover:border-white hover:bg-white/90 shadow-sm shrink-0"
             >
               <SlidersHorizontal size={16} />
               {t('browse.filters')}
@@ -565,7 +585,7 @@ export default function ExplorePage() {
 
       {/* ========= MAIN CONTENT ========= */}
       <div id="explore-content" className="relative z-20 bg-background rounded-t-3xl">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-8">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-4">
           <div className="flex gap-8">
 
             {/* ---- DESKTOP SIDEBAR FILTERS ---- */}
@@ -595,32 +615,15 @@ export default function ExplorePage() {
             {/* ---- MAIN AREA ---- */}
             <div className="flex-1 min-w-0">
 
-              {/* ---- CATEGORY PILLS ---- */}
-              <div className="flex gap-2 overflow-x-auto pb-4 mb-6 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-0 md:px-0 pe-8 sm:pe-10 md:pe-4">
-                {CATEGORIES.map((cat) => {
-                  const Icon = cat.icon;
-                  const isActive = activeCategory === cat.key;
-                  return (
-                    <button
-                      key={cat.key}
-                      onClick={() => scrollToCategory(cat.key)}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap
-                        transition-all duration-200 shrink-0
-                        ${isActive
-                          ? 'bg-[#1FA9FF] text-white shadow-md shadow-[#1FA9FF]/20'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                        }`}
-                    >
-                      <Icon size={16} />
-                      {t(`explore.${cat.key}`)}
-                    </button>
-                  );
-                })}
-              </div>
-
               {/* Active filter chips */}
               {hasActiveFilters && (
                 <div className="flex flex-wrap gap-2 mb-5">
+                  {activeCategory && (
+                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
+                      {t(`explore.${activeCategory}`)}
+                      <button onClick={() => setActiveCategory(null)} className="hover:opacity-70"><X size={12} /></button>
+                    </Badge>
+                  )}
                   {selectedCarriers.map(c => (
                     <Badge key={c} variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
                       {c}

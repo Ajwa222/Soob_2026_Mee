@@ -121,31 +121,32 @@ export default function Onboarding() {
   if (isLangPage) {
     return (
       <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6 hero-gradient">
-        <img src="/icon-512.png" alt="Simba" className="w-16 h-16 md:w-20 md:h-20 mb-5 rounded-2xl shadow-lg" />
-        <h1 className="font-heading font-bold text-[26px] md:text-[34px] text-white text-center leading-tight mb-1">
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+        <img src="/icon-512.png" alt="Simba" className="relative z-10 w-16 h-16 md:w-20 md:h-20 mb-5 rounded-2xl shadow-lg" />
+        <h1 className="relative z-10 font-heading font-medium text-[26px] md:text-[34px] text-white text-center leading-tight mb-1">
           Welcome to Simba
         </h1>
-        <p className="text-[18px] md:text-[22px] text-white/80 text-center mb-6 font-semibold">
+        <p className="relative z-10 text-[18px] md:text-[22px] text-white/80 text-center mb-6 font-semibold">
           حياك في سيمبا
         </p>
-        <h2 className="font-heading font-bold text-[17px] text-white/90 text-center leading-tight mb-2">
+        <h2 className="relative z-10 font-heading font-medium text-[17px] text-white/90 text-center leading-tight mb-2">
           Choose your language
         </h2>
-        <p className="font-heading font-bold text-[17px] text-white/90 text-center mb-8">
+        <p className="relative z-10 font-heading font-medium text-[17px] text-white/90 text-center mb-8">
           اختر لغتك المفضلة
         </p>
-        <div className="flex gap-3 w-full max-w-xs md:max-w-sm">
+        <div className="relative z-10 flex gap-3 w-full max-w-xs md:max-w-sm">
           <Button
             onClick={() => chooseLang('en')}
             variant="secondary"
-            className="flex-1 py-6 text-base font-bold bg-white text-[#213E53] hover:bg-white/90 shadow-md"
+            className="flex-1 py-6 text-base font-medium bg-white text-[#213E53] hover:bg-white/90 shadow-md"
           >
             English
           </Button>
           <Button
             onClick={() => chooseLang('ar')}
             variant="secondary"
-            className="flex-1 py-6 text-base font-bold bg-white text-[#213E53] hover:bg-white/90 shadow-md"
+            className="flex-1 py-6 text-base font-medium bg-white text-[#213E53] hover:bg-white/90 shadow-md"
           >
             العربية
           </Button>
@@ -156,15 +157,12 @@ export default function Onboarding() {
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col hero-gradient">
-      <div className="flex justify-end px-6 pt-6">
-        <button onClick={complete} className="text-sm text-white/60 font-medium hover:text-white transition-colors">
-          {lang === 'ar' ? 'تخطي' : 'Skip'}
-        </button>
-      </div>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="relative z-10 px-6 pt-6" />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6" key={page}>
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6" key={page}>
         <div className="mb-10">{current.scene}</div>
-        <h2 className="font-heading font-bold text-[22px] md:text-[30px] text-white text-center leading-tight max-w-xs md:max-w-md">
+        <h2 className="font-heading font-medium text-[22px] md:text-[30px] text-white text-center leading-tight max-w-xs md:max-w-md">
           {current.title}
         </h2>
         <p className="mt-2.5 text-[15px] md:text-[17px] text-white/70 text-center max-w-xs md:max-w-md leading-relaxed">
@@ -172,7 +170,7 @@ export default function Onboarding() {
         </p>
       </div>
 
-      <div className={`px-6 pb-8 flex items-center justify-between ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
+      <div className={`relative z-10 px-6 pb-8 flex items-center justify-between ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
         <div className={`flex gap-2 ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
           {pages.slice(1).map((_, i) => (
             <div
@@ -187,7 +185,7 @@ export default function Onboarding() {
         <Button
           onClick={isLast ? complete : () => setPage((p) => p + 1)}
           variant="secondary"
-          className={`bg-white text-[#213E53] hover:bg-white/90 shadow-md font-bold ${
+          className={`bg-white text-[#213E53] hover:bg-white/90 shadow-md font-medium ${
             isLast ? 'px-7 h-12' : 'w-12 h-12 p-0'
           }`}
         >

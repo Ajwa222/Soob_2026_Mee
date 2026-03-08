@@ -85,6 +85,7 @@ const translations: Record<string, Record<string, unknown>> = {
       sms: "SMS",
       unlimitedSocial: "Unlimited Social",
       social: "Social",
+      perks: "Extras",
     },
     compareBar: {
       selected: "selected",
@@ -507,6 +508,7 @@ const translations: Record<string, Record<string, unknown>> = {
       budgetDesc: "The cheapest plans that get the job done",
       balanced: "Balanced",
       balancedDesc: "Good data, good calls, fair price — a bit of everything",
+      category: "Category",
       needIntl: "International calls?",
       needSocial: "Social media data?",
       no: "No",
@@ -600,6 +602,7 @@ const translations: Record<string, Record<string, unknown>> = {
       sms: "رسائل",
       unlimitedSocial: "تواصل لا محدود",
       social: "تواصل",
+      perks: "مزايا إضافية",
     },
     compareBar: {
       selected: "مختارة",
@@ -1022,6 +1025,7 @@ const translations: Record<string, Record<string, unknown>> = {
       budgetDesc: "أرخص الباقات اللي تسوي المطلوب",
       balanced: "متوازنة",
       balancedDesc: "بيانات كويسة، مكالمات كويسة، سعر معقول — شوية من كل شي",
+      category: "الفئة",
       needIntl: "مكالمات دولية؟",
       needSocial: "بيانات سوشل ميديا؟",
       no: "لا",
