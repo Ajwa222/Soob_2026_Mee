@@ -133,89 +133,89 @@ export default function AdvisorPage() {
   // ══════════════════════════════════════════
   if (phase === 'cards') {
     return (
-      <>
-        <div className="relative z-10 flex flex-col min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] hero-gradient grain overflow-hidden">
-          <WaveLines />
-          <div className="absolute top-20 end-10 w-32 h-32 rounded-full bg-white/5 blob animate-float" />
-          <div className="absolute bottom-20 start-10 w-24 h-24 rounded-full bg-accent/8 blob-alt animate-float" style={{ animationDelay: '2s' }} />
+      <div className="relative z-10 flex flex-col min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] hero-gradient grain overflow-hidden">
+        <WaveLines />
+        <div className="absolute top-20 end-10 w-32 h-32 rounded-full bg-white/5 blob animate-float" />
+        <div className="absolute bottom-20 start-10 w-24 h-24 rounded-full bg-accent/8 blob-alt animate-float" style={{ animationDelay: '2s' }} />
 
-          <div className="relative z-10 flex flex-1 items-center justify-center py-10 md:py-16">
-            <div className="max-w-2xl w-full mx-auto px-5">
-              {/* Header */}
-              <div className="text-center mb-8 animate-fade-up">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-lg shadow-black/5 flex items-center justify-center mx-auto mb-5">
-                  <Compass size={28} className="text-white md:hidden" />
-                  <Compass size={34} className="text-white hidden md:block" />
-                </div>
-                <h1 className="font-heading font-normal text-2xl md:text-4xl text-white mb-2.5 tracking-tight">
-                  {t('advisor.cardTitle')}
-                </h1>
-                <p className="text-white/65 text-sm md:text-base max-w-sm mx-auto leading-relaxed">
-                  {t('advisor.cardSubtitle')}
-                </p>
+        {/* Scrollable content */}
+        <div className="relative z-10 flex-1 overflow-y-auto pt-8 pb-4 md:pt-16 md:pb-8">
+          <div className="max-w-2xl w-full mx-auto px-5">
+            {/* Header */}
+            <div className="text-center mb-6 md:mb-8 animate-fade-up">
+              <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-lg shadow-black/5 flex items-center justify-center mx-auto mb-4">
+                <Compass size={24} className="text-white md:hidden" />
+                <Compass size={34} className="text-white hidden md:block" />
               </div>
+              <h1 className="font-heading font-normal text-xl md:text-4xl text-white mb-2 tracking-tight">
+                {t('advisor.cardTitle')}
+              </h1>
+              <p className="text-white/65 text-xs md:text-base max-w-sm mx-auto leading-relaxed">
+                {t('advisor.cardSubtitle')}
+              </p>
+            </div>
 
-              {/* Cards grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 md:gap-3 mb-8 animate-fade-up delay-1">
-                {PRIORITY_CARDS.map(card => {
-                  const Icon = card.icon;
-                  const isSelected = selected.includes(card.id);
-                  const isDisabled = !isSelected && selected.length >= MAX_PICKS;
-                  return (
-                    <button
-                      key={card.id}
-                      onClick={() => toggleCard(card.id)}
-                      disabled={isDisabled}
-                      className={`relative text-start p-3.5 md:p-4 rounded-xl md:rounded-2xl border-2 transition-all duration-200 group cursor-pointer
-                        ${isSelected
-                          ? 'border-white bg-white/20 shadow-lg shadow-white/10'
-                          : isDisabled
-                            ? 'border-white/10 bg-white/5 opacity-40 cursor-not-allowed'
-                            : 'border-white/15 bg-white/8 backdrop-blur-sm hover:border-white/30 hover:bg-white/15'
-                        }`}
-                    >
-                      {/* Selection indicator */}
-                      {isSelected && (
-                        <div className="absolute top-2 end-2 w-5 h-5 rounded-full bg-white flex items-center justify-center">
-                          <span className="text-[#213E53] text-xs font-bold">{selected.indexOf(card.id) + 1}</span>
-                        </div>
-                      )}
-                      <div className={`w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center mb-2 transition-all
-                        ${isSelected ? 'bg-white text-[#213E53]' : 'bg-white/15 text-white group-hover:bg-white/25'}`}>
-                        <Icon size={18} />
+            {/* Cards grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 md:gap-3 animate-fade-up delay-1">
+              {PRIORITY_CARDS.map(card => {
+                const Icon = card.icon;
+                const isSelected = selected.includes(card.id);
+                const isDisabled = !isSelected && selected.length >= MAX_PICKS;
+                return (
+                  <button
+                    key={card.id}
+                    onClick={() => toggleCard(card.id)}
+                    disabled={isDisabled}
+                    className={`relative text-start p-3 md:p-4 rounded-xl md:rounded-2xl border-2 transition-all duration-200 group cursor-pointer
+                      ${isSelected
+                        ? 'border-white bg-white/20 shadow-lg shadow-white/10'
+                        : isDisabled
+                          ? 'border-white/10 bg-white/5 opacity-40 cursor-not-allowed'
+                          : 'border-white/15 bg-white/8 backdrop-blur-sm hover:border-white/30 hover:bg-white/15'
+                      }`}
+                  >
+                    {/* Selection indicator */}
+                    {isSelected && (
+                      <div className="absolute top-2 end-2 w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                        <span className="text-[#213E53] text-xs font-bold">{selected.indexOf(card.id) + 1}</span>
                       </div>
-                      <p className={`font-heading font-bold text-xs md:text-sm leading-tight ${isSelected ? 'text-white' : 'text-white/90'}`}>
-                        {lang === 'ar' ? card.labelAr : card.labelEn}
-                      </p>
-                      <p className="text-[10px] md:text-xs text-white/50 mt-0.5 leading-tight">
-                        {lang === 'ar' ? card.descAr : card.descEn}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Counter + CTA */}
-              <div className="text-center animate-fade-up delay-2">
-                <p className="text-white/60 text-xs mb-4">
-                  {selected.length}/{MAX_PICKS} {t('advisor.selected')}
-                </p>
-                <Button
-                  onClick={startChat}
-                  disabled={selected.length === 0}
-                  size="lg"
-                  className="w-full max-w-xs mx-auto rounded-xl text-sm font-bold shadow-lg shadow-black/10 bg-white text-[#213E53] hover:bg-white/90 glow-primary disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Sparkles size={16} />
-                  {t('advisor.startChat')}
-                  {lang === 'ar' ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
-                </Button>
-              </div>
+                    )}
+                    <div className={`w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center mb-2 transition-all
+                      ${isSelected ? 'bg-white text-[#213E53]' : 'bg-white/15 text-white group-hover:bg-white/25'}`}>
+                      <Icon size={18} />
+                    </div>
+                    <p className={`font-heading font-bold text-xs md:text-sm leading-tight ${isSelected ? 'text-white' : 'text-white/90'}`}>
+                      {lang === 'ar' ? card.labelAr : card.labelEn}
+                    </p>
+                    <p className="text-[10px] md:text-xs text-white/50 mt-0.5 leading-tight">
+                      {lang === 'ar' ? card.descAr : card.descEn}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
-        <div className="bg-background" style={{ minHeight: '50vh' }} />
-      </>
+
+        {/* Fixed bottom CTA */}
+        <div className="relative z-10 shrink-0 px-5 pb-5 pt-3 md:pb-8" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+          <div className="max-w-2xl mx-auto text-center">
+            <p className="text-white/60 text-xs mb-3">
+              {selected.length}/{MAX_PICKS} {t('advisor.selected')}
+            </p>
+            <Button
+              onClick={startChat}
+              disabled={selected.length === 0}
+              size="lg"
+              className="w-full max-w-xs mx-auto rounded-xl text-sm font-bold shadow-lg shadow-black/10 bg-white text-[#213E53] hover:bg-white/90 glow-primary disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Sparkles size={16} />
+              {t('advisor.startChat')}
+              {lang === 'ar' ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
+            </Button>
+          </div>
+        </div>
+      </div>
     );
   }
 
