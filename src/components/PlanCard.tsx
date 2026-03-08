@@ -12,11 +12,6 @@ import { fetchReaction, fetchCommentCount } from '../lib/planInteractions';
 import { Link } from 'react-router-dom';
 import type { Plan } from '../types';
 
-// Cache reactions/comments so duplicate cards (infinite scroll copies) don't re-fetch
-const reactionCache = new Map<number, { likes: number; dislikes: number; ts: number }>();
-const commentCache = new Map<number, { count: number; ts: number }>();
-const CACHE_TTL = 60000; // 1 minute
-
 const typeBadgeVariant: Record<string, string> = {
   Prepaid: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
   Postpaid: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
@@ -35,7 +30,7 @@ function getBillingLabel(term: string, t: (k: string) => string): string {
   return t('planCard.perMonth');
 }
 
-export default function PlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
+const PlanCard = React.memo(function PlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
   const { t } = useLang();
   const { togglePlan, isSelected } = useCompare();
   const selected = isSelected(plan.id);
@@ -47,26 +42,17 @@ export default function PlanCard({ plan, style, compact }: { plan: Plan; style?:
   const [commentCount, setCommentCount] = useState(0);
 
   useEffect(() => {
-    const now = Date.now();
-    const cachedR = reactionCache.get(plan.id);
-    if (cachedR && now - cachedR.ts < CACHE_TTL) {
-      setLikes(cachedR.likes); setDislikes(cachedR.dislikes);
-    } else {
-      fetchReaction(plan.id).then(r => {
-        const likes = Math.max(0, r.likes); const dislikes = Math.max(0, r.dislikes);
-        reactionCache.set(plan.id, { likes, dislikes, ts: Date.now() });
-        setLikes(likes); setDislikes(dislikes);
-      }).catch(() => {});
-    }
-    const cachedC = commentCache.get(plan.id);
-    if (cachedC && now - cachedC.ts < CACHE_TTL) {
-      setCommentCount(cachedC.count);
-    } else {
-      fetchCommentCount(plan.id).then(c => {
-        commentCache.set(plan.id, { count: c, ts: Date.now() });
-        setCommentCount(c);
-      }).catch(() => {});
-    }
+    let cancelled = false;
+    fetchReaction(plan.id).then(r => {
+      if (!cancelled) {
+        setLikes(Math.max(0, r.likes));
+        setDislikes(Math.max(0, r.dislikes));
+      }
+    }).catch(() => {});
+    fetchCommentCount(plan.id).then(c => {
+      if (!cancelled) setCommentCount(c);
+    }).catch(() => {});
+    return () => { cancelled = true; };
   }, [plan.id]);
 
   return (
@@ -164,4 +150,6 @@ export default function PlanCard({ plan, style, compact }: { plan: Plan; style?:
       </CardFooter>
     </Card>
   );
-}
+});
+
+export default PlanCard;
