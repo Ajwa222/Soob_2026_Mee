@@ -17,6 +17,7 @@ const PlanDetailPage = lazy(() => import('./pages/PlanDetailPage'));
 const FinderPage = lazy(() => import('./pages/FinderPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage'));
+const AdvisorPage = lazy(() => import('./pages/AdvisorPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
@@ -39,6 +40,7 @@ function AnalyticsTracker() {
     else if (pathname === '/browse') pageTitle = `${t('pageTitles.plans')} | Simba`;
     else if (pathname.startsWith('/plan/')) pageTitle = `${t('pageTitles.planDetail')} | Simba`;
     else if (pathname === '/finder') pageTitle = `${t('pageTitles.finder')} | Simba`;
+    else if (pathname === '/advisor') pageTitle = `${t('pageTitles.advisor')} | Simba`;
     else if (pathname === '/profile') pageTitle = `${t('pageTitles.profile')} | Simba`;
     else if (pathname === '/about') pageTitle = `${t('pageTitles.about')} | Simba`;
     document.title = pageTitle;
@@ -70,6 +72,7 @@ function App() {
                 <Route path="/explore" element={<Navigate to="/plans" replace />} />
                 <Route path="/plan/:id" element={<PlanDetailPage />} />
                 <Route path="/finder" element={<FinderPage />} />
+                <Route path="/advisor" element={<AdvisorPage />} />
                 <Route path="/help" element={<Navigate to="/" replace />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/about" element={<AboutPage />} />

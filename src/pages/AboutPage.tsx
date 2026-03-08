@@ -113,7 +113,7 @@ export default function AboutPage() {
               </p>
               <div className="flex items-center justify-center gap-3 mt-6">
                 <Button asChild className="bg-white text-primary hover:bg-white/95 font-bold shadow-md">
-                  <Link to="/finder">
+                  <Link to="/advisor">
                     {t('finderCta.cta')}
                     <ArrowRight size={16} className="rtl:rotate-180" />
                   </Link>

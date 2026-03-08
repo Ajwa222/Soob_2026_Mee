@@ -30,7 +30,7 @@ export default function FinderModal({ show, onDismiss }: { show: boolean; onDism
         <DialogDescription className="text-center">{t('finderModal.desc')}</DialogDescription>
         <div className="flex flex-col gap-2.5 mt-2">
           <Button
-            onClick={() => { onDismiss(); navigate('/finder'); }}
+            onClick={() => { onDismiss(); navigate('/advisor'); }}
             className="bg-primary text-white"
           >
             {t('finderCta.cta')}
