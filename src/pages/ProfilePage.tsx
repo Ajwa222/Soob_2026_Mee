@@ -18,9 +18,9 @@ export default function ProfilePage() {
 
   const redirectAfterLogin = (signup: boolean) => {
     if (localStorage.getItem('simba-finder-pending')) {
-      navTo('/finder?reveal=1');
+      navTo('/advisor?reveal=1');
     } else if (signup) {
-      navTo('/finder');
+      navTo('/advisor');
     } else {
       navTo('/home');
     }

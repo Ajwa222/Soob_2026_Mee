@@ -43,7 +43,7 @@ export default function HomePage() {
 
             <div className="animate-fade-up delay-3 mt-7 flex flex-wrap items-center gap-3">
               <Button asChild size="lg" className="bg-gradient-to-l from-[#6ED7B4] from-2% via-[#6DCBCA] via-15% to-[#1FA9FF] text-white hover:opacity-90 font-bold shadow-lg shadow-black/10 rounded-xl h-12 px-6 text-[14px] border-0">
-                <Link to="/finder" onClick={() => trackEvent('homepage_cta_clicked', { cta: 'finder' })}>
+                <Link to="/advisor" onClick={() => trackEvent('homepage_cta_clicked', { cta: 'finder' })}>
                   {t('hero.ctaFinder')}
                   <ArrowRight size={17} className="rtl:rotate-180" />
                 </Link>
@@ -128,7 +128,7 @@ export default function HomePage() {
       {/* Plan Finder CTA */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-10 md:pb-14">
         <Link
-          to="/finder"
+          to="/advisor"
           onClick={() => trackEvent('homepage_cta_clicked', { cta: 'finder_banner' })}
           className="relative block overflow-hidden rounded-2xl p-7 md:p-10 group hero-gradient grain"
         >

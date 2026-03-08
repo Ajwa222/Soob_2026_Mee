@@ -25,7 +25,7 @@ export default function NotFoundPage() {
           </Link>
         </Button>
         <Button asChild variant="secondary">
-          <Link to="/finder">
+          <Link to="/advisor">
             <Search size={16} />
             {lang === 'ar' ? 'البحث' : 'Finder'}
           </Link>

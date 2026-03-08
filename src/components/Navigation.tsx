@@ -43,13 +43,13 @@ export default function Navigation() {
   const navItems = [
     { path: '/home', label: t('nav.home') },
     { path: '/plans', label: t('nav.plans') },
-    { path: '/finder', label: t('nav.finder') },
+    { path: '/advisor', label: t('nav.finder') },
   ];
 
   const mobileNavItems = [
     { path: '/home', label: t('nav.home'), icon: Home },
     { path: '/plans', label: t('nav.plans'), icon: Smartphone },
-    { path: '/finder', label: t('nav.finder'), icon: Search },
+    { path: '/advisor', label: t('nav.finder'), icon: Search },
     { path: WHATSAPP_GROUP_LINK, label: t('nav.support'), icon: WhatsAppIcon, external: true },
   ];
 
@@ -110,7 +110,7 @@ export default function Navigation() {
 
       {/* Mobile Bottom Tab Bar */}
       <nav
-        className={`md:hidden fixed bottom-0 inset-x-0 z-[200] bg-card/90 backdrop-blur-xl border-t border-border/60${location.pathname === '/finder' && !location.search.includes('results=1') ? ' hidden' : ''}`}
+        className={`md:hidden fixed bottom-0 inset-x-0 z-[200] bg-card/90 backdrop-blur-xl border-t border-border/60${location.pathname === '/advisor' && !location.search.includes('results=1') ? ' hidden' : ''}`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex items-center justify-around h-16 px-2">

@@ -29,9 +29,9 @@ export default function PhoneGate() {
 
   const navigateAway = () => {
     if (localStorage.getItem('simba-finder-pending')) {
-      navigate('/finder?reveal=1');
+      navigate('/advisor?reveal=1');
     } else {
-      navigate('/finder');
+      navigate('/advisor');
     }
   };
 

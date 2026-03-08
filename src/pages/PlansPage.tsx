@@ -753,7 +753,7 @@ export default function PlansPage() {
               {t('finderCta.subtitle')}
             </p>
             <Button asChild className="mt-6 px-6 py-3 h-auto rounded-xl bg-white text-primary font-bold text-sm hover:bg-white/90 shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300">
-              <Link to="/finder">
+              <Link to="/advisor">
                 {t('finderCta.cta')}
                 <ArrowRight size={16} className="rtl:rotate-180" />
               </Link>

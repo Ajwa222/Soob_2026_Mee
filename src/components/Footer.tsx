@@ -10,7 +10,7 @@ export default function Footer() {
   const { hasAccount } = useAuth();
   const location = useLocation();
 
-  if (location.pathname === '/finder') return null;
+  if (location.pathname === '/advisor') return null;
 
   return (
     <footer className="relative z-10 bg-footer-bg text-white -mt-10 overflow-hidden">
@@ -51,7 +51,7 @@ export default function Footer() {
               {[
                 { to: '/', label: t('nav.home') },
                 { to: '/plans', label: t('nav.plans') },
-                { to: '/finder', label: t('nav.finder') },
+                { to: '/advisor', label: t('nav.finder') },
               ].map(link => (
                 <Link key={link.to} to={link.to} className="block text-sm text-white/35 hover:text-white transition-colors duration-200">
                   {link.label}

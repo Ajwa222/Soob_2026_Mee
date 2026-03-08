@@ -97,7 +97,7 @@ export default function Onboarding() {
     markOnboarded();
     trackEvent('onboarding_completed', { skipped: !langChosen || page < pages.length - 1 });
     setVisible(false);
-    navigate('/finder');
+    navigate('/advisor');
   };
 
   const pages = [

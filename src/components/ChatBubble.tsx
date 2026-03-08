@@ -61,14 +61,14 @@ const INTENTS = [
     keywords: ['find', 'plan', 'recommend', 'suggest', 'pick', 'choose', 'match', 'باقة', 'اختار', 'اقتراح', 'وش الباقة', 'اختار لي'],
     en: "Great choice! Our **Smart Advisor** takes just 30 seconds to match you with the best plan for your needs and budget.",
     ar: "ممتاز! **المستشار الذكي** يبي له بس 30 ثانية عشان يلقالك أفضل باقة حسب احتياجاتك وميزانيتك.",
-    nav: { path: '/finder', en: 'Open Smart Advisor', ar: 'افتح المستشار الذكي' },
+    nav: { path: '/advisor', en: 'Open Smart Advisor', ar: 'افتح المستشار الذكي' },
   },
   {
     id: 'tourist',
     keywords: ['tourist', 'visitor', 'visiting', 'travel', 'traveler', 'سائح', 'زائر', 'سياحة', 'مسافر'],
     en: "Welcome to Saudi Arabia! For tourists, I recommend **Prepaid plans** with 30-day validity and 20+ GB data. Try our Smart Advisor and select 'Tourist' for tailored options!",
     ar: "هلا فيك بالسعودية! للسياح أنصحك بـ **باقات مسبقة الدفع** بصلاحية 30 يوم و 20+ قيقا. جرب المستشار الذكي واختر 'سائح'!",
-    nav: { path: '/finder', en: 'Open Smart Advisor', ar: 'افتح المستشار الذكي' },
+    nav: { path: '/advisor', en: 'Open Smart Advisor', ar: 'افتح المستشار الذكي' },
   },
   {
     id: 'compare',
@@ -109,7 +109,7 @@ const INTENTS = [
     keywords: ['advisor', 'smart', 'quiz', 'questions', 'المستشار', 'الذكي', 'أسئلة'],
     en: "The **Smart Advisor** asks 5 quick questions and matches you with the top 3 plans. Takes about 30 seconds!",
     ar: "**المستشار الذكي** يسألك 5 أسئلة سريعة ويلقالك أفضل 3 باقات. ما تاخذ أكثر من 30 ثانية!",
-    nav: { path: '/finder', en: 'Start Smart Advisor', ar: 'ابدأ المستشار الذكي' },
+    nav: { path: '/advisor', en: 'Start Smart Advisor', ar: 'ابدأ المستشار الذكي' },
   },
   {
     id: 'best_value',
