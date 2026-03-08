@@ -10,7 +10,7 @@ import {
   startAdvisorChat, sendAdvisorMessage, getPlansById,
   type Priority, type ChatMessage,
 } from '../lib/advisorAI';
-import PlanCard from '../components/PlanCard';
+import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
 
@@ -277,7 +277,7 @@ export default function AdvisorPage() {
               {msg.role === 'assistant' && msg.planIds && msg.planIds.length > 0 && (
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {getPlansById(msg.planIds).map(plan => (
-                    <PlanCard key={plan.id} plan={plan} />
+                    <ConnectedPlanCard key={plan.id} plan={plan} />
                   ))}
                 </div>
               )}

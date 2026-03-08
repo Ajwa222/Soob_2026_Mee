@@ -1,13 +1,13 @@
-import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ChevronLeft, ChevronRight, GraduationCap, Globe2, Wifi, Phone,
+  ChevronRight, GraduationCap, Globe2, Wifi, Phone,
   Gamepad2, Infinity as InfinityIcon, Wallet, ArrowRight, Sparkles,
   Search, SlidersHorizontal, X, Scale,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { PLANS_DATA, CARRIERS } from '../data/plans';
-import PlanCard from '../components/PlanCard';
+import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -111,37 +111,6 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
 }) {
   const { lang } = useLang();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const isRepositioning = useRef(false);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el || plans.length === 0) return;
-    // 3 copies total, so one set = 1/3 of total scroll width
-    const oneSetWidth = el.scrollWidth / 3;
-    if (lang === 'ar') {
-      el.scrollLeft = -oneSetWidth;
-    } else {
-      el.scrollLeft = oneSetWidth;
-    }
-  }, [plans.length, lang]);
-
-  const handleScroll = () => {
-    const el = scrollRef.current;
-    if (!el || plans.length === 0 || isRepositioning.current) return;
-    const oneSetWidth = el.scrollWidth / 3;
-    const isRTL = lang === 'ar';
-    const pos = Math.abs(el.scrollLeft);
-
-    if (pos < oneSetWidth * 0.3) {
-      isRepositioning.current = true;
-      el.scrollLeft += isRTL ? -oneSetWidth : oneSetWidth;
-      requestAnimationFrame(() => { isRepositioning.current = false; });
-    } else if (pos > oneSetWidth * 1.7) {
-      isRepositioning.current = true;
-      el.scrollLeft += isRTL ? oneSetWidth : -oneSetWidth;
-      requestAnimationFrame(() => { isRepositioning.current = false; });
-    }
-  };
 
   const scroll = (dir: 'left' | 'right') => {
     const el = scrollRef.current;
@@ -175,7 +144,6 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
 
       {/* Scrollable row */}
       <div className="relative">
-        {/* Single forward arrow at end-0: right side in LTR, left side in RTL */}
         <button
           onClick={() => scroll('right')}
           className="hidden md:flex absolute end-0 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full
@@ -188,18 +156,14 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
 
         <div
           ref={scrollRef}
-          onScroll={handleScroll}
           className="flex items-stretch gap-3 md:gap-4 overflow-x-auto px-4 sm:px-6 md:px-10 pb-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {/* 3 copies: clone - real - clone */}
-          {[0, 1, 2].map((copy) =>
-            plans.map((plan) => (
-              <div key={`${copy}-${plan.id}`} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px] self-stretch">
-                <PlanCard plan={plan} compact style={CARD_FULL_HEIGHT} />
-              </div>
-            ))
-          )}
+          {plans.map((plan) => (
+            <div key={plan.id} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px] self-stretch">
+              <ConnectedPlanCard plan={plan} compact style={CARD_FULL_HEIGHT} />
+            </div>
+          ))}
         </div>
 
       </div>

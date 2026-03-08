@@ -30,10 +30,16 @@ function getBillingLabel(term: string, t: (k: string) => string): string {
   return t('planCard.perMonth');
 }
 
-const PlanCard = React.memo(function PlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
+interface PlanCardProps {
+  plan: Plan;
+  style?: React.CSSProperties;
+  compact?: boolean;
+  selected?: boolean;
+  onToggleCompare?: (plan: Plan) => void;
+}
+
+const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected = false, onToggleCompare }: PlanCardProps) {
   const { t } = useLang();
-  const { togglePlan, isSelected } = useCompare();
-  const selected = isSelected(plan.id);
   const carrierColor = getCarrierColor(plan.provider);
   const carrierLogo = getCarrierLogo(plan.provider);
   const badgeClass = typeBadgeVariant[plan.planType] || typeBadgeVariant['Prepaid'];
@@ -141,7 +147,7 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact }: { plan: 
         <Button
           variant={selected ? 'default' : 'outline'}
           size={compact ? 'sm' : 'default'}
-          onClick={(e) => { e.preventDefault(); togglePlan(plan); }}
+          onClick={(e) => { e.preventDefault(); onToggleCompare?.(plan); }}
           className={`rounded-xl ${compact ? 'text-xs font-medium py-1' : 'font-semibold'} ${selected ? 'shadow-md shadow-primary/20' : 'text-primary border-primary/30 hover:bg-primary/10'}`}
         >
           {selected ? <Check size={compact ? 13 : 15} /> : <Plus size={compact ? 13 : 15} />}
@@ -151,5 +157,21 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact }: { plan: 
     </Card>
   );
 });
+
+/** Thin wrapper that subscribes to CompareContext.
+ *  Only this component re-renders on context changes —
+ *  the memoized PlanCard underneath skips if `selected` didn't change. */
+export function ConnectedPlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
+  const { togglePlan, isSelected } = useCompare();
+  return (
+    <PlanCard
+      plan={plan}
+      style={style}
+      compact={compact}
+      selected={isSelected(plan.id)}
+      onToggleCompare={togglePlan}
+    />
+  );
+}
 
 export default PlanCard;

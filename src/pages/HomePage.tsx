@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,9 +6,11 @@ import CommunityBanner from '../components/CommunityBanner';
 import WaveLines from '../components/WaveLines';
 import { useLang } from '../context/LanguageContext';
 import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
-import PlanCard from '../components/PlanCard';
+import { ConnectedPlanCard } from '../components/PlanCard';
 import FinderModal, { useFinderModal } from '../components/FinderModal';
 import { trackEvent } from '../lib/analytics';
+
+const CARD_FULL_HEIGHT: React.CSSProperties = { height: '100%' };
 
 export default function HomePage() {
   const { t, lang } = useLang();
@@ -114,7 +116,7 @@ export default function HomePage() {
         <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {trendingPlans.map((plan) => (
             <div key={plan.id} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px]">
-              <PlanCard plan={plan} compact style={{ height: '100%' }} />
+              <ConnectedPlanCard plan={plan} compact style={CARD_FULL_HEIGHT} />
             </div>
           ))}
         </div>

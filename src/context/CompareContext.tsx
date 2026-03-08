@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import type { Plan } from '../types';
 import { trackEvent } from '../lib/analytics';
 
@@ -64,28 +64,35 @@ export function CompareProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // Use a ref so isSelected never changes identity
+  const selectedPlansRef = useRef(selectedPlans);
+  selectedPlansRef.current = selectedPlans;
+
   const isSelected = useCallback((planId: number) => {
-    return selectedPlans.some(p => p.id === planId);
-  }, [selectedPlans]);
+    return selectedPlansRef.current.some(p => p.id === planId);
+  }, []);
 
   const clearAll = useCallback(() => {
     setSelectedPlans([]);
     setShowOverlay(false);
   }, []);
 
+  // Memoize context value to prevent re-renders when unrelated state changes
+  const value = useMemo(() => ({
+    selectedPlans,
+    showOverlay,
+    setShowOverlay,
+    toast,
+    setToast,
+    addPlan,
+    removePlan,
+    togglePlan,
+    isSelected,
+    clearAll,
+  }), [selectedPlans, showOverlay, toast, setShowOverlay, addPlan, removePlan, togglePlan, isSelected, clearAll]);
+
   return (
-    <CompareContext.Provider value={{
-      selectedPlans,
-      showOverlay,
-      setShowOverlay,
-      toast,
-      setToast,
-      addPlan,
-      removePlan,
-      togglePlan,
-      isSelected,
-      clearAll,
-    }}>
+    <CompareContext.Provider value={value}>
       {children}
     </CompareContext.Provider>
   );
