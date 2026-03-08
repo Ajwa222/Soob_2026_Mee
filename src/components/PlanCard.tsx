@@ -149,14 +149,14 @@ export default function PlanCard({ plan, style, compact }: { plan: Plan; style?:
       </CardContent>
 
       <CardFooter className={`gap-2 ${compact ? 'px-3.5 pb-2 pt-0' : 'px-5 pb-5'}`}>
-        <Button variant="secondary" size={compact ? 'sm' : 'default'} className={`flex-1 rounded-xl ${compact ? 'text-xs font-medium h-7' : 'font-semibold'}`} asChild>
+        <Button variant="secondary" size={compact ? 'sm' : 'default'} className={`flex-1 rounded-xl ${compact ? 'text-xs font-medium py-1' : 'font-semibold'}`} asChild>
           <Link to={`/plan/${plan.id}`}>{t('planCard.viewDetails')}</Link>
         </Button>
         <Button
           variant={selected ? 'default' : 'outline'}
           size={compact ? 'sm' : 'default'}
           onClick={(e) => { e.preventDefault(); togglePlan(plan); }}
-          className={`rounded-xl ${compact ? 'text-xs font-medium h-7' : 'font-semibold'} ${selected ? 'shadow-md shadow-primary/20' : 'text-primary border-primary/30 hover:bg-primary/10'}`}
+          className={`rounded-xl ${compact ? 'text-xs font-medium py-1' : 'font-semibold'} ${selected ? 'shadow-md shadow-primary/20' : 'text-primary border-primary/30 hover:bg-primary/10'}`}
         >
           {selected ? <Check size={compact ? 13 : 15} /> : <Plus size={compact ? 13 : 15} />}
           {selected ? t('planCard.selected') : t('planCard.compare')}
