@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ChevronLeft, ChevronRight, GraduationCap, Globe2, Wifi, Phone,
@@ -25,6 +25,8 @@ function parseNum(val: string): number {
 
 const PLAN_TYPES = ['Prepaid', 'Postpaid', 'Data-only'] as const;
 const PRICE_MAX = 1000;
+const CARD_FULL_HEIGHT: React.CSSProperties = { height: '100%' };
+const MAX_PLANS_PER_CATEGORY = 15;
 
 const TYPE_COLORS: Record<string, { active: string; bg: string; ring: string }> = {
   Prepaid:     { active: '#059669', bg: '#10B98118', ring: '#10B98140' },
@@ -194,7 +196,7 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
           {[0, 1, 2].map((copy) =>
             plans.map((plan) => (
               <div key={`${copy}-${plan.id}`} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px] self-stretch">
-                <PlanCard plan={plan} compact style={{ height: '100%' }} />
+                <PlanCard plan={plan} compact style={CARD_FULL_HEIGHT} />
               </div>
             ))
           )}
@@ -320,7 +322,7 @@ export default function ExplorePage() {
     base.sort((a, b) => a.priceSAR - b.priceSAR);
 
     return CATEGORIES.map((cat) => {
-      const plans = base.filter(cat.filter);
+      const plans = base.filter(cat.filter).slice(0, MAX_PLANS_PER_CATEGORY);
       return { ...cat, plans };
     });
   }, [search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter]);
@@ -400,7 +402,7 @@ export default function ExplorePage() {
             max={PRICE_MAX}
             step={10}
             value={priceRange}
-            onValueChange={(value) => setPriceRange(value)}
+            onValueChange={setPriceRange}
             className="w-full"
           />
         </div>

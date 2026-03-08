@@ -321,7 +321,7 @@ export default function PlansPage() {
             max={PRICE_MAX}
             step={10}
             value={priceRange}
-            onValueChange={(value) => setPriceRange(value)}
+            onValueChange={setPriceRange}
             className="w-full"
           />
         </div>

@@ -17,6 +17,10 @@ interface CacheEntry<T> { data: T; ts: number; }
 const reactionCache = new Map<number, CacheEntry<PlanReaction>>();
 const commentCountCache = new Map<number, CacheEntry<number>>();
 
+/* ── In-flight deduplication: reuse pending promises for the same planId ── */
+const inFlightReactions = new Map<number, Promise<PlanReaction>>();
+const inFlightComments = new Map<number, Promise<number>>();
+
 function isFresh<T>(entry: CacheEntry<T> | undefined): entry is CacheEntry<T> {
   return !!entry && Date.now() - entry.ts < CACHE_TTL;
 }
@@ -33,28 +37,52 @@ export async function fetchReaction(planId: number): Promise<PlanReaction> {
   const cached = reactionCache.get(planId);
   if (isFresh(cached)) return cached.data;
 
-  const snap = await getDoc(doc(db, REACTIONS_COL, String(planId)));
-  const reaction: PlanReaction = !snap.exists()
-    ? { ...defaultReaction }
-    : {
-        likes: Math.max(0, snap.data().likes ?? 0),
-        dislikes: Math.max(0, snap.data().dislikes ?? 0),
-        likedBy: snap.data().likedBy ?? [],
-        dislikedBy: snap.data().dislikedBy ?? [],
-      };
-  reactionCache.set(planId, { data: reaction, ts: Date.now() });
-  return reaction;
+  const inFlight = inFlightReactions.get(planId);
+  if (inFlight) return inFlight;
+
+  const promise = (async () => {
+    try {
+      const snap = await getDoc(doc(db, REACTIONS_COL, String(planId)));
+      const reaction: PlanReaction = !snap.exists()
+        ? { ...defaultReaction }
+        : {
+            likes: Math.max(0, snap.data().likes ?? 0),
+            dislikes: Math.max(0, snap.data().dislikes ?? 0),
+            likedBy: snap.data().likedBy ?? [],
+            dislikedBy: snap.data().dislikedBy ?? [],
+          };
+      reactionCache.set(planId, { data: reaction, ts: Date.now() });
+      return reaction;
+    } finally {
+      inFlightReactions.delete(planId);
+    }
+  })();
+
+  inFlightReactions.set(planId, promise);
+  return promise;
 }
 
 export async function fetchCommentCount(planId: number): Promise<number> {
   const cached = commentCountCache.get(planId);
   if (isFresh(cached)) return cached.data;
 
-  const colRef = collection(db, COMMENTS_COL, String(planId), 'comments');
-  const snap = await getDocs(query(colRef));
-  const count = snap.size;
-  commentCountCache.set(planId, { data: count, ts: Date.now() });
-  return count;
+  const inFlight = inFlightComments.get(planId);
+  if (inFlight) return inFlight;
+
+  const promise = (async () => {
+    try {
+      const colRef = collection(db, COMMENTS_COL, String(planId), 'comments');
+      const snap = await getDocs(query(colRef));
+      const count = snap.size;
+      commentCountCache.set(planId, { data: count, ts: Date.now() });
+      return count;
+    } finally {
+      inFlightComments.delete(planId);
+    }
+  })();
+
+  inFlightComments.set(planId, promise);
+  return promise;
 }
 
 export async function toggleLike(planId: number, userId: string): Promise<void> {
