@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
-import PlanCard from '../components/PlanCard';
+import { ConnectedPlanCard } from '../components/PlanCard';
 import FinderModal, { useFinderModal } from '../components/FinderModal';
 import { trackEvent } from '../lib/analytics';
 import WaveLines from '../components/WaveLines';
@@ -644,7 +644,7 @@ export default function PlansPage() {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {paginatedPlans.map((plan) => (
-                    <PlanCard
+                    <ConnectedPlanCard
                       key={plan.id}
                       plan={plan}
                     />

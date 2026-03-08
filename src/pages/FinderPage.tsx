@@ -10,7 +10,7 @@ import {
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { PLANS_DATA, getValueScore, isValidValue } from '../data/plans';
-import PlanCard from '../components/PlanCard';
+import { ConnectedPlanCard } from '../components/PlanCard';
 import SarSymbol from '../components/SarSymbol';
 import { trackEvent } from '../lib/analytics';
 import WaveLines from '../components/WaveLines';
@@ -462,7 +462,7 @@ export default function FinderPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {recommendations.map((rec, i) => (
                       <div key={rec.plan.id} className="animate-fade-up" style={{ animationDelay: `${i * 0.15}s` }}>
-                        <PlanCard plan={rec.plan} />
+                        <ConnectedPlanCard plan={rec.plan} />
                       </div>
                   ))}
                 </div>

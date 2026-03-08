@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 
 type Lang = 'en' | 'ar';
 type Theme = 'light' | 'dark';
@@ -1127,8 +1127,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
+  const value = useMemo(() => ({
+    lang, toggleLang, t, theme, setTheme, toggleTheme,
+  }), [lang, toggleLang, t, theme, setTheme, toggleTheme]);
+
   return (
-    <LanguageContext.Provider value={{ lang, toggleLang, t, theme, setTheme, toggleTheme }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );
