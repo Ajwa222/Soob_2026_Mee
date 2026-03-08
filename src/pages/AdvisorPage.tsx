@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Sparkles, ArrowRight, ArrowLeft, Compass, Send, RotateCcw, Loader2,
-  Wifi, DollarSign, Globe2, MessageCircle, Signal, FileX2, Phone, Plane,
+  Wifi, DollarSign, Globe2, MessageCircle, Phone,
   Bot,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
@@ -29,10 +29,7 @@ const PRIORITY_CARDS: PriorityCard[] = [
   { id: 'cheap_price', icon: DollarSign, labelEn: 'Lowest Price', labelAr: 'أرخص سعر', descEn: 'Get the most for the least', descAr: 'أفضل قيمة بأقل سعر' },
   { id: 'international_calls', icon: Globe2, labelEn: 'Intl Calls', labelAr: 'مكالمات دولية', descEn: 'Call family & friends abroad', descAr: 'كلّم أهلك وأصدقائك بالخارج' },
   { id: 'social_media', icon: MessageCircle, labelEn: 'Social Media', labelAr: 'سوشل ميديا', descEn: 'Dedicated social data', descAr: 'بيانات مخصصة للسوشل' },
-  { id: 'five_g', icon: Signal, labelEn: '5G', labelAr: '5G', descEn: 'Next-gen speed', descAr: 'سرعة الجيل الخامس' },
-  { id: 'no_contract', icon: FileX2, labelEn: 'No Contract', labelAr: 'بدون عقد', descEn: 'Cancel anytime, no commitment', descAr: 'بدون التزام، الغِ أي وقت' },
   { id: 'local_calls', icon: Phone, labelEn: 'Local Calls', labelAr: 'مكالمات محلية', descEn: 'Lots of local minutes', descAr: 'دقائق محلية كثيرة' },
-  { id: 'roaming', icon: Plane, labelEn: 'Roaming', labelAr: 'تجوال', descEn: 'Stay connected while traveling', descAr: 'ابقَ متصل وأنت مسافر' },
 ];
 
 const MAX_PICKS = 3;
