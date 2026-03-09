@@ -31,16 +31,6 @@ export interface PlanComment {
   createdAt: number;
 }
 
-export type Priority =
-  | "unlimited_data"
-  | "cheap_price"
-  | "international_calls"
-  | "social_media"
-  | "five_g"
-  | "no_contract"
-  | "local_calls"
-  | "roaming";
-
 export interface ChatMessage {
   role: "user" | "assistant";
   text: string;
