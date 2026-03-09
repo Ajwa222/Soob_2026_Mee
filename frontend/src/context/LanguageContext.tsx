@@ -219,7 +219,7 @@ const translations: Record<string, Record<string, unknown>> = {
       thinking: "Thinking...",
       inputPlaceholder: "Ask about plans, budget, carriers...",
       disclaimer: "Simba Advisor may make mistakes. Always verify on the carrier's site.",
-      welcomeMessage: "Hey! I'm Simba, your personal plan advisor. Tell me a bit about what you're looking for:\n\n• How much data do you need? (light browsing, streaming, heavy use)\n• Do you make a lot of local or international calls?\n• Need dedicated social media data?\n• What's your monthly budget in SAR?\n\nJust tell me what matters most and I'll find the perfect plan for you!",
+      welcomeMessage: "Hey! I'm Simba, your personal plan advisor. Let me ask you a few quick questions to find the perfect plan for you!",
     },
     finderModal: {
       title: "Not sure what you need?",
@@ -745,7 +745,7 @@ const translations: Record<string, Record<string, unknown>> = {
       thinking: "أفكر...",
       inputPlaceholder: "اسأل عن الباقات، الميزانية، الشركات...",
       disclaimer: "مستشار سيمبا ممكن يخطئ. تأكد دايم من موقع الشركة.",
-      welcomeMessage: "هلا! أنا سيمبا، مستشارك الشخصي للباقات. قولي شوي عن اللي تدور عليه:\n\n• كم تحتاج بيانات؟ (تصفح خفيف، بث، استخدام كثير)\n• تسوي مكالمات محلية أو دولية كثير؟\n• تحتاج بيانات مخصصة للسوشل ميديا؟\n• كم ميزانيتك الشهرية بالريال؟\n\nقولي وش يهمك وأنا ألقاك الباقة المثالية!",
+      welcomeMessage: "هلا! أنا سيمبا، مستشارك الشخصي للباقات. خلني أسألك كم سؤال سريع عشان ألقاك الباقة المثالية!",
     },
     finderModal: {
       title: "مو متأكد وش تبي؟",

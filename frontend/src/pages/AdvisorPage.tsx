@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Send, RotateCcw, Loader2,
-  Bot, Wifi, DollarSign, Globe2, MessageCircle, Phone,
+  Bot,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
@@ -14,38 +14,66 @@ import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
 
-// ─── Quick-reply chip definitions ───
-interface QuickChip {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  labelEn: string;
-  labelAr: string;
-  messageEn: string;
-  messageAr: string;
+// ─── Guided questionnaire config ───
+interface QuizStep {
+  questionEn: string;
+  questionAr: string;
+  options: { labelEn: string; labelAr: string; valueEn: string; valueAr: string }[];
 }
 
-const QUICK_CHIPS: QuickChip[] = [
-  { icon: Wifi, labelEn: 'Big Data', labelAr: 'بيانات كبيرة', messageEn: 'I need a plan with lots of data for streaming and heavy use.', messageAr: 'أبي باقة فيها بيانات كثيرة للبث والاستخدام الكثير.' },
-  { icon: DollarSign, labelEn: 'Cheapest', labelAr: 'أرخص سعر', messageEn: 'I want the cheapest plan available.', messageAr: 'أبي أرخص باقة متوفرة.' },
-  { icon: Globe2, labelEn: 'Intl Calls', labelAr: 'مكالمات دولية', messageEn: 'I need a plan with international calling minutes.', messageAr: 'أبي باقة فيها دقائق مكالمات دولية.' },
-  { icon: MessageCircle, labelEn: 'Social Media', labelAr: 'سوشل ميديا', messageEn: 'I need dedicated social media data.', messageAr: 'أبي بيانات مخصصة للسوشل ميديا.' },
-  { icon: Phone, labelEn: 'Local Calls', labelAr: 'مكالمات محلية', messageEn: 'I need lots of local call minutes.', messageAr: 'أبي باقة فيها دقائق محلية كثيرة.' },
+const QUIZ_STEPS: QuizStep[] = [
+  {
+    questionEn: 'How much mobile data do you need?',
+    questionAr: 'كم تحتاج بيانات جوال؟',
+    options: [
+      { labelEn: 'Light browsing', labelAr: 'تصفح خفيف', valueEn: 'I only need light data for browsing and messaging.', valueAr: 'أحتاج بيانات خفيفة للتصفح والرسائل بس.' },
+      { labelEn: 'Moderate use', labelAr: 'استخدام متوسط', valueEn: 'I need moderate data for social media and some streaming.', valueAr: 'أحتاج بيانات متوسطة للسوشل وشوية بث.' },
+      { labelEn: 'Heavy / Unlimited', labelAr: 'كثير / لا محدود', valueEn: 'I need heavy or unlimited data for streaming and downloads.', valueAr: 'أحتاج بيانات كثيرة أو لا محدودة للبث والتحميل.' },
+    ],
+  },
+  {
+    questionEn: 'Do you make a lot of calls?',
+    questionAr: 'تسوي مكالمات كثير؟',
+    options: [
+      { labelEn: 'Local calls', labelAr: 'مكالمات محلية', valueEn: 'I mostly make local calls.', valueAr: 'أغلب مكالماتي محلية.' },
+      { labelEn: 'International calls', labelAr: 'مكالمات دولية', valueEn: 'I need international calling minutes.', valueAr: 'أحتاج دقائق مكالمات دولية.' },
+      { labelEn: 'Both', labelAr: 'الاثنين', valueEn: 'I need both local and international calls.', valueAr: 'أحتاج مكالمات محلية ودولية.' },
+      { labelEn: 'Not really', labelAr: 'مو كثير', valueEn: "I don't make many calls.", valueAr: 'ما أسوي مكالمات كثير.' },
+    ],
+  },
+  {
+    questionEn: 'Need dedicated social media data?',
+    questionAr: 'تحتاج بيانات مخصصة للسوشل ميديا؟',
+    options: [
+      { labelEn: 'Yes, a must!', labelAr: 'أكيد، لازم!', valueEn: 'Yes, I need dedicated social media data.', valueAr: 'أي، أحتاج بيانات مخصصة للسوشل.' },
+      { labelEn: 'Nice to have', labelAr: 'حلو لو فيه', valueEn: 'Social media data would be nice but not essential.', valueAr: 'حلو لو فيه بيانات سوشل بس مو ضروري.' },
+      { labelEn: 'No', labelAr: 'لا', valueEn: "No, I don't need separate social media data.", valueAr: 'لا، ما أحتاج بيانات سوشل منفصلة.' },
+    ],
+  },
+  {
+    questionEn: "What's your monthly budget?",
+    questionAr: 'كم ميزانيتك الشهرية؟',
+    options: [
+      { labelEn: 'Under 50 SAR', labelAr: 'أقل من 50 ريال', valueEn: 'My budget is under 50 SAR per month.', valueAr: 'ميزانيتي أقل من 50 ريال بالشهر.' },
+      { labelEn: '50–100 SAR', labelAr: '50–100 ريال', valueEn: 'My budget is 50 to 100 SAR per month.', valueAr: 'ميزانيتي من 50 إلى 100 ريال بالشهر.' },
+      { labelEn: '100–200 SAR', labelAr: '100–200 ريال', valueEn: 'My budget is 100 to 200 SAR per month.', valueAr: 'ميزانيتي من 100 إلى 200 ريال بالشهر.' },
+      { labelEn: '200–300 SAR', labelAr: '200–300 ريال', valueEn: 'My budget is 200 to 300 SAR per month.', valueAr: 'ميزانيتي من 200 إلى 300 ريال بالشهر.' },
+      { labelEn: '300+ SAR', labelAr: 'أكثر من 300 ريال', valueEn: 'My budget is over 300 SAR per month.', valueAr: 'ميزانيتي أكثر من 300 ريال بالشهر.' },
+    ],
+  },
 ];
-
-// ─── Budget pill values ───
-const BUDGET_PILLS = [50, 100, 150, 200, 300, 500];
-
-/** Check if a message is asking about budget */
-function isBudgetQuestion(text: string): boolean {
-  const lower = text.toLowerCase();
-  return /budget|price|cost|how much|spend|afford|ميزانية|سعر|كم تدفع|كم تصرف|المبلغ/.test(lower);
-}
 
 export default function AdvisorPage() {
   const { t, lang } = useLang();
   const { plans } = usePlans();
 
+  // Quiz state: which step we're on (0-3), or null if quiz is done
+  const [quizStep, setQuizStep] = useState<number>(0);
+  const [quizAnswers, setQuizAnswers] = useState<string[]>([]);
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] },
+    { role: 'assistant', text: lang === 'ar' ? QUIZ_STEPS[0].questionAr : QUIZ_STEPS[0].questionEn, planIds: [] },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -53,25 +81,81 @@ export default function AdvisorPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Whether the user has sent at least one message (hides quick chips)
-  const hasUserMessage = messages.some(m => m.role === 'user');
+  const quizDone = quizStep === null;
 
   // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Focus input on mount
+  // Focus input when quiz is done
   useEffect(() => {
-    if (!loading) inputRef.current?.focus();
-  }, [loading]);
+    if (quizDone && !loading) inputRef.current?.focus();
+  }, [quizDone, loading]);
 
-  // Reset welcome message when language changes
+  // Reset when language changes
   useEffect(() => {
-    setMessages([{ role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] }]);
+    setQuizStep(0);
+    setQuizAnswers([]);
+    setMessages([
+      { role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] },
+      { role: 'assistant', text: lang === 'ar' ? QUIZ_STEPS[0].questionAr : QUIZ_STEPS[0].questionEn, planIds: [] },
+    ]);
   }, [lang]);
 
-  // Core send function that accepts a text string directly
+  // Handle quiz option tap
+  const handleQuizOption = useCallback(async (option: QuizStep['options'][number]) => {
+    if (quizStep === null || loading) return;
+
+    const userText = lang === 'ar' ? option.valueAr : option.valueEn;
+    const userLabel = lang === 'ar' ? option.labelAr : option.labelEn;
+    const newAnswers = [...quizAnswers, userText];
+
+    // Add user's answer as a chat bubble (show the short label)
+    setMessages(prev => [...prev, { role: 'user', text: userLabel }]);
+    setQuizAnswers(newAnswers);
+
+    trackEvent('advisor_quiz_answered', { step: quizStep, answer: option.labelEn });
+
+    const nextStep = quizStep + 1;
+
+    if (nextStep < QUIZ_STEPS.length) {
+      // Show next question after a brief delay
+      const nextQ = lang === 'ar' ? QUIZ_STEPS[nextStep].questionAr : QUIZ_STEPS[nextStep].questionEn;
+      setTimeout(() => {
+        setMessages(prev => [...prev, { role: 'assistant', text: nextQ, planIds: [] }]);
+        setQuizStep(nextStep);
+      }, 400);
+    } else {
+      // Quiz complete — send all answers to AI
+      setQuizStep(null);
+      setLoading(true);
+      setError(null);
+      trackEvent('advisor_started');
+
+      // Build a summary message from all answers
+      const summary = newAnswers.join(' ');
+
+      // Build the full history: welcome + Q&A pairs + summary
+      const fullHistory: ChatMessage[] = [];
+      for (let i = 0; i < QUIZ_STEPS.length; i++) {
+        fullHistory.push({ role: 'assistant', text: lang === 'ar' ? QUIZ_STEPS[i].questionAr : QUIZ_STEPS[i].questionEn });
+        fullHistory.push({ role: 'user', text: newAnswers[i] });
+      }
+
+      try {
+        const { reply, planIds } = await sendAdvisorMessage(lang, fullHistory, summary);
+        setMessages(prev => [...prev, { role: 'assistant', text: reply, planIds }]);
+      } catch (e) {
+        console.error('Advisor error:', e);
+        setError(lang === 'ar' ? 'حصل خطأ، جرب مرة ثانية.' : 'Something went wrong. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  }, [quizStep, loading, lang, quizAnswers]);
+
+  // Free-chat send (after quiz is done)
   const sendText = useCallback(async (text: string) => {
     if (!text || loading) return;
 
@@ -80,9 +164,7 @@ export default function AdvisorPage() {
     setInput('');
     setLoading(true);
     setError(null);
-
-    const isFirst = messages.length === 1;
-    trackEvent(isFirst ? 'advisor_started' : 'advisor_message_sent');
+    trackEvent('advisor_message_sent');
 
     try {
       const { reply, planIds } = await sendAdvisorMessage(
@@ -99,34 +181,30 @@ export default function AdvisorPage() {
     }
   }, [loading, lang, messages]);
 
-  // Send from input field
   const send = useCallback(() => {
     sendText(input.trim());
   }, [input, sendText]);
 
-  // Quick chip handler
-  const handleChip = (chip: QuickChip) => {
-    const text = lang === 'ar' ? chip.messageAr : chip.messageEn;
-    trackEvent('advisor_chip_tapped', { chip: chip.labelEn });
-    sendText(text);
-  };
-
-  // Budget pill handler
-  const handleBudgetPill = (amount: number) => {
-    const text = lang === 'ar'
-      ? `ميزانيتي ${amount} ريال بالشهر`
-      : `My budget is ${amount} SAR per month`;
-    trackEvent('advisor_budget_selected', { amount });
-    sendText(text);
-  };
-
   const restart = () => {
     trackEvent('advisor_restarted');
-    setMessages([{ role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] }]);
+    setQuizStep(0);
+    setQuizAnswers([]);
+    setMessages([
+      { role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] },
+      { role: 'assistant', text: lang === 'ar' ? QUIZ_STEPS[0].questionAr : QUIZ_STEPS[0].questionEn, planIds: [] },
+    ]);
     setInput('');
     setError(null);
     setLoading(false);
   };
+
+  // Determine which message index is the current quiz question (last assistant message)
+  const lastAssistantIdx = (() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'assistant') return i;
+    }
+    return -1;
+  })();
 
   return (
     <div className="relative z-10 min-h-dvh flex flex-col safe-pb">
@@ -188,36 +266,16 @@ export default function AdvisorPage() {
                 </div>
               )}
 
-              {/* Quick-reply chips after welcome message */}
-              {i === 0 && msg.role === 'assistant' && !hasUserMessage && !loading && (
+              {/* Quiz option chips — show on the last assistant message during quiz */}
+              {!quizDone && quizStep !== null && i === lastAssistantIdx && !loading && (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {QUICK_CHIPS.map(chip => {
-                    const Icon = chip.icon;
-                    return (
-                      <button
-                        key={chip.labelEn}
-                        onClick={() => handleChip(chip)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-background text-xs font-medium text-foreground hover:bg-muted hover:border-primary/30 transition-colors cursor-pointer"
-                      >
-                        <Icon size={14} className="text-primary shrink-0" />
-                        {lang === 'ar' ? chip.labelAr : chip.labelEn}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Budget quick-select pills after AI budget question */}
-              {msg.role === 'assistant' && i === messages.length - 1 && !loading && isBudgetQuestion(msg.text) && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {BUDGET_PILLS.map(amount => (
+                  {QUIZ_STEPS[quizStep].options.map(option => (
                     <button
-                      key={amount}
-                      onClick={() => handleBudgetPill(amount)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-border bg-background text-xs font-medium text-foreground hover:bg-muted hover:border-primary/30 transition-colors cursor-pointer"
+                      key={option.labelEn}
+                      onClick={() => handleQuizOption(option)}
+                      className="inline-flex items-center px-3.5 py-2 rounded-full border border-border bg-background text-xs font-medium text-foreground hover:bg-muted hover:border-primary/30 transition-colors cursor-pointer"
                     >
-                      <DollarSign size={12} className="text-primary shrink-0" />
-                      {amount} {lang === 'ar' ? 'ريال' : 'SAR'}
+                      {lang === 'ar' ? option.labelAr : option.labelEn}
                     </button>
                   ))}
                 </div>
@@ -248,36 +306,38 @@ export default function AdvisorPage() {
         </div>
       </div>
 
-      {/* Input bar */}
-      <div className="border-t border-border bg-background">
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-3">
-          <form
-            onSubmit={e => { e.preventDefault(); send(); }}
-            className="flex items-center gap-2"
-          >
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder={t('advisor.inputPlaceholder')}
-              disabled={loading}
-              className="flex-1 bg-muted rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
-            />
-            <Button
-              type="submit"
-              disabled={!input.trim() || loading}
-              size="sm"
-              className="rounded-xl h-10 w-10 p-0 shrink-0"
+      {/* Input bar — only shown after quiz is complete */}
+      {quizDone && (
+        <div className="border-t border-border bg-background">
+          <div className="max-w-3xl mx-auto px-4 md:px-8 py-3">
+            <form
+              onSubmit={e => { e.preventDefault(); send(); }}
+              className="flex items-center gap-2"
             >
-              <Send size={16} />
-            </Button>
-          </form>
-          <p className="text-[10px] text-muted-foreground text-center mt-1.5">
-            {t('advisor.disclaimer')}
-          </p>
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder={t('advisor.inputPlaceholder')}
+                disabled={loading}
+                className="flex-1 bg-muted rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+              />
+              <Button
+                type="submit"
+                disabled={!input.trim() || loading}
+                size="sm"
+                className="rounded-xl h-10 w-10 p-0 shrink-0"
+              >
+                <Send size={16} />
+              </Button>
+            </form>
+            <p className="text-[10px] text-muted-foreground text-center mt-1.5">
+              {t('advisor.disclaimer')}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
