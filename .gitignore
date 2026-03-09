@@ -31,3 +31,7 @@ pnpm-debug.log*
 
 # Backups
 *.bak
+
+# Firebase service account keys
+service-account.json
+*-firebase-adminsdk-*.json

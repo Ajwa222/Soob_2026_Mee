@@ -14,7 +14,9 @@
       "Bash(npm install embla-carousel-react)",
       "Bash(npx tsc --noEmit --pretty)",
       "Bash(npm uninstall @google/generative-ai)",
-      "Bash(npm install openai)"
+      "Bash(npm install openai)",
+      "Bash(npm install openai firebase-admin)",
+      "Bash(npm uninstall openai)"
     ]
   }
 }

@@ -1,13 +1,5 @@
-import {
-  doc, getDoc, setDoc, collection, addDoc, query, orderBy, getDocs, deleteDoc, increment, arrayUnion, arrayRemove,
-} from 'firebase/firestore';
-import { db } from './firebase';
+import { apiFetch } from './api';
 import type { PlanReaction, PlanComment, SimbaUser } from '../types';
-
-const REACTIONS_COL = 'planReactions';
-const COMMENTS_COL = 'planComments';
-
-const defaultReaction: PlanReaction = { likes: 0, dislikes: 0, likedBy: [], dislikedBy: [] };
 
 /* ── In-memory cache (TTL: 5 min) ── */
 const CACHE_TTL = 5 * 60 * 1000;
@@ -42,15 +34,7 @@ export async function fetchReaction(planId: number): Promise<PlanReaction> {
 
   const promise = (async () => {
     try {
-      const snap = await getDoc(doc(db, REACTIONS_COL, String(planId)));
-      const reaction: PlanReaction = !snap.exists()
-        ? { ...defaultReaction }
-        : {
-            likes: Math.max(0, snap.data().likes ?? 0),
-            dislikes: Math.max(0, snap.data().dislikes ?? 0),
-            likedBy: snap.data().likedBy ?? [],
-            dislikedBy: snap.data().dislikedBy ?? [],
-          };
+      const reaction = await apiFetch<PlanReaction>(`/api/plans/${planId}/reactions`);
       reactionCache.set(planId, { data: reaction, ts: Date.now() });
       return reaction;
     } finally {
@@ -71,9 +55,7 @@ export async function fetchCommentCount(planId: number): Promise<number> {
 
   const promise = (async () => {
     try {
-      const colRef = collection(db, COMMENTS_COL, String(planId), 'comments');
-      const snap = await getDocs(query(colRef));
-      const count = snap.size;
+      const { count } = await apiFetch<{ count: number }>(`/api/plans/${planId}/comments/count`);
       commentCountCache.set(planId, { data: count, ts: Date.now() });
       return count;
     } finally {
@@ -85,93 +67,29 @@ export async function fetchCommentCount(planId: number): Promise<number> {
   return promise;
 }
 
-export async function toggleLike(planId: number, userId: string): Promise<void> {
+export async function toggleLike(planId: number, _userId: string): Promise<void> {
   invalidateReactionCache(planId);
-  const ref = doc(db, REACTIONS_COL, String(planId));
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    await setDoc(ref, { likes: 1, dislikes: 0, likedBy: [userId], dislikedBy: [] });
-    return;
-  }
-
-  const data = snap.data();
-  const alreadyLiked = (data.likedBy ?? []).includes(userId);
-  const alreadyDisliked = (data.dislikedBy ?? []).includes(userId);
-
-  const updates: Record<string, unknown> = {};
-
-  if (alreadyLiked) {
-    updates.likedBy = arrayRemove(userId);
-    updates.likes = increment(-1);
-  } else {
-    updates.likedBy = arrayUnion(userId);
-    updates.likes = increment(1);
-    if (alreadyDisliked) {
-      updates.dislikedBy = arrayRemove(userId);
-      updates.dislikes = increment(-1);
-    }
-  }
-
-  await setDoc(ref, updates, { merge: true });
+  await apiFetch(`/api/plans/${planId}/reactions/like`, { method: 'POST' });
 }
 
-export async function toggleDislike(planId: number, userId: string): Promise<void> {
+export async function toggleDislike(planId: number, _userId: string): Promise<void> {
   invalidateReactionCache(planId);
-  const ref = doc(db, REACTIONS_COL, String(planId));
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    await setDoc(ref, { likes: 0, dislikes: 1, likedBy: [], dislikedBy: [userId] });
-    return;
-  }
-
-  const data = snap.data();
-  const alreadyDisliked = (data.dislikedBy ?? []).includes(userId);
-  const alreadyLiked = (data.likedBy ?? []).includes(userId);
-
-  const updates: Record<string, unknown> = {};
-
-  if (alreadyDisliked) {
-    updates.dislikedBy = arrayRemove(userId);
-    updates.dislikes = increment(-1);
-  } else {
-    updates.dislikedBy = arrayUnion(userId);
-    updates.dislikes = increment(1);
-    if (alreadyLiked) {
-      updates.likedBy = arrayRemove(userId);
-      updates.likes = increment(-1);
-    }
-  }
-
-  await setDoc(ref, updates, { merge: true });
+  await apiFetch(`/api/plans/${planId}/reactions/dislike`, { method: 'POST' });
 }
 
 export async function fetchComments(planId: number): Promise<PlanComment[]> {
-  const colRef = collection(db, COMMENTS_COL, String(planId), 'comments');
-  const q = query(colRef, orderBy('createdAt', 'desc'));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({
-    id: d.id,
-    ...d.data(),
-  })) as PlanComment[];
+  return apiFetch<PlanComment[]>(`/api/plans/${planId}/comments`);
 }
 
-export async function addComment(planId: number, user: SimbaUser, text: string): Promise<PlanComment> {
+export async function addComment(planId: number, _user: SimbaUser, text: string): Promise<PlanComment> {
   invalidateCommentCache(planId);
-  const colRef = collection(db, COMMENTS_COL, String(planId), 'comments');
-  const commentData = {
-    userId: user.uid,
-    userName: user.name,
-    userPhoto: user.photoURL,
-    text: text.trim(),
-    createdAt: Date.now(),
-  };
-  const docRef = await addDoc(colRef, commentData);
-  return { id: docRef.id, ...commentData };
+  return apiFetch<PlanComment>(`/api/plans/${planId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  });
 }
 
 export async function deleteComment(planId: number, commentId: string): Promise<void> {
   invalidateCommentCache(planId);
-  await deleteDoc(doc(db, COMMENTS_COL, String(planId), 'comments', commentId));
+  await apiFetch(`/api/plans/${planId}/comments/${commentId}`, { method: 'DELETE' });
 }
