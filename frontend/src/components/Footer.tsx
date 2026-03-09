@@ -24,8 +24,8 @@ export default function Footer() {
           <div className="md:col-span-4">
             <div className="flex items-center gap-2.5 mb-4">
               <img src="/icon-512.png" alt="Simba" className="w-10 h-10 rounded-xl" />
-              <span className="font-heading font-bold text-xl leading-none tracking-tight">
-                <span className="text-white">Sim</span><span className="text-primary-light">ba</span>
+              <span className="font-heading font-bold text-xl leading-none tracking-tight bg-gradient-to-r from-[#FFD568] via-[#EEAE4E] to-[#E37417] bg-clip-text text-transparent">
+                Simba
               </span>
             </div>
             <p className="text-white/40 text-sm leading-relaxed max-w-xs">

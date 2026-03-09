@@ -350,7 +350,7 @@ export default function FinderPage() {
             <Button
               onClick={() => { trackEvent('finder_started'); setStarted(true); }}
               size="lg"
-              className="animate-fade-up delay-4 w-full max-w-xs mx-auto rounded-xl text-sm font-bold shadow-lg shadow-black/10 mt-10 bg-white text-[#213E53] hover:bg-white/90 glow-primary"
+              className="animate-fade-up delay-4 w-full max-w-xs mx-auto rounded-xl text-sm font-bold shadow-lg shadow-black/10 mt-10 bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] glow-primary"
             >
               {t('finder.introStart')}
               {lang === 'ar' ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
@@ -503,7 +503,7 @@ export default function FinderPage() {
                   <p className="text-sm text-muted-foreground mb-3">
                     {lang === 'ar' ? 'مو اللي تدور عليه؟' : "Not what you're looking for?"}
                   </p>
-                  <Button asChild size="sm" className={`rounded-xl font-bold text-sm text-white hover:opacity-90 border-0 shadow-md ${lang === 'ar' ? 'bg-gradient-to-r from-[#6ED7B4] from-2% via-[#6DCBCA] via-15% to-[#1FA9FF]' : 'bg-gradient-to-l from-[#6ED7B4] from-2% via-[#6DCBCA] via-15% to-[#1FA9FF]'}`}>
+                  <Button asChild size="sm" className={`rounded-xl font-bold text-sm text-white hover:opacity-90 border-0 shadow-md ${lang === 'ar' ? 'bg-gradient-to-r from-[#FFD568] from-2% via-[#EEAE4E] via-15% to-[#E37417]' : 'bg-gradient-to-l from-[#FFD568] from-2% via-[#EEAE4E] via-15% to-[#E37417]'}`}>
                     <Link to="/plans">
                       {lang === 'ar' ? 'تصفح كل الباقات' : 'Browse All Plans'}
                       {lang === 'ar' ? <ArrowLeft size={14} /> : <ArrowRight size={14} />}
@@ -523,7 +523,6 @@ export default function FinderPage() {
     <div className="relative z-10 flex flex-col min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] hero-gradient grain overflow-hidden">
       <WaveLines />
       {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-black/25 z-[2]" />
       {/* Decorative elements */}
       <div className="absolute top-1/4 end-10 w-24 h-24 rounded-full bg-white/5 blob animate-float hidden md:block" />
       <div className="absolute bottom-1/4 start-10 w-20 h-20 rounded-full bg-accent/5 blob-alt animate-float hidden md:block" style={{ animationDelay: '1.5s' }} />
@@ -651,7 +650,7 @@ export default function FinderPage() {
               <Button
                 onClick={submitBudget}
                 size="lg"
-                className="w-full rounded-xl text-sm font-bold bg-white text-primary hover:bg-white/95 shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300"
+                className="w-full rounded-xl text-sm font-bold bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300"
               >
                 {t('finder.findMyPlans')}
                 <Sparkles size={16} />

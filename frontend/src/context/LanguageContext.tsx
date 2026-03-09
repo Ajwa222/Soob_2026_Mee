@@ -219,7 +219,7 @@ const translations: Record<string, Record<string, unknown>> = {
       thinking: "Thinking...",
       inputPlaceholder: "Ask about plans, budget, carriers...",
       disclaimer: "Simba Advisor may make mistakes. Always verify on the carrier's site.",
-      welcomeMessage: "Hey! I'm Simba, your personal plan advisor. Let me ask you a few quick questions to find the perfect plan for you!",
+      welcomeMessage: "Hey! Let's find your perfect plan.",
     },
     finderModal: {
       title: "Not sure what you need?",
@@ -745,7 +745,7 @@ const translations: Record<string, Record<string, unknown>> = {
       thinking: "أفكر...",
       inputPlaceholder: "اسأل عن الباقات، الميزانية، الشركات...",
       disclaimer: "مستشار سيمبا ممكن يخطئ. تأكد دايم من موقع الشركة.",
-      welcomeMessage: "هلا! أنا سيمبا، مستشارك الشخصي للباقات. خلني أسألك كم سؤال سريع عشان ألقاك الباقة المثالية!",
+      welcomeMessage: "هلا! خلنا نلقاك الباقة المثالية.",
     },
     finderModal: {
       title: "مو متأكد وش تبي؟",

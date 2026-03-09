@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import WaveLines from './WaveLines';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { CARRIERS } from '../data/plans';
@@ -120,33 +121,33 @@ export default function Onboarding() {
 
   if (isLangPage) {
     return (
-      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6 hero-gradient">
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="fixed inset-0 z-[300] flex flex-col items-center justify-center px-6 hero-gradient grain overflow-hidden">
+        <WaveLines />
         <img src="/icon-512.png" alt="Simba" className="relative z-10 w-16 h-16 md:w-20 md:h-20 mb-5 rounded-2xl shadow-lg" />
-        <h1 className="relative z-10 font-heading font-medium text-[26px] md:text-[34px] text-white text-center leading-tight mb-1">
+        <h1 className="relative z-10 font-heading font-medium text-[26px] md:text-[34px] text-black text-center leading-tight mb-1">
           Welcome to Simba
         </h1>
-        <p className="relative z-10 text-[18px] md:text-[22px] text-white/80 text-center mb-6 font-semibold">
+        <p className="relative z-10 text-[18px] md:text-[22px] text-black/70 text-center mb-6 font-semibold">
           حياك في سيمبا
         </p>
-        <h2 className="relative z-10 font-heading font-medium text-[17px] text-white/90 text-center leading-tight mb-2">
+        <h2 className="relative z-10 font-heading font-medium text-[17px] text-black/80 text-center leading-tight mb-2">
           Choose your language
         </h2>
-        <p className="relative z-10 font-heading font-medium text-[17px] text-white/90 text-center mb-8">
+        <p className="relative z-10 font-heading font-medium text-[17px] text-black/80 text-center mb-8">
           اختر لغتك المفضلة
         </p>
         <div className="relative z-10 flex gap-3 w-full max-w-xs md:max-w-sm">
           <Button
             onClick={() => chooseLang('en')}
             variant="secondary"
-            className="flex-1 py-6 text-base font-medium bg-white text-[#213E53] hover:bg-white/90 shadow-md"
+            className="flex-1 py-6 text-base font-medium bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md"
           >
             English
           </Button>
           <Button
             onClick={() => chooseLang('ar')}
             variant="secondary"
-            className="flex-1 py-6 text-base font-medium bg-white text-[#213E53] hover:bg-white/90 shadow-md"
+            className="flex-1 py-6 text-base font-medium bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md"
           >
             العربية
           </Button>
@@ -156,16 +157,16 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col hero-gradient">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+    <div className="fixed inset-0 z-[300] flex flex-col hero-gradient grain overflow-hidden">
+      <WaveLines />
       <div className="relative z-10 px-6 pt-6" />
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6" key={page}>
         <div className="mb-10">{current.scene}</div>
-        <h2 className="font-heading font-medium text-[22px] md:text-[30px] text-white text-center leading-tight max-w-xs md:max-w-md">
+        <h2 className="font-heading font-medium text-[22px] md:text-[30px] text-black text-center leading-tight max-w-xs md:max-w-md">
           {current.title}
         </h2>
-        <p className="mt-2.5 text-[15px] md:text-[17px] text-white/70 text-center max-w-xs md:max-w-md leading-relaxed">
+        <p className="mt-2.5 text-[15px] md:text-[17px] text-black/60 text-center max-w-xs md:max-w-md leading-relaxed">
           {current.sub}
         </p>
       </div>
@@ -185,7 +186,7 @@ export default function Onboarding() {
         <Button
           onClick={isLast ? complete : () => setPage((p) => p + 1)}
           variant="secondary"
-          className={`bg-white text-[#213E53] hover:bg-white/90 shadow-md font-medium ${
+          className={`bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md font-medium ${
             isLast ? 'px-7 h-12' : 'w-12 h-12 p-0'
           }`}
         >

@@ -20,6 +20,7 @@ export default function Navigation() {
   const { hasAccount } = useAuth();
   const location = useLocation();
   const [onboarded, setOnboarded] = useState(() => !!localStorage.getItem('simba-onboarded'));
+  const [firstSession, setFirstSession] = useState(() => !localStorage.getItem('simba-onboarded'));
 
   useEffect(() => {
     if (onboarded) return;
@@ -31,7 +32,15 @@ export default function Navigation() {
     return () => { window.removeEventListener('storage', check); clearInterval(interval); };
   }, [onboarded]);
 
+  // On first session, clear the flag when user navigates away from /advisor
+  useEffect(() => {
+    if (firstSession && location.pathname !== '/advisor') {
+      setFirstSession(false);
+    }
+  }, [firstSession, location.pathname]);
+
   if (!onboarded) return null;
+  if (firstSession && location.pathname === '/advisor' && !location.search.includes('chat=1')) return null;
 
   const handleNav = (e: React.MouseEvent, path: string) => {
     if (location.pathname === path || (path === '/home' && location.pathname === '/')) {
@@ -59,11 +68,11 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop Nav */}
-      <nav className="hidden md:block sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border/60">
+      <nav className="hidden md:block sticky top-0 z-50 bg-[#FFF0D0]/80 dark:bg-card/80 backdrop-blur-xl border-b border-border/60">
         <div className="w-full max-w-5xl mx-auto px-8 flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2.5 group">
             <img src="/icon-512.png" alt="Simba" className="w-9 h-9 rounded-xl shadow-sm group-hover:shadow-md transition-shadow" />
-            <span className="font-heading font-bold text-xl leading-none tracking-tight bg-gradient-to-r from-[#1FA9FF] via-[#6DCBCA] to-[#6ED7B4] bg-clip-text text-transparent">
+            <span className="font-heading font-bold text-xl leading-none tracking-tight bg-gradient-to-r from-[#C45F0A] via-[#E37417] to-[#D4600A] bg-clip-text text-transparent">
               Simba
             </span>
           </Link>
@@ -110,7 +119,7 @@ export default function Navigation() {
 
       {/* Mobile Bottom Tab Bar */}
       <nav
-        className={`md:hidden fixed bottom-0 inset-x-0 z-[200] bg-card/90 backdrop-blur-xl border-t border-border/60${location.pathname === '/advisor' && !location.search.includes('results=1') ? ' hidden' : ''}`}
+        className={`md:hidden fixed bottom-0 inset-x-0 z-[200] bg-[#FFF0D0]/90 dark:bg-card/90 backdrop-blur-xl border-t border-border/60`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex items-center justify-around h-16 px-2">
@@ -155,11 +164,11 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Top Bar */}
-      <div className="md:hidden sticky top-0 z-[200] bg-card/90 backdrop-blur-xl border-b border-border/60">
+      <div className="md:hidden sticky top-0 z-[200] bg-[#FFF0D0]/90 dark:bg-card/90 backdrop-blur-xl border-b border-border/60">
         <div className="flex items-center justify-between px-4 h-14">
           <Link to="/" className="flex items-center gap-2">
             <img src="/icon-512.png" alt="Simba" className="w-8 h-8 rounded-xl shadow-sm" />
-            <span className="font-heading font-bold text-lg tracking-tight bg-gradient-to-r from-[#1FA9FF] via-[#6DCBCA] to-[#6ED7B4] bg-clip-text text-transparent">
+            <span className="font-heading font-bold text-lg tracking-tight bg-gradient-to-r from-[#C45F0A] via-[#E37417] to-[#D4600A] bg-clip-text text-transparent">
               Simba
             </span>
           </Link>
