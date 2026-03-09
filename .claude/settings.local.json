@@ -16,7 +16,9 @@
       "Bash(npm uninstall @google/generative-ai)",
       "Bash(npm install openai)",
       "Bash(npm install openai firebase-admin)",
-      "Bash(npm uninstall openai)"
+      "Bash(npm uninstall openai)",
+      "Bash(npm install express-rate-limit)",
+      "Bash(ls /c/Users/Abdulrhman24/Documents/projects/SimbaApp/*.rules)"
     ]
   }
 }

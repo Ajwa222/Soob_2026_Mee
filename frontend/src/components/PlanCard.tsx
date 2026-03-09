@@ -54,10 +54,10 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
         setLikes(Math.max(0, r.likes));
         setDislikes(Math.max(0, r.dislikes));
       }
-    }).catch(() => {});
+    }).catch((err) => { console.error(`Failed to fetch reactions for plan ${plan.id}:`, err); });
     fetchCommentCount(plan.id).then(c => {
       if (!cancelled) setCommentCount(c);
-    }).catch(() => {});
+    }).catch((err) => { console.error(`Failed to fetch comment count for plan ${plan.id}:`, err); });
     return () => { cancelled = true; };
   }, [plan.id]);
 

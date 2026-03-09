@@ -5,9 +5,18 @@ import type { Plan, Priority, ChatMessage } from "../types.js";
 
 const router = Router();
 
+const VALID_PRIORITIES: Set<string> = new Set([
+  "unlimited_data", "cheap_price", "international_calls", "social_media",
+  "five_g", "no_contract", "local_calls", "roaming",
+]);
+
+const VALID_LANGS: Set<string> = new Set(["en", "ar"]);
+
 function getClient(): OpenAI {
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is not set");
+  }
   return new OpenAI({ apiKey });
 }
 
@@ -84,12 +93,28 @@ router.post("/start", async (req, res) => {
       lang: "en" | "ar";
     };
 
-    if (!priorities?.length) {
-      res.status(400).json({ error: "priorities are required" });
+    if (!Array.isArray(priorities) || priorities.length === 0) {
+      res.status(400).json({ error: "priorities must be a non-empty array" });
       return;
     }
 
-    const client = getClient();
+    if (priorities.some((p) => !VALID_PRIORITIES.has(p))) {
+      res.status(400).json({ error: "Invalid priority value" });
+      return;
+    }
+
+    if (lang && !VALID_LANGS.has(lang)) {
+      res.status(400).json({ error: "lang must be 'en' or 'ar'" });
+      return;
+    }
+
+    let client: OpenAI;
+    try {
+      client = getClient();
+    } catch {
+      res.status(500).json({ error: "AI service is not configured" });
+      return;
+    }
     const systemPrompt = buildSystemPrompt(priorities, lang ?? "en");
 
     const firstUserMessage =
@@ -125,14 +150,35 @@ router.post("/message", async (req, res) => {
       userMessage: string;
     };
 
-    if (!priorities?.length || !userMessage) {
+    if (!Array.isArray(priorities) || priorities.length === 0 || !userMessage) {
       res
         .status(400)
         .json({ error: "priorities and userMessage are required" });
       return;
     }
 
-    const client = getClient();
+    if (priorities.some((p) => !VALID_PRIORITIES.has(p))) {
+      res.status(400).json({ error: "Invalid priority value" });
+      return;
+    }
+
+    if (lang && !VALID_LANGS.has(lang)) {
+      res.status(400).json({ error: "lang must be 'en' or 'ar'" });
+      return;
+    }
+
+    if (typeof userMessage !== "string" || userMessage.length > 1000) {
+      res.status(400).json({ error: "userMessage must be a string under 1000 characters" });
+      return;
+    }
+
+    let client: OpenAI;
+    try {
+      client = getClient();
+    } catch {
+      res.status(500).json({ error: "AI service is not configured" });
+      return;
+    }
     const systemPrompt = buildSystemPrompt(priorities, lang ?? "en");
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
