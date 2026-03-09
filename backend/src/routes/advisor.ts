@@ -12,12 +12,16 @@ const VALID_PRIORITIES: Set<string> = new Set([
 
 const VALID_LANGS: Set<string> = new Set(["en", "ar"]);
 
+let _client: OpenAI | null = null;
 function getClient(): OpenAI {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error("OPENAI_API_KEY is not set");
+  if (!_client) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error("OPENAI_API_KEY is not set");
+    }
+    _client = new OpenAI({ apiKey });
   }
-  return new OpenAI({ apiKey });
+  return _client;
 }
 
 function planToRow(p: Plan): string {
@@ -39,8 +43,12 @@ function planToRow(p: Plan): string {
     .join(" | ");
 }
 
+let _plansContext: string | null = null;
 function buildPlansContext(): string {
-  return PLANS_DATA.map(planToRow).join("\n");
+  if (!_plansContext) {
+    _plansContext = PLANS_DATA.map(planToRow).join("\n");
+  }
+  return _plansContext;
 }
 
 function buildSystemPrompt(priorities: Priority[], lang: "en" | "ar"): string {
@@ -181,9 +189,12 @@ router.post("/message", async (req, res) => {
     }
     const systemPrompt = buildSystemPrompt(priorities, lang ?? "en");
 
+    // Cap history to last 20 messages to limit token usage
+    const trimmedHistory = (history ?? []).slice(-20);
+
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: "system", content: systemPrompt },
-      ...(history ?? []).map((msg) => ({
+      ...trimmedHistory.map((msg) => ({
         role:
           msg.role === "assistant"
             ? ("assistant" as const)

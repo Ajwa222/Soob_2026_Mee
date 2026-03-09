@@ -6,7 +6,8 @@ import {
   Search, SlidersHorizontal, X, Scale,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
-import { PLANS_DATA, CARRIERS } from '../data/plans';
+import { CARRIERS } from '../data/plans';
+import { usePlans } from '../context/PlansContext';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
@@ -173,6 +174,7 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
 
 export default function ExplorePage() {
   const { t } = useLang();
+  const { plans: PLANS_DATA } = usePlans();
 
   /* ---- filter state ---- */
   const [search, setSearch] = useState('');
@@ -289,7 +291,7 @@ export default function ExplorePage() {
       const plans = base.filter(cat.filter).slice(0, MAX_PLANS_PER_CATEGORY);
       return { ...cat, plans };
     });
-  }, [search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter]);
+  }, [PLANS_DATA, search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter]);
 
   const visibleCategories = activeCategory
     ? categoryData.filter(c => c.key === activeCategory)

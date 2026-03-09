@@ -5,6 +5,7 @@ import {
   Bot,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
+import { usePlans } from '../context/PlansContext';
 import { trackEvent } from '../lib/analytics';
 import {
   startAdvisorChat, sendAdvisorMessage, getPlansById,
@@ -37,6 +38,7 @@ const MAX_PICKS = 3;
 // ─── Component ───
 export default function AdvisorPage() {
   const { t, lang } = useLang();
+  const { plans } = usePlans();
 
   // Phase 1 state
   const [selected, setSelected] = useState<Priority[]>([]);
@@ -276,7 +278,7 @@ export default function AdvisorPage() {
               {/* Plan cards for assistant messages */}
               {msg.role === 'assistant' && msg.planIds && msg.planIds.length > 0 && (
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {getPlansById(msg.planIds).map(plan => (
+                  {getPlansById(plans, msg.planIds).map(plan => (
                     <ConnectedPlanCard key={plan.id} plan={plan} />
                   ))}
                 </div>

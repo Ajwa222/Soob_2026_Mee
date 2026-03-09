@@ -11,9 +11,8 @@ import { useAuth } from '../context/AuthContext';
 import SarSymbol from '../components/SarSymbol';
 import { useCompare } from '../context/CompareContext';
 import { usePlanInteractions } from '../hooks/usePlanInteractions';
-import {
-  PLANS_DATA, getCarrierLogo, isValidValue,
-} from '../data/plans';
+import { getCarrierLogo, isValidValue } from '../data/plans';
+import { usePlans } from '../context/PlansContext';
 import { trackEvent } from '../lib/analytics';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -52,8 +51,9 @@ export default function PlanDetailPage() {
   const navigate = useNavigate();
   const [commentText, setCommentText] = useState('');
 
+  const { plans } = usePlans();
   const planId = useMemo(() => Number(id), [id]);
-  const plan = useMemo(() => PLANS_DATA.find(p => p.id === planId), [planId]);
+  const plan = useMemo(() => plans.find(p => p.id === planId), [plans, planId]);
   const {
     reaction, comments, loading: interactionsLoading,
     toggleLike, toggleDislike, addComment, removeComment,
