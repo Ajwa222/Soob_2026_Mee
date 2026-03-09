@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Send, RotateCcw, Loader2,
-  Bot,
+  Bot, Wifi, DollarSign, Globe2, MessageCircle, Phone,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
@@ -14,22 +14,47 @@ import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
 
+// ─── Quick-reply chip definitions ───
+interface QuickChip {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  labelEn: string;
+  labelAr: string;
+  messageEn: string;
+  messageAr: string;
+}
+
+const QUICK_CHIPS: QuickChip[] = [
+  { icon: Wifi, labelEn: 'Big Data', labelAr: 'بيانات كبيرة', messageEn: 'I need a plan with lots of data for streaming and heavy use.', messageAr: 'أبي باقة فيها بيانات كثيرة للبث والاستخدام الكثير.' },
+  { icon: DollarSign, labelEn: 'Cheapest', labelAr: 'أرخص سعر', messageEn: 'I want the cheapest plan available.', messageAr: 'أبي أرخص باقة متوفرة.' },
+  { icon: Globe2, labelEn: 'Intl Calls', labelAr: 'مكالمات دولية', messageEn: 'I need a plan with international calling minutes.', messageAr: 'أبي باقة فيها دقائق مكالمات دولية.' },
+  { icon: MessageCircle, labelEn: 'Social Media', labelAr: 'سوشل ميديا', messageEn: 'I need dedicated social media data.', messageAr: 'أبي بيانات مخصصة للسوشل ميديا.' },
+  { icon: Phone, labelEn: 'Local Calls', labelAr: 'مكالمات محلية', messageEn: 'I need lots of local call minutes.', messageAr: 'أبي باقة فيها دقائق محلية كثيرة.' },
+];
+
+// ─── Budget pill values ───
+const BUDGET_PILLS = [50, 100, 150, 200, 300, 500];
+
+/** Check if a message is asking about budget */
+function isBudgetQuestion(text: string): boolean {
+  const lower = text.toLowerCase();
+  return /budget|price|cost|how much|spend|afford|ميزانية|سعر|كم تدفع|كم تصرف|المبلغ/.test(lower);
+}
+
 export default function AdvisorPage() {
   const { t, lang } = useLang();
   const { plans } = usePlans();
 
-  const welcomeText = lang === 'ar'
-    ? t('advisor.welcomeMessage')
-    : t('advisor.welcomeMessage');
-
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', text: welcomeText, planIds: [] },
+    { role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Whether the user has sent at least one message (hides quick chips)
+  const hasUserMessage = messages.some(m => m.role === 'user');
 
   // Auto-scroll chat
   useEffect(() => {
@@ -46,30 +71,24 @@ export default function AdvisorPage() {
     setMessages([{ role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] }]);
   }, [lang]);
 
-  // Send a message
-  const send = useCallback(async () => {
-    const trimmed = input.trim();
-    if (!trimmed || loading) return;
+  // Core send function that accepts a text string directly
+  const sendText = useCallback(async (text: string) => {
+    if (!text || loading) return;
 
-    const userMsg: ChatMessage = { role: 'user', text: trimmed };
+    const userMsg: ChatMessage = { role: 'user', text };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
     setError(null);
 
-    // Track first message differently
     const isFirst = messages.length === 1;
-    if (isFirst) {
-      trackEvent('advisor_started');
-    } else {
-      trackEvent('advisor_message_sent');
-    }
+    trackEvent(isFirst ? 'advisor_started' : 'advisor_message_sent');
 
     try {
       const { reply, planIds } = await sendAdvisorMessage(
         lang,
         [...messages, userMsg],
-        trimmed,
+        text,
       );
       setMessages(prev => [...prev, { role: 'assistant', text: reply, planIds }]);
     } catch (e) {
@@ -78,7 +97,28 @@ export default function AdvisorPage() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, lang, messages]);
+  }, [loading, lang, messages]);
+
+  // Send from input field
+  const send = useCallback(() => {
+    sendText(input.trim());
+  }, [input, sendText]);
+
+  // Quick chip handler
+  const handleChip = (chip: QuickChip) => {
+    const text = lang === 'ar' ? chip.messageAr : chip.messageEn;
+    trackEvent('advisor_chip_tapped', { chip: chip.labelEn });
+    sendText(text);
+  };
+
+  // Budget pill handler
+  const handleBudgetPill = (amount: number) => {
+    const text = lang === 'ar'
+      ? `ميزانيتي ${amount} ريال بالشهر`
+      : `My budget is ${amount} SAR per month`;
+    trackEvent('advisor_budget_selected', { amount });
+    sendText(text);
+  };
 
   const restart = () => {
     trackEvent('advisor_restarted');
@@ -144,6 +184,41 @@ export default function AdvisorPage() {
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {getPlansById(plans, msg.planIds).map(plan => (
                     <ConnectedPlanCard key={plan.id} plan={plan} />
+                  ))}
+                </div>
+              )}
+
+              {/* Quick-reply chips after welcome message */}
+              {i === 0 && msg.role === 'assistant' && !hasUserMessage && !loading && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {QUICK_CHIPS.map(chip => {
+                    const Icon = chip.icon;
+                    return (
+                      <button
+                        key={chip.labelEn}
+                        onClick={() => handleChip(chip)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-background text-xs font-medium text-foreground hover:bg-muted hover:border-primary/30 transition-colors cursor-pointer"
+                      >
+                        <Icon size={14} className="text-primary shrink-0" />
+                        {lang === 'ar' ? chip.labelAr : chip.labelEn}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Budget quick-select pills after AI budget question */}
+              {msg.role === 'assistant' && i === messages.length - 1 && !loading && isBudgetQuestion(msg.text) && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {BUDGET_PILLS.map(amount => (
+                    <button
+                      key={amount}
+                      onClick={() => handleBudgetPill(amount)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-border bg-background text-xs font-medium text-foreground hover:bg-muted hover:border-primary/30 transition-colors cursor-pointer"
+                    >
+                      <DollarSign size={12} className="text-primary shrink-0" />
+                      {amount} {lang === 'ar' ? 'ريال' : 'SAR'}
+                    </button>
                   ))}
                 </div>
               )}
