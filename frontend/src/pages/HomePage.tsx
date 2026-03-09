@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import CommunityBanner from '../components/CommunityBanner';
 import WaveLines from '../components/WaveLines';
 import { useLang } from '../context/LanguageContext';
-import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
+import { CARRIERS, getValueScore } from '../data/plans';
+import { usePlans } from '../context/PlansContext';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import FinderModal, { useFinderModal } from '../components/FinderModal';
 import { trackEvent } from '../lib/analytics';
@@ -15,12 +16,13 @@ const CARD_FULL_HEIGHT: React.CSSProperties = { height: '100%' };
 export default function HomePage() {
   const { t, lang } = useLang();
   const { show: showFinderModal, dismiss: dismissFinderModal } = useFinderModal();
+  const { plans } = usePlans();
 
   const trendingPlans = useMemo(() => {
-    return [...PLANS_DATA]
+    return [...plans]
       .sort((a, b) => getValueScore(b) - getValueScore(a))
       .slice(0, 8);
-  }, []);
+  }, [plans]);
 
   return (
     <div className="safe-pb">

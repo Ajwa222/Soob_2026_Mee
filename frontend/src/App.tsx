@@ -4,6 +4,7 @@ import { trackPageView } from './lib/analytics';
 import { LanguageProvider, useLang } from './context/LanguageContext';
 import { CompareProvider } from './context/CompareContext';
 import { AuthProvider } from './context/AuthContext';
+import { PlansProvider } from './context/PlansContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
@@ -57,8 +58,9 @@ function App() {
     <BrowserRouter>
       <ScrollToTop />
       <LanguageProvider>
-      <AnalyticsTracker />
         <AuthProvider>
+      <AnalyticsTracker />
+        <PlansProvider>
         <CompareProvider>
           <div className="relative min-h-screen flex flex-col bg-background">
             <Navigation />
@@ -86,8 +88,9 @@ function App() {
           <Onboarding />
           <PhoneGate />
         </CompareProvider>
+        </PlansProvider>
         </AuthProvider>
-      </LanguageProvider>
+        </LanguageProvider>
     </BrowserRouter>
     </ErrorBoundary>
   );

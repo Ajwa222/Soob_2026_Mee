@@ -82,12 +82,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Firebase auth state listener
   useEffect(() => {
     // Handle redirect result (fallback from popup-blocked)
-    getRedirectResult(auth).catch((error: unknown) => {
-      if (import.meta.env.DEV && (error as { code?: string })?.code) {
-        const e = error as { code: string; message: string };
-        console.error('Redirect sign-in error:', e.code, e.message);
-      }
-    });
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // Redirect sign-in succeeded — clear the pending flag
+          localStorage.removeItem('simba-auth-redirect');
+        }
+      })
+      .catch((error: unknown) => {
+        const code = (error as { code?: string })?.code;
+        const message = (error as { message?: string })?.message;
+        console.error('Redirect sign-in error:', code, message);
+        // Clear pending flag so user isn't stuck
+        localStorage.removeItem('simba-auth-redirect');
+      });
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {

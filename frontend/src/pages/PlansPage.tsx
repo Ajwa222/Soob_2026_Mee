@@ -5,7 +5,8 @@ import {
   ArrowRight, Sparkles, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
-import { PLANS_DATA, CARRIERS, getValueScore } from '../data/plans';
+import { CARRIERS, getValueScore } from '../data/plans';
+import { usePlans } from '../context/PlansContext';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import FinderModal, { useFinderModal } from '../components/FinderModal';
 import { trackEvent } from '../lib/analytics';
@@ -46,6 +47,7 @@ function parseData(val: string): number {
 export default function PlansPage() {
   const { t } = useLang();
   const { show: showFinderModal, dismiss: dismissFinderModal } = useFinderModal();
+  const { plans: PLANS_DATA } = usePlans();
 
   /* ---- filter state ---- */
   const [search, setSearch] = useState('');
@@ -190,7 +192,7 @@ export default function PlansPage() {
     }
 
     return plans;
-  }, [search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, sortBy]);
+  }, [PLANS_DATA, search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, sortBy]);
 
   // Reset to page 1 when filters change
   useEffect(() => {

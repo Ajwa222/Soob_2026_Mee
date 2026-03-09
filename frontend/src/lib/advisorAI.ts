@@ -1,4 +1,3 @@
-import { PLANS_DATA } from '../data/plans';
 import { apiFetch } from './api';
 import type { Plan } from '../types';
 
@@ -40,7 +39,7 @@ export async function sendAdvisorMessage(
   });
 }
 
-/** Look up plans by IDs (still uses local data for instant display). */
-export function getPlansById(ids: number[]): Plan[] {
-  return ids.map(id => PLANS_DATA.find(p => p.id === id)).filter(Boolean) as Plan[];
+/** Look up plans by IDs from the provided plans array. */
+export function getPlansById(allPlans: Plan[], ids: number[]): Plan[] {
+  return ids.map(id => allPlans.find(p => p.id === id)).filter(Boolean) as Plan[];
 }

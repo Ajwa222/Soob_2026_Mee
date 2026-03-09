@@ -9,7 +9,8 @@ import {
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { PLANS_DATA, getValueScore, isValidValue } from '../data/plans';
+import { getValueScore, isValidValue } from '../data/plans';
+import { usePlans } from '../context/PlansContext';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import SarSymbol from '../components/SarSymbol';
 import { trackEvent } from '../lib/analytics';
@@ -40,10 +41,10 @@ function parseData(val: string): number {
 }
 
 // --- Smart Scoring Engine ---
-function scorePlans(answers: Record<string, string | number>) {
+function scorePlans(allPlans: Plan[], answers: Record<string, string | number>) {
   const budget = Number(answers.budget) || 200;
 
-  const scored = PLANS_DATA
+  const scored = allPlans
     .filter(p => p.planType !== 'Data-only')
     .map(plan => {
       let score = 0;
@@ -142,6 +143,7 @@ function scorePlans(answers: Record<string, string | number>) {
 export default function FinderPage() {
   const { t, lang } = useLang();
   const { isLoggedIn, hasAccount } = useAuth();
+  const { plans: PLANS_DATA } = usePlans();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   // Restore finder results from session (e.g. after navigating back from plan detail)
@@ -271,8 +273,8 @@ export default function FinderPage() {
         label: ['best', 'runner', 'value'][i] || 'value',
       }));
     }
-    return scorePlans(answers);
-  }, [showResults, answers, allNo]);
+    return scorePlans(PLANS_DATA, answers);
+  }, [showResults, answers, allNo, PLANS_DATA]);
 
   const isInternetStep = STEPS[step] === 'internet';
   const answerOptions = [
