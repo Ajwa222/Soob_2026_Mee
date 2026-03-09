@@ -1,14 +1,9 @@
 import { Router } from "express";
 import OpenAI from "openai";
 import { PLANS_DATA } from "../data/plans.js";
-import type { Plan, Priority, ChatMessage } from "../types.js";
+import type { Plan, ChatMessage } from "../types.js";
 
 const router = Router();
-
-const VALID_PRIORITIES: Set<string> = new Set([
-  "unlimited_data", "cheap_price", "international_calls", "social_media",
-  "five_g", "no_contract", "local_calls", "roaming",
-]);
 
 const VALID_LANGS: Set<string> = new Set(["en", "ar"]);
 
@@ -51,27 +46,19 @@ function buildPlansContext(): string {
   return _plansContext;
 }
 
-function buildSystemPrompt(priorities: Priority[], lang: "en" | "ar"): string {
-  const priorityLabels: Record<Priority, string> = {
-    unlimited_data: "Unlimited / large data",
-    cheap_price: "Cheapest price",
-    international_calls: "International calling",
-    social_media: "Social media data",
-    five_g: "5G support",
-    no_contract: "No contract / flexibility",
-    local_calls: "Lots of local call minutes",
-    roaming: "Roaming support",
-  };
-
-  const picked = priorities.map((p) => priorityLabels[p]).join(", ");
-
+function buildSystemPrompt(lang: "en" | "ar"): string {
   return `You are Simba, a friendly Saudi telecom plan advisor.
 
 ROLE:
 - Help the user find the best mobile plan from the catalog below.
-- The user's top priorities are: ${picked}.
-- Start by recommending your top 3 plans based on their priorities. Briefly explain why each plan fits.
-- Then invite the user to ask follow-up questions (e.g. budget, specific carrier preference, more details).
+- Start by understanding the user's needs through natural conversation. Ask about:
+  • How much mobile data they use (light browsing, heavy streaming, etc.)
+  • Whether they need local call minutes and how many
+  • Whether they make international calls
+  • If they need dedicated social media data
+  • Their monthly budget in SAR
+- Once you understand their needs, recommend your top 3 plans. Briefly explain why each plan fits.
+- Keep asking follow-up questions to refine recommendations if the user isn't satisfied.
 - Keep answers concise (under 200 words). Use bullet points for plan comparisons.
 
 RULES:
@@ -81,6 +68,7 @@ RULES:
 - Respond in ${lang === "ar" ? "Arabic (Saudi dialect preferred)" : "English"}.
 - Never mention that you are an AI or LLM. You are "Simba, your plan advisor".
 - Prices include 15% VAT already.
+- If the user gives you enough info upfront (e.g. budget + needs), skip extra questions and recommend plans directly.
 
 PLAN CATALOG:
 ${buildPlansContext()}`;
@@ -93,80 +81,17 @@ function extractPlanIds(text: string): number[] {
   return [...new Set(ids)].filter((id) => validIds.includes(id));
 }
 
-/** POST /api/advisor/start — start a new advisor chat */
-router.post("/start", async (req, res) => {
-  try {
-    const { priorities, lang } = req.body as {
-      priorities: Priority[];
-      lang: "en" | "ar";
-    };
-
-    if (!Array.isArray(priorities) || priorities.length === 0) {
-      res.status(400).json({ error: "priorities must be a non-empty array" });
-      return;
-    }
-
-    if (priorities.some((p) => !VALID_PRIORITIES.has(p))) {
-      res.status(400).json({ error: "Invalid priority value" });
-      return;
-    }
-
-    if (lang && !VALID_LANGS.has(lang)) {
-      res.status(400).json({ error: "lang must be 'en' or 'ar'" });
-      return;
-    }
-
-    let client: OpenAI;
-    try {
-      client = getClient();
-    } catch {
-      res.status(500).json({ error: "AI service is not configured" });
-      return;
-    }
-    const systemPrompt = buildSystemPrompt(priorities, lang ?? "en");
-
-    const firstUserMessage =
-      lang === "ar"
-        ? "مرحبا! ابي تساعدني ألقى أفضل باقة جوال تناسبني."
-        : "Hi! Help me find the best mobile plan for my needs.";
-
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: firstUserMessage },
-      ],
-    });
-
-    const reply = response.choices[0]?.message?.content ?? "";
-    const planIds = extractPlanIds(reply);
-
-    res.json({ reply, planIds });
-  } catch (err) {
-    console.error("Advisor start error:", err);
-    res.status(500).json({ error: "Failed to start advisor chat" });
-  }
-});
-
-/** POST /api/advisor/message — send a follow-up message */
+/** POST /api/advisor/message — send a message to the advisor */
 router.post("/message", async (req, res) => {
   try {
-    const { priorities, lang, history, userMessage } = req.body as {
-      priorities: Priority[];
+    const { lang, history, userMessage } = req.body as {
       lang: "en" | "ar";
       history: ChatMessage[];
       userMessage: string;
     };
 
-    if (!Array.isArray(priorities) || priorities.length === 0 || !userMessage) {
-      res
-        .status(400)
-        .json({ error: "priorities and userMessage are required" });
-      return;
-    }
-
-    if (priorities.some((p) => !VALID_PRIORITIES.has(p))) {
-      res.status(400).json({ error: "Invalid priority value" });
+    if (!userMessage) {
+      res.status(400).json({ error: "userMessage is required" });
       return;
     }
 
@@ -176,7 +101,9 @@ router.post("/message", async (req, res) => {
     }
 
     if (typeof userMessage !== "string" || userMessage.length > 1000) {
-      res.status(400).json({ error: "userMessage must be a string under 1000 characters" });
+      res
+        .status(400)
+        .json({ error: "userMessage must be a string under 1000 characters" });
       return;
     }
 
@@ -187,7 +114,7 @@ router.post("/message", async (req, res) => {
       res.status(500).json({ error: "AI service is not configured" });
       return;
     }
-    const systemPrompt = buildSystemPrompt(priorities, lang ?? "en");
+    const systemPrompt = buildSystemPrompt(lang ?? "en");
 
     // Cap history to last 20 messages to limit token usage
     const trimmedHistory = (history ?? []).slice(-20);
@@ -205,7 +132,7 @@ router.post("/message", async (req, res) => {
     ];
 
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       messages,
     });
 

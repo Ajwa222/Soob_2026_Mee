@@ -1,51 +1,30 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  Sparkles, ArrowRight, ArrowLeft, Compass, Send, RotateCcw, Loader2,
-  Wifi, DollarSign, Globe2, MessageCircle, Phone,
+  Send, RotateCcw, Loader2,
   Bot,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
 import { trackEvent } from '../lib/analytics';
 import {
-  startAdvisorChat, sendAdvisorMessage, getPlansById,
-  type Priority, type ChatMessage,
+  sendAdvisorMessage, getPlansById,
+  type ChatMessage,
 } from '../lib/advisorAI';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
 
-// ─── Priority card definitions ───
-interface PriorityCard {
-  id: Priority;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  labelEn: string;
-  labelAr: string;
-  descEn: string;
-  descAr: string;
-}
-
-const PRIORITY_CARDS: PriorityCard[] = [
-  { id: 'unlimited_data', icon: Wifi, labelEn: 'Big Data', labelAr: 'بيانات كبيرة', descEn: 'Unlimited or large data allowance', descAr: 'بيانات غير محدودة أو كبيرة' },
-  { id: 'cheap_price', icon: DollarSign, labelEn: 'Lowest Price', labelAr: 'أرخص سعر', descEn: 'Get the most for the least', descAr: 'أفضل قيمة بأقل سعر' },
-  { id: 'international_calls', icon: Globe2, labelEn: 'Intl Calls', labelAr: 'مكالمات دولية', descEn: 'Call family & friends abroad', descAr: 'كلّم أهلك وأصدقائك بالخارج' },
-  { id: 'social_media', icon: MessageCircle, labelEn: 'Social Media', labelAr: 'سوشل ميديا', descEn: 'Dedicated social data', descAr: 'بيانات مخصصة للسوشل' },
-  { id: 'local_calls', icon: Phone, labelEn: 'Local Calls', labelAr: 'مكالمات محلية', descEn: 'Lots of local minutes', descAr: 'دقائق محلية كثيرة' },
-];
-
-const MAX_PICKS = 3;
-
-// ─── Component ───
 export default function AdvisorPage() {
   const { t, lang } = useLang();
   const { plans } = usePlans();
 
-  // Phase 1 state
-  const [selected, setSelected] = useState<Priority[]>([]);
-  const [phase, setPhase] = useState<'cards' | 'chat'>('cards');
+  const welcomeText = lang === 'ar'
+    ? t('advisor.welcomeMessage')
+    : t('advisor.welcomeMessage');
 
-  // Phase 2 (chat) state
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: 'assistant', text: welcomeText, planIds: [] },
+  ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,42 +36,17 @@ export default function AdvisorPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Focus input when chat starts
+  // Focus input on mount
   useEffect(() => {
-    if (phase === 'chat' && !loading) inputRef.current?.focus();
-  }, [phase, loading]);
+    if (!loading) inputRef.current?.focus();
+  }, [loading]);
 
-  // ─── Phase 1: toggle priority card ───
-  const toggleCard = (id: Priority) => {
-    setSelected(prev => {
-      if (prev.includes(id)) return prev.filter(p => p !== id);
-      if (prev.length >= MAX_PICKS) return prev;
-      return [...prev, id];
-    });
-  };
+  // Reset welcome message when language changes
+  useEffect(() => {
+    setMessages([{ role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] }]);
+  }, [lang]);
 
-  // ─── Transition to Phase 2 ───
-  const startChat = useCallback(async () => {
-    setPhase('chat');
-    setLoading(true);
-    setError(null);
-    trackEvent('advisor_started', { priorities: selected.join(',') });
-
-    try {
-      const { reply, planIds } = await startAdvisorChat(selected, lang);
-      setMessages([
-        { role: 'user', text: lang === 'ar' ? 'مرحبا! ابي تساعدني ألقى أفضل باقة جوال تناسبني.' : 'Hi! Help me find the best mobile plan for my needs.', planIds: [] },
-        { role: 'assistant', text: reply, planIds },
-      ]);
-    } catch (e) {
-      console.error('Advisor error:', e);
-      setError(lang === 'ar' ? 'حصل خطأ، جرب مرة ثانية.' : 'Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }, [selected, lang]);
-
-  // ─── Send a follow-up message ───
+  // Send a message
   const send = useCallback(async () => {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
@@ -103,127 +57,37 @@ export default function AdvisorPage() {
     setLoading(true);
     setError(null);
 
+    // Track first message differently
+    const isFirst = messages.length === 1;
+    if (isFirst) {
+      trackEvent('advisor_started');
+    } else {
+      trackEvent('advisor_message_sent');
+    }
+
     try {
       const { reply, planIds } = await sendAdvisorMessage(
-        selected,
         lang,
         [...messages, userMsg],
         trimmed,
       );
       setMessages(prev => [...prev, { role: 'assistant', text: reply, planIds }]);
-      trackEvent('advisor_message_sent');
     } catch (e) {
       console.error('Advisor error:', e);
       setError(lang === 'ar' ? 'حصل خطأ، جرب مرة ثانية.' : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [input, loading, selected, lang, messages]);
+  }, [input, loading, lang, messages]);
 
   const restart = () => {
     trackEvent('advisor_restarted');
-    setPhase('cards');
-    setSelected([]);
-    setMessages([]);
+    setMessages([{ role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] }]);
     setInput('');
     setError(null);
     setLoading(false);
   };
 
-  // ══════════════════════════════════════════
-  // Phase 1: Priority Card Selection
-  // ══════════════════════════════════════════
-  if (phase === 'cards') {
-    return (
-      <div className="relative z-10 flex flex-col min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] hero-gradient grain overflow-hidden">
-        <WaveLines />
-        <div className="absolute top-20 end-10 w-32 h-32 rounded-full bg-white/5 blob animate-float" />
-        <div className="absolute bottom-20 start-10 w-24 h-24 rounded-full bg-accent/8 blob-alt animate-float" style={{ animationDelay: '2s' }} />
-
-        {/* Scrollable content */}
-        <div className="relative z-10 flex-1 overflow-y-auto pt-8 pb-4 md:pt-16 md:pb-8">
-          <div className="max-w-2xl w-full mx-auto px-5">
-            {/* Header */}
-            <div className="text-center mb-6 md:mb-8 animate-fade-up">
-              <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-lg shadow-black/5 flex items-center justify-center mx-auto mb-4">
-                <Compass size={24} className="text-white md:hidden" />
-                <Compass size={34} className="text-white hidden md:block" />
-              </div>
-              <h1 className="font-heading font-normal text-xl md:text-4xl text-white mb-2 tracking-tight">
-                {t('advisor.cardTitle')}
-              </h1>
-              <p className="text-white/65 text-xs md:text-base max-w-sm mx-auto leading-relaxed">
-                {t('advisor.cardSubtitle')}
-              </p>
-            </div>
-
-            {/* Cards grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 md:gap-3 animate-fade-up delay-1">
-              {PRIORITY_CARDS.map(card => {
-                const Icon = card.icon;
-                const isSelected = selected.includes(card.id);
-                const isDisabled = !isSelected && selected.length >= MAX_PICKS;
-                return (
-                  <button
-                    key={card.id}
-                    onClick={() => toggleCard(card.id)}
-                    disabled={isDisabled}
-                    className={`relative text-start p-3 md:p-4 rounded-xl md:rounded-2xl border-2 transition-all duration-200 group cursor-pointer
-                      ${isSelected
-                        ? 'border-white bg-white/20 shadow-lg shadow-white/10'
-                        : isDisabled
-                          ? 'border-white/10 bg-white/5 opacity-40 cursor-not-allowed'
-                          : 'border-white/15 bg-white/8 backdrop-blur-sm hover:border-white/30 hover:bg-white/15'
-                      }`}
-                  >
-                    {/* Selection indicator */}
-                    {isSelected && (
-                      <div className="absolute top-2 end-2 w-5 h-5 rounded-full bg-white flex items-center justify-center">
-                        <span className="text-[#213E53] text-xs font-bold">{selected.indexOf(card.id) + 1}</span>
-                      </div>
-                    )}
-                    <div className={`w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center mb-2 transition-all
-                      ${isSelected ? 'bg-white text-[#213E53]' : 'bg-white/15 text-white group-hover:bg-white/25'}`}>
-                      <Icon size={18} />
-                    </div>
-                    <p className={`font-heading font-bold text-xs md:text-sm leading-tight ${isSelected ? 'text-white' : 'text-white/90'}`}>
-                      {lang === 'ar' ? card.labelAr : card.labelEn}
-                    </p>
-                    <p className="text-[10px] md:text-xs text-white/50 mt-0.5 leading-tight">
-                      {lang === 'ar' ? card.descAr : card.descEn}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Fixed bottom CTA */}
-        <div className="relative z-10 shrink-0 px-5 pb-5 pt-3 md:pb-8" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
-          <div className="max-w-2xl mx-auto text-center">
-            <p className="text-white/60 text-xs mb-3">
-              {selected.length}/{MAX_PICKS} {t('advisor.selected')}
-            </p>
-            <Button
-              onClick={startChat}
-              disabled={selected.length === 0}
-              size="lg"
-              className="w-full max-w-xs mx-auto rounded-xl text-sm font-bold shadow-lg shadow-black/10 bg-white text-[#213E53] hover:bg-white/90 glow-primary disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Sparkles size={16} />
-              {t('advisor.startChat')}
-              {lang === 'ar' ? <ArrowLeft size={16} /> : <ArrowRight size={16} />}
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // Phase 2: AI Chat
-  // ══════════════════════════════════════════
   return (
     <div className="relative z-10 min-h-dvh flex flex-col safe-pb">
       {/* Header */}
@@ -260,7 +124,7 @@ export default function AdvisorPage() {
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 space-y-4">
-          {messages.slice(1).map((msg, i) => (
+          {messages.map((msg, i) => (
             <div key={i}>
               {/* Message bubble */}
               <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
