@@ -179,6 +179,11 @@ router.post("/:id/comments", requireAuth, async (req, res) => {
       return;
     }
 
+    if (typeof text !== "string" || text.trim().length > 500) {
+      res.status(400).json({ error: "Comment text must be under 500 characters" });
+      return;
+    }
+
     const commentData = {
       userId: uid!,
       userName: userName ?? "Anonymous",

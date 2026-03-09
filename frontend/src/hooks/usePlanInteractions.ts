@@ -27,7 +27,7 @@ export function usePlanInteractions(planId: number | undefined) {
           setComments(c);
         }
       })
-      .catch(() => {})
+      .catch((err) => { console.error("Failed to load plan interactions:", err); })
       .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
@@ -88,7 +88,7 @@ export function usePlanInteractions(planId: number | undefined) {
       const comment = await fbAddComment(planId, user, text);
       setComments(prev => [comment, ...prev]);
       trackEvent('comment_added', { plan_id: planId });
-    } catch { /* silently fail */ }
+    } catch (err) { console.error("Failed to add comment:", err); }
   }, [user, planId]);
 
   const removeComment = useCallback(async (commentId: string) => {

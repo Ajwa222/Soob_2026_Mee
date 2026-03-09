@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const userDoc = await getDoc(doc(db, 'users', uid));
           if (userDoc.exists()) {
-            phone = (userDoc.data().phone as string) || null;
+            phone = (userDoc.data()?.phone as string) || null;
           }
         } catch (err) {
           if (import.meta.env.DEV) console.warn('Firestore read failed:', err);
