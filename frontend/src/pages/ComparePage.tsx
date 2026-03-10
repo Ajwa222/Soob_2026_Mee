@@ -6,6 +6,7 @@ import { useCompare } from '../context/CompareContext';
 import { useLang } from '../context/LanguageContext';
 import CompareOverlay from '../components/CompareOverlay';
 import { Button } from '@/components/ui/button';
+import { trackEvent } from '../lib/analytics';
 
 export default function ComparePage() {
   const [searchParams] = useSearchParams();
@@ -27,6 +28,10 @@ export default function ComparePage() {
     if (matched.length >= 2) {
       loadPlans(matched);
       setShowOverlay(true);
+      trackEvent('compare_shared_link_opened', {
+        plan_count: matched.length,
+        plan_ids: matched.map(p => p.id),
+      });
     }
   }, [searchParams, plans, loadPlans, setShowOverlay]);
 

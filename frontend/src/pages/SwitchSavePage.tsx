@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, TrendingDown, Sparkles, BadgeCheck } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
@@ -47,13 +47,22 @@ export default function SwitchSavePage() {
   const maxSaving = results.length > 0 ? Math.round((currentPrice - results[0].priceSAR) * 100) / 100 : 0;
   const yearlySaving = Math.round(maxSaving * 12 * 100) / 100;
 
+  // Track results after they render
+  useEffect(() => {
+    if (!showResults) return;
+    trackEvent('switch_save_results_viewed', {
+      results_count: results.length,
+      max_saving: maxSaving,
+      yearly_saving: yearlySaving,
+    });
+  }, [showResults, results.length, maxSaving, yearlySaving]);
+
   const handleCalculate = () => {
     setShowResults(true);
     trackEvent('switch_save_calculated', {
       current_price: currentPrice,
       current_data: currentData,
       current_mins: currentMins,
-      results_count: results.length,
     });
   };
 
@@ -197,8 +206,8 @@ export default function SwitchSavePage() {
                     {isAr ? `${results.length} باقات أوفر` : `${results.length} cheaper plan${results.length > 1 ? 's' : ''} found`}
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {results.map(plan => (
-                      <div key={plan.id} className="relative">
+                    {results.map((plan, idx) => (
+                      <div key={plan.id} className="relative" onClick={() => trackEvent('switch_save_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, saving: Math.round((currentPrice - plan.priceSAR) * 100) / 100, position: idx + 1 })}>
                         <div className="absolute -top-2.5 start-3 z-10 bg-success text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                           -{Math.round((currentPrice - plan.priceSAR) * 100) / 100} SAR
                         </div>

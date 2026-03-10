@@ -456,7 +456,7 @@ export default function PlansPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setFiveGFilter(prev => !prev)}
+          onClick={() => { setFiveGFilter(prev => { trackEvent('filter_applied', { filter: '5g', active: !prev }); return !prev; }); }}
           className={`rounded-xl text-sm font-semibold
             ${fiveGFilter
               ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'

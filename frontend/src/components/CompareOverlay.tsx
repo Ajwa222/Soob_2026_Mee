@@ -7,6 +7,7 @@ import { useLang } from '../context/LanguageContext';
 import SarSymbol from './SarSymbol';
 import { useCompare } from '../context/CompareContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
+import { trackEvent } from '../lib/analytics';
 import { Link } from 'react-router-dom';
 import type { Plan } from '../types';
 
@@ -59,6 +60,10 @@ export default function CompareOverlay() {
 
   const handleShare = async () => {
     const url = getShareUrl();
+    trackEvent('compare_shared', {
+      plan_count: selectedPlans.length,
+      plan_ids: selectedPlans.map(p => p.id),
+    });
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -160,7 +165,7 @@ export default function CompareOverlay() {
         <div className="shrink-0 border-t border-border p-3 flex gap-2">
           {selectedPlans.map((plan) => (
             <Button key={plan.id} className="flex-1" asChild>
-              <Link to={`/plan/${plan.id}`} onClick={() => setShowOverlay(false)}>
+              <Link to={`/plan/${plan.id}`} onClick={() => { trackEvent('compare_view_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider }); setShowOverlay(false); }}>
                 {t('compare.viewPlan')}
                 <ChevronRight size={14} className="rtl:rotate-180" />
               </Link>
