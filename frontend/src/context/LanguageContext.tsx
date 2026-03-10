@@ -220,6 +220,10 @@ const translations: Record<string, Record<string, unknown>> = {
       inputPlaceholder: "Ask about plans, budget, carriers...",
       disclaimer: "Simba Advisor may make mistakes. Always verify on the carrier's site.",
       welcomeMessage: "Hey! Let's find your perfect plan.",
+      choiceQuestion: "Do you already know what kind of plan you're looking for?",
+      choiceDescribe: "Yes, let me describe it",
+      choiceGuide: "Help me choose",
+      describePrompt: "Great! Describe what you need and I'll find the best plans for you.",
     },
     finderModal: {
       title: "Not sure what you need?",
@@ -746,6 +750,10 @@ const translations: Record<string, Record<string, unknown>> = {
       inputPlaceholder: "اسأل عن الباقات، الميزانية، الشركات...",
       disclaimer: "مستشار سيمبا ممكن يخطئ. تأكد دايم من موقع الشركة.",
       welcomeMessage: "هلا! خلنا نلقاك الباقة المثالية.",
+      choiceQuestion: "تعرف وش نوع الباقة اللي تبيها؟",
+      choiceDescribe: "أي، خلني أوصفها",
+      choiceGuide: "ساعدني أختار",
+      describePrompt: "تمام! وصف لي وش تحتاج وأنا ألقاك أفضل الباقات.",
     },
     finderModal: {
       title: "مو متأكد وش تبي؟",
