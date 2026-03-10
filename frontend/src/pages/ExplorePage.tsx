@@ -8,6 +8,7 @@ import {
 import { useLang } from '../context/LanguageContext';
 import { CARRIERS } from '../data/plans';
 import { usePlans } from '../context/PlansContext';
+import { trackEvent } from '../lib/analytics';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
@@ -521,7 +522,11 @@ export default function ExplorePage() {
                   return (
                     <button
                       key={cat.key}
-                      onClick={() => setActiveCategory(prev => prev === cat.key ? null : cat.key)}
+                      onClick={() => {
+                        const next = activeCategory === cat.key ? null : cat.key;
+                        if (next) trackEvent('category_selected', { category: next });
+                        setActiveCategory(next);
+                      }}
                       className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap
                         transition-all duration-200 shrink-0
                         ${isActive

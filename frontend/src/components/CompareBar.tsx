@@ -78,7 +78,7 @@ export default function CompareBar() {
               <Button
                 onClick={() => {
                   if (selectedPlans.length >= 2) {
-                    trackEvent('compare_overlay_opened', { plan_count: selectedPlans.length });
+                    trackEvent('compare_overlay_opened', { plan_count: selectedPlans.length, plan_ids: selectedPlans.map(p => p.id) });
                     setShowOverlay(true);
                   }
                 }}
