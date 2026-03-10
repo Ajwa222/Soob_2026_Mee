@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Send, RotateCcw, Loader2,
-  Bot, X,
+  Bot, X, MessageSquareText, HelpCircle,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext';
@@ -70,14 +70,11 @@ export default function AdvisorPage() {
   const [, setSearchParams] = useSearchParams();
   const { plans } = usePlans();
 
-  // Quiz state: which step we're on (0-3), or null if quiz is done
-  const [quizStep, setQuizStep] = useState<number | null>(0);
+  // Flow state: 'choice' = initial card picker, number = quiz step, null = quiz done / free chat
+  const [quizStep, setQuizStep] = useState<number | 'choice' | null>('choice');
   const [quizAnswers, setQuizAnswers] = useState<string[]>([]);
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] },
-    { role: 'assistant', text: lang === 'ar' ? QUIZ_STEPS[0].questionAr : QUIZ_STEPS[0].questionEn, planIds: [] },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,6 +83,8 @@ export default function AdvisorPage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const quizDone = quizStep === null;
+  const inChoice = quizStep === 'choice';
+  const inQuiz = typeof quizStep === 'number';
 
   // Auto-scroll chat after every change
   const scrollChat = useCallback(() => {
@@ -105,17 +104,36 @@ export default function AdvisorPage() {
 
   // Reset when language changes
   useEffect(() => {
-    setQuizStep(0);
+    setQuizStep('choice');
     setQuizAnswers([]);
-    setMessages([
-      { role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] },
-      { role: 'assistant', text: lang === 'ar' ? QUIZ_STEPS[0].questionAr : QUIZ_STEPS[0].questionEn, planIds: [] },
-    ]);
+    setMessages([]);
   }, [lang]);
+
+  // Handle initial choice card tap
+  const handleChoice = useCallback((mode: 'describe' | 'guide') => {
+    if (quizStep !== 'choice') return;
+
+    if (mode === 'describe') {
+      setMessages([
+        { role: 'assistant', text: t('advisor.describePrompt'), planIds: [] },
+      ]);
+      setQuizStep(null);
+      setSearchParams({ chat: '1' }, { replace: true });
+      trackEvent('advisor_choice_selected', { choice: 'describe' });
+    } else {
+      const firstQ = lang === 'ar' ? QUIZ_STEPS[0].questionAr : QUIZ_STEPS[0].questionEn;
+      setMessages([
+        { role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] },
+        { role: 'assistant', text: firstQ, planIds: [] },
+      ]);
+      setQuizStep(0);
+      trackEvent('advisor_choice_selected', { choice: 'guide' });
+    }
+  }, [quizStep, lang, t, setSearchParams]);
 
   // Handle quiz option tap
   const handleQuizOption = useCallback(async (option: QuizStep['options'][number]) => {
-    if (quizStep === null || loading) return;
+    if (typeof quizStep !== 'number' || loading) return;
 
     const userText = lang === 'ar' ? option.valueAr : option.valueEn;
     const userLabel = lang === 'ar' ? option.labelAr : option.labelEn;
@@ -200,15 +218,13 @@ export default function AdvisorPage() {
 
   const restart = () => {
     trackEvent('advisor_restarted');
-    setQuizStep(0);
+    setQuizStep('choice');
     setQuizAnswers([]);
-    setMessages([
-      { role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] },
-      { role: 'assistant', text: lang === 'ar' ? QUIZ_STEPS[0].questionAr : QUIZ_STEPS[0].questionEn, planIds: [] },
-    ]);
+    setMessages([]);
     setInput('');
     setError(null);
     setLoading(false);
+    setSearchParams({}, { replace: true });
   };
 
   // Determine which message index is the current quiz question (last assistant message)
@@ -219,6 +235,76 @@ export default function AdvisorPage() {
     return -1;
   })();
 
+  // ─── Choice screen (before chat) ───
+  if (inChoice) {
+    return (
+      <div className="relative z-10 h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)] flex flex-col">
+        <section className="shrink-0 relative overflow-hidden hero-gradient grain">
+          <WaveLines />
+          <div className="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-3 md:pt-6 md:pb-4 relative z-[2]">
+            <div className="flex items-center gap-2.5 animate-fade-up">
+              <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
+                <Bot size={18} className="text-white" />
+              </div>
+              <div>
+                <h1 className="font-heading font-normal text-lg md:text-xl text-black tracking-tight">
+                  {t('advisor.chatTitle')}
+                </h1>
+                <p className="text-black/50 text-[11px] md:text-xs">
+                  {t('advisor.chatSubtitle')}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="flex-1 flex items-center justify-center bg-background px-4">
+          <div className="max-w-md w-full space-y-6 animate-fade-up">
+            <div className="text-center space-y-2">
+              <h2 className="font-heading text-xl md:text-2xl font-medium text-foreground">
+                {t('advisor.choiceQuestion')}
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                {t('advisor.welcomeMessage')}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              {/* Card: I know what I want */}
+              <button
+                onClick={() => handleChoice('describe')}
+                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
+                  <MessageSquareText size={24} className="text-primary" />
+                </div>
+                <span className="font-medium text-sm text-foreground">{t('advisor.choiceDescribe')}</span>
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  {lang === 'ar' ? 'وصف لي وش تبي وأنا ألقاك النتائج مباشرة' : 'Describe what you need and get results right away'}
+                </span>
+              </button>
+
+              {/* Card: Help me choose */}
+              <button
+                onClick={() => handleChoice('guide')}
+                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
+                  <HelpCircle size={24} className="text-primary" />
+                </div>
+                <span className="font-medium text-sm text-foreground">{t('advisor.choiceGuide')}</span>
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  {lang === 'ar' ? 'أجاوب على أسئلة بسيطة وألقاك الباقة المناسبة' : "Answer a few quick questions and I'll find the right plan"}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Chat screen (quiz + free chat) ───
   return (
     <div className="relative z-10 h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)] flex flex-col">
       {/* Header */}
@@ -263,9 +349,9 @@ export default function AdvisorPage() {
 
               {/* Plan cards for assistant messages */}
               {msg.role === 'assistant' && msg.planIds && msg.planIds.length > 0 && (
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="mt-3 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-x-visible sm:pb-0">
                   {getPlansById(plans, msg.planIds).map((plan, idx) => (
-                    <div key={plan.id} onClick={() => trackEvent('advisor_plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, position: idx + 1 })}>
+                    <div key={plan.id} className="min-w-[75vw] snap-start sm:min-w-0" onClick={() => trackEvent('advisor_plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, position: idx + 1 })}>
                       <ConnectedPlanCard plan={plan} />
                     </div>
                   ))}
@@ -273,9 +359,9 @@ export default function AdvisorPage() {
               )}
 
               {/* Quiz option chips — show on the last assistant message during quiz */}
-              {!quizDone && quizStep !== null && i === lastAssistantIdx && !loading && (
+              {inQuiz && i === lastAssistantIdx && !loading && (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {QUIZ_STEPS[quizStep].options.map(option => (
+                  {QUIZ_STEPS[quizStep as number].options.map((option: QuizStep['options'][number]) => (
                     <button
                       key={option.labelEn}
                       onClick={() => handleQuizOption(option)}
