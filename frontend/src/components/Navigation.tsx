@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Smartphone, Search, Sun, Moon } from 'lucide-react';
+import { Home, Smartphone, Search, User, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -53,12 +53,14 @@ export default function Navigation() {
     { path: '/home', label: t('nav.home') },
     { path: '/plans', label: t('nav.plans') },
     { path: '/advisor', label: t('nav.finder') },
+    { path: '/profile', label: t('nav.profile') },
   ];
 
   const mobileNavItems = [
     { path: '/home', label: t('nav.home'), icon: Home },
     { path: '/plans', label: t('nav.plans'), icon: Smartphone },
     { path: '/advisor', label: t('nav.finder'), icon: Search },
+    { path: '/profile', label: t('nav.profile'), icon: User },
     { path: WHATSAPP_GROUP_LINK, label: t('nav.support'), icon: WhatsAppIcon, external: true },
   ];
 

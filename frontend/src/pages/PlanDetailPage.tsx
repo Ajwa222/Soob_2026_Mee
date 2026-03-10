@@ -3,13 +3,14 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ChevronRight, ChevronLeft, ExternalLink, Plus, Check,
   Wifi, Phone, MessageSquare, Globe2, Share2, Clock,
-  Zap, ArrowLeft, ArrowRight, Plane,
+  Zap, ArrowLeft, ArrowRight, Plane, Bookmark,
   ThumbsUp, ThumbsDown, Send, Trash2, MessageCircle, LogIn,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import SarSymbol from '../components/SarSymbol';
 import { useCompare } from '../context/CompareContext';
+import { useBookmarks } from '../context/BookmarkContext';
 import { usePlanInteractions } from '../hooks/usePlanInteractions';
 import { getCarrierLogo, isValidValue } from '../data/plans';
 import { usePlans } from '../context/PlansContext';
@@ -47,6 +48,7 @@ export default function PlanDetailPage() {
   const { id } = useParams();
   const { t, lang } = useLang();
   const { togglePlan, isSelected } = useCompare();
+  const { requestBookmark, isBookmarked } = useBookmarks();
   const { user, isLoggedIn, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [commentText, setCommentText] = useState('');
@@ -154,9 +156,18 @@ export default function PlanDetailPage() {
           </div>
 
           {/* Plan name */}
-          <h1 className="font-heading font-bold text-2xl md:text-3xl text-foreground mt-3 leading-tight">
-            {plan.planName}
-          </h1>
+          <div className="flex items-start justify-between gap-3 mt-3">
+            <h1 className="font-heading font-bold text-2xl md:text-3xl text-foreground leading-tight">
+              {plan.planName}
+            </h1>
+            <button
+              onClick={() => { if (!requestBookmark(plan.id)) navigate('/profile'); }}
+              className={`p-2 rounded-xl transition-colors shrink-0 ${isBookmarked(plan.id) ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
+              aria-label={isBookmarked(plan.id) ? t('bookmark.remove') : t('bookmark.add')}
+            >
+              <Bookmark size={22} fill={isBookmarked(plan.id) ? 'currentColor' : 'none'} />
+            </button>
+          </div>
 
           {/* Price */}
           <div className="mt-4 flex items-baseline gap-1.5">

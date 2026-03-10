@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { trackPageView } from './lib/analytics';
 import { LanguageProvider, useLang } from './context/LanguageContext';
 import { CompareProvider } from './context/CompareContext';
+import { BookmarkProvider } from './context/BookmarkContext';
 import { AuthProvider } from './context/AuthContext';
 import { PlansProvider } from './context/PlansContext';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -59,6 +60,7 @@ function App() {
         <AuthProvider>
       <AnalyticsTracker />
         <PlansProvider>
+        <BookmarkProvider>
         <CompareProvider>
           <div className="relative min-h-screen flex flex-col bg-background">
             <Navigation />
@@ -86,6 +88,7 @@ function App() {
           <Onboarding />
           <PhoneGate />
         </CompareProvider>
+        </BookmarkProvider>
         </PlansProvider>
         </AuthProvider>
         </LanguageProvider>
