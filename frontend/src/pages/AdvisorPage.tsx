@@ -125,7 +125,7 @@ export default function AdvisorPage() {
     setMessages(prev => [...prev, { role: 'user', text: userLabel }]);
     setQuizAnswers(newAnswers);
 
-    trackEvent('advisor_quiz_answered', { step: quizStep, answer: option.labelEn });
+    trackEvent('advisor_quiz_answered', { step: quizStep, step_name: QUIZ_STEPS[quizStep].questionEn, answer: option.labelEn });
 
     const nextStep = quizStep + 1;
 
@@ -264,8 +264,10 @@ export default function AdvisorPage() {
               {/* Plan cards for assistant messages */}
               {msg.role === 'assistant' && msg.planIds && msg.planIds.length > 0 && (
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {getPlansById(plans, msg.planIds).map(plan => (
-                    <ConnectedPlanCard key={plan.id} plan={plan} />
+                  {getPlansById(plans, msg.planIds).map((plan, idx) => (
+                    <div key={plan.id} onClick={() => trackEvent('advisor_plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, position: idx + 1 })}>
+                      <ConnectedPlanCard plan={plan} />
+                    </div>
                   ))}
                 </div>
               )}
