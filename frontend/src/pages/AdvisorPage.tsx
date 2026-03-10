@@ -1,9 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Send, RotateCcw, Loader2,
-  Bot, X, MessageSquareText, HelpCircle,
+  Bot, X, MessageSquareText, HelpCircle, History,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
 import { trackEvent } from '../lib/analytics';
@@ -85,6 +88,7 @@ export default function AdvisorPage() {
   const navigate = useNavigate();
   const [, setSearchParams] = useSearchParams();
   const { plans } = usePlans();
+  const { user } = useAuth();
 
   // Flow state: 'choice' = initial card picker, number = quiz step, null = quiz done / free chat
   const [quizStep, setQuizStep] = useState<number | 'choice' | null>('choice');
@@ -94,14 +98,63 @@ export default function AdvisorPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasSavedConvo, setHasSavedConvo] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const searchStatus = useSearchStatus(loading, t);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const quizDone = quizStep === null;
   const inChoice = quizStep === 'choice';
   const inQuiz = typeof quizStep === 'number';
+
+  // Check for saved conversation on mount (logged-in users only)
+  useEffect(() => {
+    if (!user?.uid || quizStep !== 'choice') return;
+    getDoc(doc(db, 'users', user.uid, 'advisor', 'lastConversation'))
+      .then(snap => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data?.messages?.length > 0) setHasSavedConvo(true);
+        }
+      })
+      .catch(() => {});
+  }, [user?.uid, quizStep]);
+
+  // Save conversation to Firestore (debounced, only when quiz is done)
+  useEffect(() => {
+    if (!user?.uid || !quizDone || messages.length === 0) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      setDoc(
+        doc(db, 'users', user.uid, 'advisor', 'lastConversation'),
+        { messages, updatedAt: Date.now(), lang },
+        { merge: true },
+      ).catch(() => {});
+    }, 2000);
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+  }, [messages, user?.uid, quizDone, lang]);
+
+  // Resume a saved conversation
+  const resumeConversation = useCallback(async () => {
+    if (!user?.uid) return;
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid, 'advisor', 'lastConversation'));
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data?.messages?.length > 0) {
+          setMessages(data.messages as ChatMessage[]);
+          setQuizStep(null);
+          setSearchParams({ chat: '1' }, { replace: true });
+          trackEvent('advisor_conversation_resumed');
+        }
+      }
+    } catch {
+      // Silently fail — just show the choice screen
+    }
+    setHasSavedConvo(false);
+  }, [user?.uid, setSearchParams]);
 
   // Auto-scroll chat after every change
   const scrollChat = useCallback(() => {
@@ -241,6 +294,7 @@ export default function AdvisorPage() {
     setInput('');
     setError(null);
     setLoading(false);
+    setHasSavedConvo(false);
     setSearchParams({}, { replace: true });
   };
 
@@ -315,6 +369,17 @@ export default function AdvisorPage() {
                 </span>
               </button>
             </div>
+
+            {/* Resume previous conversation */}
+            {hasSavedConvo && (
+              <button
+                onClick={resumeConversation}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border bg-muted/50 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+              >
+                <History size={16} />
+                {lang === 'ar' ? 'متابعة المحادثة السابقة' : 'Continue previous conversation'}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -405,7 +470,7 @@ export default function AdvisorPage() {
           {/* Error */}
           {error && (
             <div className="flex justify-center">
-              <div className="bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl px-4 py-2.5 text-xs font-medium">
+              <div className="bg-red-500/10 text-red-600 rounded-xl px-4 py-2.5 text-xs font-medium">
                 {error}
               </div>
             </div>

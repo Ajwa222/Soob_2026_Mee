@@ -186,6 +186,7 @@ export default function ExplorePage() {
   const [localCallsFilter, setLocalCallsFilter] = useState('any');
   const [intlCallsFilter, setIntlCallsFilter] = useState<string | null>(null);
   const [socialFilter, setSocialFilter] = useState<string | null>(null);
+  const [fiveGFilter, setFiveGFilter] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -206,12 +207,13 @@ export default function ExplorePage() {
     setLocalCallsFilter('any');
     setIntlCallsFilter(null);
     setSocialFilter(null);
+    setFiveGFilter(false);
     setActiveCategory(null);
   }, []);
 
   const hasActiveFilters = search || selectedCarriers.length > 0 || selectedTypes.length > 0 ||
     priceRange[0] > 0 || priceRange[1] < PRICE_MAX ||
-    dataFilter !== 'any' || localCallsFilter !== 'any' || intlCallsFilter !== null || socialFilter !== null || activeCategory !== null;
+    dataFilter !== 'any' || localCallsFilter !== 'any' || intlCallsFilter !== null || socialFilter !== null || fiveGFilter || activeCategory !== null;
 
   const dataOptions = [
     { key: 'any', label: t('browse.anyData') },
@@ -285,6 +287,11 @@ export default function ExplorePage() {
       base = base.filter(p => !p.socialMediaData || p.socialMediaData === '-' || p.socialMediaData === '' || p.socialMediaData === '1');
     }
 
+    // 5G filter
+    if (fiveGFilter) {
+      base = base.filter(p => p.specialFeatures?.toLowerCase().includes('5g'));
+    }
+
     // Sort all by cheapest first
     base.sort((a, b) => a.priceSAR - b.priceSAR);
 
@@ -292,7 +299,7 @@ export default function ExplorePage() {
       const plans = base.filter(cat.filter).slice(0, MAX_PLANS_PER_CATEGORY);
       return { ...cat, plans };
     });
-  }, [PLANS_DATA, search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter]);
+  }, [PLANS_DATA, search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, fiveGFilter]);
 
   const visibleCategories = activeCategory
     ? categoryData.filter(c => c.key === activeCategory)
@@ -474,6 +481,25 @@ export default function ExplorePage() {
           ))}
         </div>
       </div>
+
+      {/* 5G filter */}
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+          {t('browse.network')}
+        </p>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setFiveGFilter(prev => !prev)}
+          className={`rounded-lg text-xs font-semibold
+            ${fiveGFilter
+              ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+        >
+          5G
+        </Button>
+      </div>
     </>
   );
 
@@ -496,19 +522,19 @@ export default function ExplorePage() {
           <div className="flex items-start gap-3 mt-4">
             <div className="flex-1 min-w-0">
               <div className="relative">
-                <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-[#213E53]/50 z-10" />
+                <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-foreground/50 z-10" />
                 <Input
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder={t('browse.searchPlaceholder')}
-                  className="w-full ps-11 pe-4 py-3 h-auto rounded-xl bg-white border-white/80 text-sm text-[#213E53]
-                    placeholder:text-[#213E53]/40 focus-visible:ring-white/50 focus-visible:border-white shadow-sm"
+                  className="w-full ps-11 pe-4 py-3 h-auto rounded-xl bg-white border-white/80 text-sm text-foreground
+                    placeholder:text-foreground/40 focus-visible:ring-white/50 focus-visible:border-white shadow-sm"
                 />
                 {search && (
                   <button
                     onClick={() => setSearch('')}
-                    className="absolute top-1/2 -translate-y-1/2 end-3 text-[#213E53]/50 hover:text-[#213E53]/80 transition-colors"
+                    className="absolute top-1/2 -translate-y-1/2 end-3 text-foreground/50 hover:text-foreground/80 transition-colors"
                   >
                     <X size={16} />
                   </button>
@@ -530,7 +556,7 @@ export default function ExplorePage() {
                       className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap
                         transition-all duration-200 shrink-0
                         ${isActive
-                          ? 'bg-white text-[#213E53] shadow-sm'
+                          ? 'bg-white text-foreground shadow-sm'
                           : 'bg-white/15 text-white/80 hover:bg-white/25'
                         }`}
                     >
@@ -545,7 +571,7 @@ export default function ExplorePage() {
               variant="ghost"
               onClick={() => setShowMobileFilters(true)}
               className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 h-auto rounded-xl bg-white border border-white/80
-                text-sm font-semibold text-[#213E53] hover:border-white hover:bg-white/90 shadow-sm shrink-0"
+                text-sm font-semibold text-foreground hover:border-white hover:bg-white/90 shadow-sm shrink-0"
             >
               <SlidersHorizontal size={16} />
               {t('browse.filters')}
@@ -578,7 +604,7 @@ export default function ExplorePage() {
                     </Button>
                   )}
                 </div>
-                <div className="max-h-[calc(100vh-8rem)] overflow-y-auto space-y-4 pe-2" style={{ scrollbarWidth: 'thin' }}>
+                <div className="max-h-[calc(100vh-8rem)] overflow-y-auto space-y-4 pe-2 pb-8" style={{ scrollbarWidth: 'thin' }}>
                   {filterContent}
                 </div>
               </div>
@@ -640,6 +666,12 @@ export default function ExplorePage() {
                     <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                       {t('explore.needSocial')} {socialFilter === 'yes' ? t('explore.yes') : t('explore.no')}
                       <button onClick={() => setSocialFilter(null)}><X size={12} /></button>
+                    </Badge>
+                  )}
+                  {fiveGFilter && (
+                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
+                      5G
+                      <button onClick={() => setFiveGFilter(false)}><X size={12} /></button>
                     </Badge>
                   )}
                 </div>

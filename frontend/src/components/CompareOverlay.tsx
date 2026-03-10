@@ -1,4 +1,5 @@
-import { ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronRight, Share2, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -53,13 +54,39 @@ function getBest(plans: Plan[], attr: Attr): number[] {
 
 export default function CompareOverlay() {
   const { lang, t } = useLang();
-  const { selectedPlans, setShowOverlay, removePlan } = useCompare();
+  const { selectedPlans, setShowOverlay, removePlan, getShareUrl } = useCompare();
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const url = getShareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      window.prompt(lang === 'ar' ? 'انسخ الرابط:' : 'Copy this link:', url);
+    }
+  };
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) setShowOverlay(false); }}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-5 py-4 border-b border-border shrink-0">
-          <DialogTitle>{t('compare.title')}</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>{t('compare.title')}</DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleShare}
+              className="rounded-xl gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+            >
+              {copied ? <Check size={14} className="text-success" /> : <Share2 size={14} />}
+              {copied
+                ? (lang === 'ar' ? 'تم النسخ!' : 'Copied!')
+                : (lang === 'ar' ? 'شارك' : 'Share')}
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto">

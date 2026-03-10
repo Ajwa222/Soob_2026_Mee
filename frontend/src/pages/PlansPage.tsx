@@ -58,6 +58,7 @@ export default function PlansPage() {
   const [localCallsFilter, setLocalCallsFilter] = useState('any'); // 'any' | '100' | '300' | '500' | 'unlimited'
   const [intlCallsFilter, setIntlCallsFilter] = useState('any'); // 'any' | 'has'
   const [socialFilter, setSocialFilter] = useState('any'); // 'any' | 'has' | 'unlimited'
+  const [fiveGFilter, setFiveGFilter] = useState(false);
   const [sortBy, setSortBy] = useState('bestValue');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,12 +89,13 @@ export default function PlansPage() {
     setLocalCallsFilter('any');
     setIntlCallsFilter('any');
     setSocialFilter('any');
+    setFiveGFilter(false);
     setSortBy('bestValue');
   }, []);
 
   const hasActiveFilters = search || selectedCarriers.length > 0 || selectedTypes.length > 0 ||
     priceRange[0] > 0 || priceRange[1] < PRICE_MAX || dataFilter !== 'any' ||
-    localCallsFilter !== 'any' || intlCallsFilter !== 'any' || socialFilter !== 'any';
+    localCallsFilter !== 'any' || intlCallsFilter !== 'any' || socialFilter !== 'any' || fiveGFilter;
 
   /* ---- filter + sort logic ---- */
   const filteredPlans = useMemo(() => {
@@ -160,6 +162,11 @@ export default function PlansPage() {
       plans = plans.filter(p => p.socialMediaData && (p.socialMediaData === 'Unlimited' || p.socialMediaData.toLowerCase().includes('unlimited')));
     }
 
+    // 5G filter
+    if (fiveGFilter) {
+      plans = plans.filter(p => p.specialFeatures?.toLowerCase().includes('5g'));
+    }
+
     // Sort
     switch (sortBy) {
       case 'bestValue':
@@ -192,12 +199,12 @@ export default function PlansPage() {
     }
 
     return plans;
-  }, [PLANS_DATA, search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, sortBy]);
+  }, [PLANS_DATA, search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, fiveGFilter, sortBy]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, sortBy]);
+  }, [search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, fiveGFilter, sortBy]);
 
   // Track search queries (debounced)
   useEffect(() => {
@@ -440,6 +447,25 @@ export default function PlansPage() {
           })}
         </div>
       </div>
+
+      {/* 5G filter */}
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+          {t('browse.network')}
+        </p>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setFiveGFilter(prev => !prev)}
+          className={`rounded-xl text-sm font-semibold
+            ${fiveGFilter
+              ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+        >
+          5G
+        </Button>
+      </div>
     </>
   );
 
@@ -466,19 +492,19 @@ export default function PlansPage() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6">
             {/* Search */}
             <div className="relative flex-1">
-              <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-[#213E53]/50 z-10" />
+              <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-foreground/50 z-10" />
               <Input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={t('browse.searchPlaceholder')}
-                className="w-full ps-11 pe-4 py-3 h-auto rounded-xl bg-white border-white/80 text-sm text-[#213E53]
-                  placeholder:text-[#213E53]/40 focus-visible:ring-white/50 focus-visible:border-white shadow-sm"
+                className="w-full ps-11 pe-4 py-3 h-auto rounded-xl bg-white border-white/80 text-sm text-foreground
+                  placeholder:text-foreground/40 focus-visible:ring-white/50 focus-visible:border-white shadow-sm"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute top-1/2 -translate-y-1/2 end-3 text-[#213E53]/50 hover:text-[#213E53]/80 transition-colors"
+                  className="absolute top-1/2 -translate-y-1/2 end-3 text-foreground/50 hover:text-foreground/80 transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -494,8 +520,8 @@ export default function PlansPage() {
               }}
             >
               <SelectTrigger className="rounded-xl bg-white border-white/80 text-sm font-semibold
-                text-[#213E53] hover:border-white w-full sm:w-[220px] h-auto py-3 shadow-sm">
-                <span className="text-[#213E53]/50 me-1">{t('browse.sortBy')}:</span>
+                text-foreground hover:border-white w-full sm:w-[220px] h-auto py-3 shadow-sm">
+                <span className="text-foreground/50 me-1">{t('browse.sortBy')}:</span>
                 <SelectValue>{t(activeSort.label)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -512,7 +538,7 @@ export default function PlansPage() {
               variant="ghost"
               onClick={() => setShowMobileFilters(true)}
               className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 h-auto rounded-xl bg-white border border-white/80
-                text-sm font-semibold text-[#213E53] hover:border-white hover:bg-white/90 shadow-sm"
+                text-sm font-semibold text-foreground hover:border-white hover:bg-white/90 shadow-sm"
             >
               <SlidersHorizontal size={16} />
               {t('browse.filters')}
@@ -635,6 +661,14 @@ export default function PlansPage() {
                   <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                     {socialOptions.find(o => o.key === socialFilter)?.label}
                     <button onClick={() => setSocialFilter('any')}>
+                      <X size={12} />
+                    </button>
+                  </Badge>
+                )}
+                {fiveGFilter && (
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
+                    5G
+                    <button onClick={() => setFiveGFilter(false)}>
                       <X size={12} />
                     </button>
                   </Badge>
