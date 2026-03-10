@@ -23,8 +23,6 @@ export default function CommunityBanner() {
   return (
     <>
       <div className="relative overflow-hidden rounded-2xl p-7 md:p-10 hero-gradient grain">
-        {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-black/20 z-[1]" />
         {/* Decorative blobs */}
         <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.05] -translate-y-1/3 translate-x-1/3 blob" />
         <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-accent/[0.08] translate-y-1/3 -translate-x-1/3 blob-alt" />
@@ -32,14 +30,14 @@ export default function CommunityBanner() {
 
         <div className="relative z-[2] flex flex-col md:flex-row md:items-center md:justify-between gap-5">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full glass text-white/90 text-[11px] font-semibold tracking-wide uppercase mb-3">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FFF0D0] text-black/70 text-[11px] font-semibold tracking-wide uppercase mb-3">
               <Users size={11} />
               {isArabic ? 'مجتمع سيمبا' : 'Community'}
             </div>
-            <h2 className="font-heading font-bold text-xl md:text-2xl text-white leading-tight">
+            <h2 className="font-heading font-bold text-xl md:text-2xl text-black leading-tight">
               {isArabic ? 'انضم لمجتمع سيمبا' : 'Join the Simba Community'}
             </h2>
-            <p className="mt-1.5 text-white/90 text-sm max-w-sm leading-relaxed">
+            <p className="mt-1.5 text-black/70 text-sm max-w-sm leading-relaxed">
               {isArabic
                 ? 'كن أول من يعرف عن أفضل العروض والباقات الجديدة'
                 : 'Connect with others and be the first to know about the best deals'}

@@ -131,9 +131,9 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
     <section id={id} className="mb-6 scroll-mt-4">
       {/* Row header */}
       <div className="flex items-center gap-2.5 md:gap-3 mb-2.5 md:mb-3 px-4 sm:px-6 md:px-8">
-        <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-[#1FA9FF]/10 flex items-center justify-center shrink-0">
-          <Icon size={16} className="text-[#1FA9FF] md:hidden" />
-          <Icon size={18} className="text-[#1FA9FF] hidden md:block" />
+        <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-[#E37417]/10 flex items-center justify-center shrink-0">
+          <Icon size={16} className="text-[#E37417] md:hidden" />
+          <Icon size={18} className="text-[#E37417] hidden md:block" />
         </div>
         <div className="min-w-0">
           <h2 className="font-heading font-bold text-base md:text-lg text-foreground leading-tight truncate">
@@ -316,7 +316,7 @@ export default function ExplorePage() {
                 onClick={() => toggleCarrier(carrier.name)}
                 className={`flex items-center gap-2 rounded-xl font-medium
                   ${active
-                    ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
+                    ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -392,7 +392,7 @@ export default function ExplorePage() {
               onClick={() => setDataFilter(opt.key)}
               className={`rounded-lg text-xs font-semibold
                 ${dataFilter === opt.key
-                  ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
+                  ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
             >
@@ -416,7 +416,7 @@ export default function ExplorePage() {
               onClick={() => setLocalCallsFilter(opt.key)}
               className={`rounded-lg text-xs font-semibold
                 ${localCallsFilter === opt.key
-                  ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
+                  ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
             >
@@ -440,7 +440,7 @@ export default function ExplorePage() {
               onClick={() => setIntlCallsFilter(intlCallsFilter === opt.key ? null : opt.key)}
               className={`rounded-lg text-xs font-semibold
                 ${intlCallsFilter === opt.key
-                  ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
+                  ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
             >
@@ -464,7 +464,7 @@ export default function ExplorePage() {
               onClick={() => setSocialFilter(socialFilter === opt.key ? null : opt.key)}
               className={`rounded-lg text-xs font-semibold
                 ${socialFilter === opt.key
-                  ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
+                  ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
             >
@@ -480,15 +480,14 @@ export default function ExplorePage() {
     <div className="safe-pb">
       {/* ========= HEADER ========= */}
       <section className="relative z-10 hero-gradient grain overflow-hidden">
-        <div className="absolute inset-0 bg-black/35 backdrop-blur-sm" />
         <WaveLines />
         <div className="absolute top-0 end-0 w-64 h-64 rounded-full bg-white/[0.03] -translate-y-1/3 translate-x-1/3 blob" />
 
         <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-5 pb-4 md:pt-8 md:pb-6">
-          <h1 className="font-heading font-normal text-2xl md:text-3xl text-white tracking-tight">
+          <h1 className="font-heading font-normal text-2xl md:text-3xl text-black tracking-tight">
             {t('explore.title')}
           </h1>
-          <p className="text-white/70 mt-1 text-sm md:text-base">
+          <p className="text-black/60 mt-1 text-sm md:text-base">
             {t('explore.subtitle')}
           </p>
 
@@ -587,13 +586,13 @@ export default function ExplorePage() {
               {hasActiveFilters && (
                 <div className="flex flex-wrap gap-2 mb-5">
                   {activeCategory && (
-                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
+                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                       {t(`explore.${activeCategory}`)}
                       <button onClick={() => setActiveCategory(null)} className="hover:opacity-70"><X size={12} /></button>
                     </Badge>
                   )}
                   {selectedCarriers.map(c => (
-                    <Badge key={c} variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
+                    <Badge key={c} variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                       {c}
                       <button onClick={() => toggleCarrier(c)} className="hover:opacity-70"><X size={12} /></button>
                     </Badge>
@@ -609,31 +608,31 @@ export default function ExplorePage() {
                     );
                   })}
                   {(priceRange[0] > 0 || priceRange[1] < PRICE_MAX) && (
-                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
+                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                       SAR {priceRange[0]}-{priceRange[1] >= PRICE_MAX ? `${PRICE_MAX}+` : priceRange[1]}
                       <button onClick={() => setPriceRange([0, PRICE_MAX])}><X size={12} /></button>
                     </Badge>
                   )}
                   {dataFilter !== 'any' && (
-                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
+                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                       {dataOptions.find(d => d.key === dataFilter)?.label}
                       <button onClick={() => setDataFilter('any')}><X size={12} /></button>
                     </Badge>
                   )}
                   {localCallsFilter !== 'any' && (
-                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
+                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                       {localCallsOptions.find(o => o.key === localCallsFilter)?.label}
                       <button onClick={() => setLocalCallsFilter('any')}><X size={12} /></button>
                     </Badge>
                   )}
                   {intlCallsFilter !== null && (
-                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
+                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                       {t('explore.needIntl')} {intlCallsFilter === 'yes' ? t('explore.yes') : t('explore.no')}
                       <button onClick={() => setIntlCallsFilter(null)}><X size={12} /></button>
                     </Badge>
                   )}
                   {socialFilter !== null && (
-                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
+                    <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                       {t('explore.needSocial')} {socialFilter === 'yes' ? t('explore.yes') : t('explore.no')}
                       <button onClick={() => setSocialFilter(null)}><X size={12} /></button>
                     </Badge>
@@ -682,14 +681,14 @@ export default function ExplorePage() {
             <WaveLines />
             <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
             <div className="relative z-10">
-              <Badge variant="secondary" className="gap-2 px-3 py-1 glass text-white/90 border-0 text-xs font-semibold mb-4">
+              <Badge variant="secondary" className="gap-2 px-3 py-1 bg-[#FFF0D0] text-black/70 border-0 text-xs font-semibold mb-4">
                 <Sparkles size={12} />
                 {t('home.just30Seconds')}
               </Badge>
-              <h3 className="font-heading font-normal text-2xl md:text-3xl text-white tracking-tight">
+              <h3 className="font-heading font-normal text-2xl md:text-3xl text-black tracking-tight">
                 {t('finderCta.title')}
               </h3>
-              <p className="text-white/55 mt-2 text-sm max-w-md mx-auto">
+              <p className="text-black/50 mt-2 text-sm max-w-md mx-auto">
                 {t('finderCta.subtitle')}
               </p>
               <Button asChild className="mt-6 px-6 py-3 h-auto rounded-xl bg-white text-primary font-bold text-sm hover:bg-white/90 shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300">

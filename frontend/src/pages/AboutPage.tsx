@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useLang } from '../context/LanguageContext';
 import { CARRIERS } from '../data/plans';
+import WaveLines from '../components/WaveLines';
 
 export default function AboutPage() {
   const { t } = useLang();
@@ -12,18 +13,20 @@ export default function AboutPage() {
   const stats = [
     { icon: Target, value: '150+', label: t('about.statPlans') },
     { icon: Users, value: '8', label: t('about.statCarriers') },
-    { icon: Award, value: '100%', label: t('about.statFree') },
   ];
 
   return (
     <div className="safe-pb flex flex-col">
       {/* Hero */}
-      <div className="relative flex items-center justify-center pt-16 pb-10 md:pt-24 md:pb-14 hero-gradient">
-        <div className="max-w-3xl w-full mx-auto px-4 sm:px-6 md:px-8 text-center">
-          <h1 className="font-heading font-normal text-3xl md:text-5xl text-white leading-tight">
+      <div className="relative overflow-hidden flex items-center justify-center pt-16 pb-10 md:pt-24 md:pb-14 hero-gradient grain">
+        <WaveLines />
+        <div className="absolute top-0 end-0 w-80 h-80 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob animate-float" />
+        <div className="absolute bottom-0 start-0 w-52 h-52 rounded-full bg-white/[0.04] translate-y-1/3 -translate-x-1/3 blob-alt" style={{ animationDelay: '2s' }} />
+        <div className="relative z-[2] max-w-3xl w-full mx-auto px-4 sm:px-6 md:px-8 text-center">
+          <h1 className="font-heading font-normal text-3xl md:text-5xl text-black leading-tight">
             {t('about.title')}
           </h1>
-          <p className="text-white/70 mt-4 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+          <p className="text-black/60 mt-4 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
             {t('about.subtitle')}
           </p>
 
@@ -32,9 +35,9 @@ export default function AboutPage() {
               const Icon = stat.icon;
               return (
                 <div key={i} className="text-center">
-                  <Icon size={20} className="text-white/80 mx-auto mb-1.5" />
-                  <p className="font-heading font-bold text-2xl md:text-3xl text-white">{stat.value}</p>
-                  <p className="text-xs text-white/60 font-medium mt-0.5">{stat.label}</p>
+                  <Icon size={20} className="text-black/70 mx-auto mb-1.5" />
+                  <p className="font-heading font-bold text-2xl md:text-3xl text-black">{stat.value}</p>
+                  <p className="text-xs text-black/50 font-medium mt-0.5">{stat.label}</p>
                 </div>
               );
             })}
@@ -102,13 +105,15 @@ export default function AboutPage() {
 
         {/* CTA */}
         <section className="text-center">
-          <div className="relative overflow-hidden rounded-xl p-8 md:p-12 hero-gradient">
-            <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
-            <div className="relative">
-              <h3 className="font-heading font-bold text-2xl md:text-3xl text-white">
+          <div className="relative overflow-hidden rounded-xl p-8 md:p-12 hero-gradient grain">
+            <WaveLines />
+            <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
+            <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-white/[0.04] translate-y-1/3 -translate-x-1/3 blob-alt" />
+            <div className="relative z-[2]">
+              <h3 className="font-heading font-bold text-2xl md:text-3xl text-black">
                 {t('about.ctaTitle')}
               </h3>
-              <p className="text-white/60 mt-2 text-sm max-w-md mx-auto">
+              <p className="text-black/50 mt-2 text-sm max-w-md mx-auto">
                 {t('about.ctaSubtitle')}
               </p>
               <div className="flex items-center justify-center gap-3 mt-6">

@@ -271,7 +271,7 @@ export default function PlansPage() {
                 onClick={() => toggleCarrier(carrier.name)}
                 className={`flex items-center gap-2 rounded-xl font-medium
                   ${active
-                    ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
+                    ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -349,7 +349,7 @@ export default function PlansPage() {
                 onClick={() => setDataFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
+                    ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -376,7 +376,7 @@ export default function PlansPage() {
                 onClick={() => setLocalCallsFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
+                    ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -403,7 +403,7 @@ export default function PlansPage() {
                 onClick={() => setIntlCallsFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
+                    ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -430,7 +430,7 @@ export default function PlansPage() {
                 onClick={() => setSocialFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-[#1FA9FF] text-white ring-1 ring-[#1FA9FF] hover:bg-[#1FA9FF]/90 shadow-sm'
+                    ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -455,10 +455,10 @@ export default function PlansPage() {
         <div className="absolute bottom-0 start-0 w-40 h-40 rounded-full bg-accent/[0.05] translate-y-1/3 -translate-x-1/3 blob-alt" />
 
         <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10">
-          <h1 className="font-heading font-normal text-3xl md:text-4xl text-white tracking-tight">
+          <h1 className="font-heading font-normal text-3xl md:text-4xl text-black tracking-tight">
             {t('browse.title')}
           </h1>
-          <p className="text-white/70 mt-2 text-base md:text-lg">
+          <p className="text-black/60 mt-2 text-base md:text-lg">
             {t('browse.subtitle')}
           </p>
 
@@ -575,7 +575,7 @@ export default function PlansPage() {
                   <Badge
                     key={c}
                     variant="secondary"
-                    className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm"
+                    className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm"
                   >
                     {c}
                     <button onClick={() => toggleCarrier(c)} className="hover:opacity-70">
@@ -608,7 +608,7 @@ export default function PlansPage() {
                   </Badge>
                 )}
                 {(priceRange[0] > 0 || priceRange[1] < PRICE_MAX) && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                     SAR {priceRange[0]}–{priceRange[1] >= PRICE_MAX ? `${PRICE_MAX}+` : priceRange[1]}
                     <button onClick={() => setPriceRange([0, PRICE_MAX])}>
                       <X size={12} />
@@ -624,7 +624,7 @@ export default function PlansPage() {
                   </Badge>
                 )}
                 {intlCallsFilter !== 'any' && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                     {t('browse.hasIntl')}
                     <button onClick={() => setIntlCallsFilter('any')}>
                       <X size={12} />
@@ -632,7 +632,7 @@ export default function PlansPage() {
                   </Badge>
                 )}
                 {socialFilter !== 'any' && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#1FA9FF] text-white border-0 shadow-sm">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
                     {socialOptions.find(o => o.key === socialFilter)?.label}
                     <button onClick={() => setSocialFilter('any')}>
                       <X size={12} />
@@ -744,14 +744,14 @@ export default function PlansPage() {
           <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
           <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-accent/[0.06] translate-y-1/3 -translate-x-1/3 blob-alt" />
           <div className="relative z-10">
-            <Badge variant="secondary" className="gap-2 px-3 py-1 glass text-white/90 border-0 text-xs font-semibold mb-4">
+            <Badge variant="secondary" className="gap-2 px-3 py-1 bg-[#FFF0D0] text-black/70 border-0 text-xs font-semibold mb-4">
               <Sparkles size={12} />
               {t('home.just30Seconds')}
             </Badge>
-            <h3 className="font-heading font-normal text-2xl md:text-3xl text-white tracking-tight">
+            <h3 className="font-heading font-normal text-2xl md:text-3xl text-black tracking-tight">
               {t('finderCta.title')}
             </h3>
-            <p className="text-white/55 mt-2 text-sm max-w-md mx-auto">
+            <p className="text-black/50 mt-2 text-sm max-w-md mx-auto">
               {t('finderCta.subtitle')}
             </p>
             <Button asChild className="mt-6 px-6 py-3 h-auto rounded-xl bg-white text-primary font-bold text-sm hover:bg-white/90 shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300">

@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Send, RotateCcw, Loader2,
-  Bot,
+  Bot, X,
 } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
 import { trackEvent } from '../lib/analytics';
@@ -65,6 +66,8 @@ const QUIZ_STEPS: QuizStep[] = [
 
 export default function AdvisorPage() {
   const { t, lang } = useLang();
+  const navigate = useNavigate();
+  const [, setSearchParams] = useSearchParams();
   const { plans } = usePlans();
 
   // Quiz state: which step we're on (0-3), or null if quiz is done
@@ -79,14 +82,21 @@ export default function AdvisorPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const quizDone = quizStep === null;
 
-  // Auto-scroll chat
+  // Auto-scroll chat after every change
+  const scrollChat = useCallback(() => {
+    const el = chatContainerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, []);
+
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+    const t = setTimeout(scrollChat, 100);
+    return () => clearTimeout(t);
+  }, [messages, loading, scrollChat]);
 
   // Focus input when quiz is done
   useEffect(() => {
@@ -120,15 +130,18 @@ export default function AdvisorPage() {
     const nextStep = quizStep + 1;
 
     if (nextStep < QUIZ_STEPS.length) {
-      // Show next question after a brief delay
+      // Show thinking indicator, then reveal next question
+      setLoading(true);
       const nextQ = lang === 'ar' ? QUIZ_STEPS[nextStep].questionAr : QUIZ_STEPS[nextStep].questionEn;
       setTimeout(() => {
+        setLoading(false);
         setMessages(prev => [...prev, { role: 'assistant', text: nextQ, planIds: [] }]);
         setQuizStep(nextStep);
-      }, 400);
+      }, 800 + Math.random() * 400);
     } else {
       // Quiz complete — send all answers to AI
       setQuizStep(null);
+      setSearchParams({ chat: '1' }, { replace: true });
       setLoading(true);
       setError(null);
       trackEvent('advisor_started');
@@ -207,9 +220,9 @@ export default function AdvisorPage() {
   })();
 
   return (
-    <div className="relative z-10 min-h-dvh flex flex-col safe-pb">
+    <div className="relative z-10 h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)] flex flex-col">
       {/* Header */}
-      <section className="relative overflow-hidden hero-gradient grain">
+      <section className="shrink-0 relative overflow-hidden hero-gradient grain">
         <WaveLines />
         <div className="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-3 md:pt-6 md:pb-4 relative z-[2]">
           <div className="flex items-center justify-between animate-fade-up">
@@ -218,30 +231,21 @@ export default function AdvisorPage() {
                 <Bot size={18} className="text-white" />
               </div>
               <div>
-                <h1 className="font-heading font-normal text-lg md:text-xl text-white tracking-tight">
+                <h1 className="font-heading font-normal text-lg md:text-xl text-black tracking-tight">
                   {t('advisor.chatTitle')}
                 </h1>
-                <p className="text-white/50 text-[11px] md:text-xs">
+                <p className="text-black/50 text-[11px] md:text-xs">
                   {t('advisor.chatSubtitle')}
                 </p>
               </div>
             </div>
-            <Button
-              onClick={restart}
-              variant="outline"
-              size="sm"
-              className="rounded-xl text-xs font-bold glass text-white hover:bg-white/20 border-white/15 hover:text-white"
-            >
-              <RotateCcw size={14} />
-              {t('advisor.restart')}
-            </Button>
           </div>
         </div>
       </section>
 
       {/* Chat messages */}
-      <div className="flex-1 overflow-y-auto bg-background">
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 space-y-4">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto bg-background">
+        <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 pb-24 md:pb-4 space-y-4">
           {messages.map((msg, i) => (
             <div key={i}>
               {/* Message bubble */}
@@ -286,9 +290,10 @@ export default function AdvisorPage() {
           {/* Loading indicator */}
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-2 text-muted-foreground text-sm">
-                <Loader2 size={16} className="animate-spin" />
-                {t('advisor.thinking')}
+              <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           )}
@@ -308,12 +313,21 @@ export default function AdvisorPage() {
 
       {/* Input bar — only shown after quiz is complete */}
       {quizDone && (
-        <div className="border-t border-border bg-background">
+        <div className="shrink-0 border-t border-border bg-background z-50 mb-16 md:mb-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           <div className="max-w-3xl mx-auto px-4 md:px-8 py-3">
             <form
               onSubmit={e => { e.preventDefault(); send(); }}
               className="flex items-center gap-2"
             >
+              <Button
+                type="button"
+                onClick={restart}
+                variant="ghost"
+                size="sm"
+                className="rounded-xl h-10 w-10 p-0 shrink-0 text-muted-foreground hover:text-foreground"
+              >
+                <RotateCcw size={16} />
+              </Button>
               <input
                 ref={inputRef}
                 type="text"
@@ -332,9 +346,6 @@ export default function AdvisorPage() {
                 <Send size={16} />
               </Button>
             </form>
-            <p className="text-[10px] text-muted-foreground text-center mt-1.5">
-              {t('advisor.disclaimer')}
-            </p>
           </div>
         </div>
       )}
