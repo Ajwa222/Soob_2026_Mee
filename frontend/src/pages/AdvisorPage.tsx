@@ -71,7 +71,7 @@ export default function AdvisorPage() {
   const { plans } = usePlans();
 
   // Quiz state: which step we're on (0-3), or null if quiz is done
-  const [quizStep, setQuizStep] = useState<number>(0);
+  const [quizStep, setQuizStep] = useState<number | null>(0);
   const [quizAnswers, setQuizAnswers] = useState<string[]>([]);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
