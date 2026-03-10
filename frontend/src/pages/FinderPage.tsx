@@ -11,6 +11,7 @@ import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { getValueScore, isValidValue } from '../data/plans';
 import { usePlans } from '../context/PlansContext';
+import type { Plan } from '../types';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import SarSymbol from '../components/SarSymbol';
 import { trackEvent } from '../lib/analytics';
