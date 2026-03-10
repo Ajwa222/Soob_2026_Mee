@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Wifi, Phone, MessageSquare, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
+import { Wifi, Phone, MessageSquare, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle, Bookmark } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useLang } from '../context/LanguageContext';
 import SarSymbol from './SarSymbol';
+import { useNavigate } from 'react-router-dom';
 import { useCompare } from '../context/CompareContext';
+import { useBookmarks } from '../context/BookmarkContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
 import { fetchReaction, fetchCommentCount } from '../lib/planInteractions';
 import { Link } from 'react-router-dom';
@@ -35,10 +37,12 @@ interface PlanCardProps {
   style?: React.CSSProperties;
   compact?: boolean;
   selected?: boolean;
+  bookmarked?: boolean;
   onToggleCompare?: (plan: Plan) => void;
+  onToggleBookmark?: (planId: number) => void;
 }
 
-const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected = false, onToggleCompare }: PlanCardProps) {
+const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected = false, bookmarked = false, onToggleCompare, onToggleBookmark }: PlanCardProps) {
   const { t } = useLang();
   const carrierColor = getCarrierColor(plan.provider);
   const carrierLogo = getCarrierLogo(plan.provider);
@@ -84,9 +88,18 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
               {plan.provider}
             </span>
           </div>
-          <Badge variant="secondary" className={`${badgeClass} text-[11px] border-0 font-semibold`}>
-            {t(`types.${plan.planType}`)}
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={(e) => { e.preventDefault(); onToggleBookmark?.(plan.id); }}
+              className={`p-1 rounded-lg transition-colors ${bookmarked ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
+              aria-label={bookmarked ? t('bookmark.remove') : t('bookmark.add')}
+            >
+              <Bookmark size={16} fill={bookmarked ? 'currentColor' : 'none'} />
+            </button>
+            <Badge variant="secondary" className={`${badgeClass} text-[11px] border-0 font-semibold`}>
+              {t(`types.${plan.planType}`)}
+            </Badge>
+          </div>
         </div>
 
         {/* Plan name */}
@@ -163,13 +176,19 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
  *  the memoized PlanCard underneath skips if `selected` didn't change. */
 export function ConnectedPlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
   const { togglePlan, isSelected } = useCompare();
+  const { requestBookmark, isBookmarked } = useBookmarks();
+  const navigate = useNavigate();
   return (
     <PlanCard
       plan={plan}
       style={style}
       compact={compact}
       selected={isSelected(plan.id)}
+      bookmarked={isBookmarked(plan.id)}
       onToggleCompare={togglePlan}
+      onToggleBookmark={(id) => {
+        if (!requestBookmark(id)) navigate('/profile');
+      }}
     />
   );
 }

@@ -64,6 +64,22 @@ const QUIZ_STEPS: QuizStep[] = [
   },
 ];
 
+// Rotating search status messages
+function useSearchStatus(loading: boolean, t: (k: string) => string) {
+  const [statusIdx, setStatusIdx] = useState(0);
+  const statusMessages = [t('advisor.searching'), t('advisor.findingBest'), t('advisor.almostThere')];
+
+  useEffect(() => {
+    if (!loading) { setStatusIdx(0); return; }
+    const interval = setInterval(() => {
+      setStatusIdx(prev => (prev + 1) % statusMessages.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [loading, statusMessages.length]);
+
+  return statusMessages[statusIdx];
+}
+
 export default function AdvisorPage() {
   const { t, lang } = useLang();
   const navigate = useNavigate();
@@ -81,6 +97,7 @@ export default function AdvisorPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchStatus = useSearchStatus(loading, t);
 
   const quizDone = quizStep === null;
   const inChoice = quizStep === 'choice';
@@ -378,10 +395,9 @@ export default function AdvisorPage() {
           {/* Loading indicator */}
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-2.5">
+                <Loader2 size={16} className="animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground animate-pulse">{searchStatus}</span>
               </div>
             </div>
           )}

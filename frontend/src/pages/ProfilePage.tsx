@@ -1,19 +1,26 @@
-import { useState, useEffect } from 'react';
-import { User, LogOut } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { User, LogOut, Bookmark } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { useBookmarks } from '../context/BookmarkContext';
+import { usePlans } from '../context/PlansContext';
+import { ConnectedPlanCard } from '../components/PlanCard';
 import { trackEvent } from '../lib/analytics';
 
 export default function ProfilePage() {
   const { t, lang } = useLang();
   const { user, isLoggedIn, needsPhone, loading, loginWithGoogle, logout } = useAuth();
+  const { bookmarkedIds } = useBookmarks();
+  const { plans } = usePlans();
+  const bookmarkedPlans = plans.filter(p => bookmarkedIds.includes(p.id));
   const [error, setError] = useState('');
   const [signingIn, setSigningIn] = useState(false);
   const [searchParams] = useSearchParams();
   const isSignUp = !localStorage.getItem('simba-has-account') || searchParams.get('tab') === 'signup';
+  const hasPendingBookmark = useMemo(() => !!localStorage.getItem('simba-pending-bookmark'), []);
   const navTo = useNavigate();
 
   const redirectAfterLogin = (signup: boolean) => {
@@ -96,35 +103,54 @@ export default function ProfilePage() {
         </div>
 
         {/* Content */}
-        <div className="bg-background md:flex md:flex-1 md:items-center md:justify-center md:py-12 md:px-8">
-          <Card className="max-w-md w-full mx-auto md:shadow-lg">
-            {/* Desktop header */}
-            <div className="hidden md:block text-center px-10 pt-10 pb-2">
-              {user?.photoURL ? (
-                <img src={user.photoURL} alt="" className="w-24 h-24 rounded-full mx-auto mb-4 shadow-md" referrerPolicy="no-referrer" />
+        <div className="bg-background flex-1 md:py-12 md:px-8">
+          <div className="max-w-5xl mx-auto">
+            <Card className="max-w-md mx-auto md:shadow-lg">
+              {/* Desktop header */}
+              <div className="hidden md:block text-center px-10 pt-10 pb-2">
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="" className="w-24 h-24 rounded-full mx-auto mb-4 shadow-md" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-3xl font-bold text-primary">{(user?.name || user?.phone || '?')[0].toUpperCase()}</span>
+                  </div>
+                )}
+                <h1 className="font-heading font-bold text-3xl text-foreground">
+                  {t('profile.welcome')}, {user?.name || user?.phone}!
+                </h1>
+                {user?.phone && user.phone !== 'skipped' && <p className="text-muted-foreground mt-1.5 text-sm" dir="ltr">{user.phone}</p>}
+                {user?.email && <p className="text-muted-foreground mt-1 text-sm">{user.email}</p>}
+              </div>
+
+              <CardContent className="px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10">
+                <Button
+                  variant="ghost"
+                  onClick={() => { trackEvent('logout'); logout(); }}
+                  className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <LogOut size={20} />
+                  {t('profile.logout')}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Bookmarked Plans */}
+            <div className="mt-8 px-4 md:px-0 pb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Bookmark size={20} className="text-primary" />
+                <h2 className="font-heading font-bold text-lg text-foreground">{t('bookmark.savedPlans')}</h2>
+              </div>
+              {bookmarkedPlans.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t('bookmark.empty')}</p>
               ) : (
-                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl font-bold text-primary">{(user?.name || user?.phone || '?')[0].toUpperCase()}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {bookmarkedPlans.map(plan => (
+                    <ConnectedPlanCard key={plan.id} plan={plan} />
+                  ))}
                 </div>
               )}
-              <h1 className="font-heading font-bold text-3xl text-foreground">
-                {t('profile.welcome')}, {user?.name || user?.phone}!
-              </h1>
-              {user?.phone && user.phone !== 'skipped' && <p className="text-muted-foreground mt-1.5 text-sm" dir="ltr">{user.phone}</p>}
-              {user?.email && <p className="text-muted-foreground mt-1 text-sm">{user.email}</p>}
             </div>
-
-            <CardContent className="px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10">
-              <Button
-                variant="ghost"
-                onClick={() => { trackEvent('logout'); logout(); }}
-                className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <LogOut size={20} />
-                {t('profile.logout')}
-              </Button>
-            </CardContent>
-          </Card>
+          </div>
         </div>
       </div>
     );
@@ -165,6 +191,12 @@ export default function ProfilePage() {
           </div>
 
           <CardContent className="px-6 md:px-10 pt-8 md:pt-6 pb-8 md:pb-10">
+            {hasPendingBookmark && (
+              <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-primary/10 text-primary text-sm font-medium">
+                <Bookmark size={16} />
+                {t('bookmark.loginPrompt')}
+              </div>
+            )}
             <Button
               variant="outline"
               onClick={handleGoogleSignIn}
