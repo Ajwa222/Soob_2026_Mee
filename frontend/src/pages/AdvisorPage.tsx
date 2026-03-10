@@ -255,7 +255,7 @@ export default function AdvisorPage() {
   // ─── Choice screen (before chat) ───
   if (inChoice) {
     return (
-      <div className="relative z-10 h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)] flex flex-col">
+      <div className="relative z-10 h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] md:h-auto flex flex-col">
         <section className="shrink-0 relative overflow-hidden hero-gradient grain">
           <WaveLines />
           <div className="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-3 md:pt-6 md:pb-4 relative z-[2]">

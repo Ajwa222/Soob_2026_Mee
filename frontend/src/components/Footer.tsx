@@ -10,10 +10,10 @@ export default function Footer() {
   const { hasAccount } = useAuth();
   const location = useLocation();
 
-  if (location.pathname === '/advisor') return null;
+  const isAdvisor = location.pathname === '/advisor';
 
   return (
-    <footer className="relative z-10 bg-footer-bg text-white -mt-10 overflow-hidden">
+    <footer className={`relative z-10 bg-footer-bg text-white overflow-hidden${isAdvisor ? ' hidden md:block mt-0' : '-mt-10'}`}>
       {/* Decorative background elements */}
       <div className="absolute top-0 end-0 w-72 h-72 rounded-full bg-primary/[0.03] -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 start-0 w-56 h-56 rounded-full bg-accent/[0.02] translate-y-1/3 -translate-x-1/3" />
