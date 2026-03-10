@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
+import { Sparkles, ArrowRight, ChevronRight, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CommunityBanner from '../components/CommunityBanner';
 import WaveLines from '../components/WaveLines';
@@ -39,7 +39,7 @@ export default function HomePage() {
             <h1 className="animate-fade-up font-heading font-normal text-[30px] md:text-[48px] lg:text-[56px] text-black leading-[1.1] tracking-tight">
               {t('hero.headline')}
             </h1>
-            <p className="animate-fade-up delay-2 mt-4 text-[15px] md:text-[18px] text-black/70 leading-relaxed max-w-md">
+            <p className="animate-fade-up delay-2 mt-4 text-[15px] md:text-[18px] text-black/70/70 leading-relaxed max-w-md">
               {t('hero.subheadline')}
             </p>
 
@@ -65,7 +65,7 @@ export default function HomePage() {
                 ].map((stat, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <span className="font-heading font-normal text-[20px] md:text-[24px] text-black">{stat.value}</span>
-                    <span className="text-[13px] text-black/60 font-medium">{stat.label}</span>
+                    <span className="text-[13px] text-black/60/60 font-medium">{stat.label}</span>
                   </div>
                 ))}
               </div>
@@ -122,6 +122,30 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Switch & Save CTA */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-10 md:pb-14">
+        <Link
+          to="/switch"
+          onClick={() => trackEvent('homepage_cta_clicked', { cta: 'switch_save' })}
+          className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 md:p-6 group hover:border-success/40 hover:shadow-lg hover:shadow-success/5 transition-all"
+        >
+          <div className="shrink-0 w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
+            <TrendingDown size={22} className="text-success" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-heading font-bold text-base text-foreground">
+              {lang === 'ar' ? 'احسب توفيرك' : 'Switch & Save'}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {lang === 'ar'
+                ? 'ادخل باقتك الحالية وبنلقالك باقات أرخص وأفضل'
+                : 'Enter your current plan and find cheaper alternatives instantly'}
+            </p>
+          </div>
+          <ArrowRight size={18} className="text-muted-foreground group-hover:text-success shrink-0 rtl:rotate-180 transition-colors" />
+        </Link>
+      </div>
+
       {/* Community Banner */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-10 md:pb-14">
         <CommunityBanner />
@@ -140,14 +164,14 @@ export default function HomePage() {
 
           <div className="relative z-[2] flex items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFF0D0] text-black/70 text-[11px] font-medium mb-3">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFF0D0] text-black/70/70 text-[11px] font-medium mb-3">
                 <Sparkles size={11} />
                 {t('home.just30Seconds')}
               </div>
               <h2 className="font-heading font-bold text-lg md:text-2xl text-black leading-tight">
                 {t('finderCta.title')}
               </h2>
-              <p className="mt-1.5 text-black/70 text-sm max-w-sm leading-relaxed">
+              <p className="mt-1.5 text-black/70/70 text-sm max-w-sm leading-relaxed">
                 {t('finderCta.subtitle')}
               </p>
             </div>

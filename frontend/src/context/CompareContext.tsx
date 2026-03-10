@@ -15,6 +15,8 @@ interface CompareContextValue {
   togglePlan: (plan: Plan) => void;
   isSelected: (planId: number) => boolean;
   clearAll: () => void;
+  loadPlans: (plans: Plan[]) => void;
+  getShareUrl: () => string;
 }
 
 const CompareContext = createContext<CompareContextValue | null>(null);
@@ -77,6 +79,15 @@ export function CompareProvider({ children }: { children: ReactNode }) {
     setShowOverlay(false);
   }, []);
 
+  const loadPlans = useCallback((plans: Plan[]) => {
+    setSelectedPlans(plans.slice(0, 3));
+  }, []);
+
+  const getShareUrl = useCallback(() => {
+    const ids = selectedPlansRef.current.map(p => p.id).join(',');
+    return `${window.location.origin}/compare?plans=${ids}`;
+  }, []);
+
   // Memoize context value to prevent re-renders when unrelated state changes
   const value = useMemo(() => ({
     selectedPlans,
@@ -89,7 +100,9 @@ export function CompareProvider({ children }: { children: ReactNode }) {
     togglePlan,
     isSelected,
     clearAll,
-  }), [selectedPlans, showOverlay, toast, setShowOverlay, addPlan, removePlan, togglePlan, isSelected, clearAll]);
+    loadPlans,
+    getShareUrl,
+  }), [selectedPlans, showOverlay, toast, setShowOverlay, addPlan, removePlan, togglePlan, isSelected, clearAll, loadPlans, getShareUrl]);
 
   return (
     <CompareContext.Provider value={value}>

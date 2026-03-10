@@ -136,6 +136,7 @@ const translations: Record<string, Record<string, unknown>> = {
       unlimitedSocial: "Unlimited Social",
       showResults: "Show {count} plans",
       done: "Done",
+      network: "Network",
     },
     detail: {
       backToPlans: "Back to Plans",
@@ -676,6 +677,7 @@ const translations: Record<string, Record<string, unknown>> = {
       unlimitedSocial: "سوشل مفتوح",
       showResults: "عرض {count} باقة",
       done: "تم",
+      network: "الشبكة",
     },
     detail: {
       backToPlans: "رجوع للباقات",
