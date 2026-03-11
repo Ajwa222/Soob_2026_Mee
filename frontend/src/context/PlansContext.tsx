@@ -1,10 +1,18 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { apiFetch } from '../lib/api';
 import type { Plan } from '../types';
+
+export interface PlanEngagement {
+  likes: number;
+  dislikes: number;
+  comments: number;
+}
 
 interface PlansContextValue {
   plans: Plan[];
   loading: boolean;
+  engagement: Record<string, PlanEngagement>;
+  refreshEngagement: () => void;
 }
 
 const PlansContext = createContext<PlansContextValue | null>(null);
@@ -12,6 +20,15 @@ const PlansContext = createContext<PlansContextValue | null>(null);
 export function PlansProvider({ children }: { children: ReactNode }) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [engagement, setEngagement] = useState<Record<string, PlanEngagement>>({});
+
+  const refreshEngagement = useCallback(() => {
+    apiFetch<Record<string, PlanEngagement>>('/api/plans/engagement')
+      .then(setEngagement)
+      .catch((err) => {
+        if (import.meta.env.DEV) console.warn('Failed to fetch engagement:', err);
+      });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -28,11 +45,13 @@ export function PlansProvider({ children }: { children: ReactNode }) {
         if (!cancelled) setLoading(false);
       });
 
+    refreshEngagement();
+
     return () => { cancelled = true; };
-  }, []);
+  }, [refreshEngagement]);
 
   return (
-    <PlansContext.Provider value={{ plans, loading }}>
+    <PlansContext.Provider value={{ plans, loading, engagement, refreshEngagement }}>
       {children}
     </PlansContext.Provider>
   );

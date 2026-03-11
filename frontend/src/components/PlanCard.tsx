@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Wifi, Phone, MessageSquare, Share2, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle, Bookmark } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCompare } from '../context/CompareContext';
 import { useBookmarks } from '../context/BookmarkContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
-import { fetchReaction, fetchCommentCount } from '../lib/planInteractions';
+import { usePlans } from '../context/PlansContext';
 import { Link } from 'react-router-dom';
 import type { Plan } from '../types';
 
@@ -38,32 +38,18 @@ interface PlanCardProps {
   compact?: boolean;
   selected?: boolean;
   bookmarked?: boolean;
+  likes?: number;
+  dislikes?: number;
+  commentCount?: number;
   onToggleCompare?: (plan: Plan) => void;
   onToggleBookmark?: (planId: number) => void;
 }
 
-const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected = false, bookmarked = false, onToggleCompare, onToggleBookmark }: PlanCardProps) {
+const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected = false, bookmarked = false, likes = 0, dislikes = 0, commentCount = 0, onToggleCompare, onToggleBookmark }: PlanCardProps) {
   const { t } = useLang();
   const carrierColor = getCarrierColor(plan.provider);
   const carrierLogo = getCarrierLogo(plan.provider);
   const badgeClass = typeBadgeVariant[plan.planType] || typeBadgeVariant['Prepaid'];
-  const [likes, setLikes] = useState(0);
-  const [dislikes, setDislikes] = useState(0);
-  const [commentCount, setCommentCount] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchReaction(plan.id).then(r => {
-      if (!cancelled) {
-        setLikes(Math.max(0, r.likes));
-        setDislikes(Math.max(0, r.dislikes));
-      }
-    }).catch((err) => { console.error(`Failed to fetch reactions for plan ${plan.id}:`, err); });
-    fetchCommentCount(plan.id).then(c => {
-      if (!cancelled) setCommentCount(c);
-    }).catch((err) => { console.error(`Failed to fetch comment count for plan ${plan.id}:`, err); });
-    return () => { cancelled = true; };
-  }, [plan.id]);
 
   return (
     <Card
@@ -184,7 +170,9 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
 export function ConnectedPlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
   const { togglePlan, isSelected } = useCompare();
   const { requestBookmark, isBookmarked } = useBookmarks();
+  const { engagement } = usePlans();
   const navigate = useNavigate();
+  const e = engagement[String(plan.id)];
   return (
     <PlanCard
       plan={plan}
@@ -192,6 +180,9 @@ export function ConnectedPlanCard({ plan, style, compact }: { plan: Plan; style?
       compact={compact}
       selected={isSelected(plan.id)}
       bookmarked={isBookmarked(plan.id)}
+      likes={e?.likes ?? 0}
+      dislikes={e?.dislikes ?? 0}
+      commentCount={e?.comments ?? 0}
       onToggleCompare={togglePlan}
       onToggleBookmark={(id) => {
         if (!requestBookmark(id)) navigate('/profile');

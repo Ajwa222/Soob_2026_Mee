@@ -19,6 +19,42 @@ const defaultReaction: PlanReaction = {
   dislikedBy: [],
 };
 
+/** GET /api/plans/engagement — batch fetch reactions + comment counts for all plans */
+router.get("/engagement", async (_req, res) => {
+  try {
+    const [reactionsSnap, commentsSnap] = await Promise.all([
+      db.collection(REACTIONS_COL).get(),
+      db.collection(COMMENTS_COL).get(),
+    ]);
+
+    const engagement: Record<string, { likes: number; dislikes: number; comments: number }> = {};
+
+    for (const doc of reactionsSnap.docs) {
+      const data = doc.data();
+      engagement[doc.id] = {
+        likes: Math.max(0, data.likes ?? 0),
+        dislikes: Math.max(0, data.dislikes ?? 0),
+        comments: 0,
+      };
+    }
+
+    // Count comments per plan
+    const commentCountPromises = commentsSnap.docs.map(async (d) => {
+      const snap = await d.ref.collection("comments").get();
+      if (!engagement[d.id]) {
+        engagement[d.id] = { likes: 0, dislikes: 0, comments: 0 };
+      }
+      engagement[d.id].comments = snap.size;
+    });
+    await Promise.all(commentCountPromises);
+
+    res.json(engagement);
+  } catch (err) {
+    console.error("Fetch engagement error:", err);
+    res.status(500).json({ error: "Failed to fetch engagement" });
+  }
+});
+
 /** GET /api/plans/:id/reactions */
 router.get("/:id/reactions", async (req, res) => {
   try {
