@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Wifi, Phone, MessageSquare, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle, Bookmark } from 'lucide-react';
+import { Wifi, Phone, MessageSquare, Share2, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle, Bookmark } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -119,19 +119,26 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
         <Separator className={compact ? 'my-2.5' : 'my-4'} />
 
         {/* Key metrics */}
-        <div className="grid grid-cols-3 gap-2 text-sm">
-          {[
+        {(() => {
+          const hasSocial = isValidValue(plan.socialMediaData) && plan.socialMediaData !== '-';
+          const metrics = [
             { icon: Wifi, value: isValidValue(plan.dataGB) ? (plan.dataGB === 'Unlimited' ? t('detail.unlimited') : `${plan.dataGB} GB`) : '—', label: t('planCard.data') },
             { icon: Phone, value: isValidValue(plan.localCallMinutes) ? (plan.localCallMinutes === 'Unlimited' ? t('detail.unlimited') : `${plan.localCallMinutes}`) : '—', label: t('planCard.mins') },
             { icon: MessageSquare, value: isValidValue(plan.sms) && plan.sms !== '-' ? (plan.sms === 'Unlimited' ? t('detail.unlimited') : plan.sms) : '—', label: t('planCard.sms') },
-          ].map(({ icon: Icon, value, label }) => (
-            <div key={label} className={`flex flex-col items-center gap-1 ${compact ? 'py-1.5' : 'py-2.5'} px-1 rounded-xl bg-muted/50 dark:bg-muted/30 transition-colors`}>
-              <Icon size={compact ? 12 : 14} className="text-primary" />
-              <p className={`font-bold text-foreground ${compact ? 'text-[12px]' : 'text-[13px]'} leading-tight text-center`}>{value}</p>
-              <p className="text-[11px] text-muted-foreground">{label}</p>
+            ...(hasSocial ? [{ icon: Share2, value: plan.socialMediaData === 'Unlimited' ? t('detail.unlimited') : (/gb/i.test(plan.socialMediaData) ? plan.socialMediaData : `${plan.socialMediaData} GB`), label: t('planCard.social') }] : []),
+          ];
+          return (
+            <div className={`grid ${hasSocial ? 'grid-cols-4' : 'grid-cols-3'} gap-2 text-sm`}>
+              {metrics.map(({ icon: Icon, value, label }) => (
+                <div key={label} className={`flex flex-col items-center gap-1 ${compact ? 'py-1.5' : 'py-2.5'} px-1 rounded-xl bg-muted/50 dark:bg-muted/30 transition-colors`}>
+                  <Icon size={compact ? 12 : 14} className="text-primary" />
+                  <p className={`font-bold text-foreground ${compact ? 'text-[12px]' : 'text-[13px]'} leading-tight text-center`}>{value}</p>
+                  <p className="text-[11px] text-muted-foreground">{label}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          );
+        })()}
 
 
         {/* Engagement */}

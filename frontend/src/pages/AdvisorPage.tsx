@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  Send, RotateCcw, Loader2,
+  Send, Loader2,
   Bot, X, MessageSquareText, HelpCircle, History,
-  ArrowLeftRight, Sparkles,
+  ArrowLeftRight, Sparkles, ArrowLeft,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -569,7 +569,7 @@ export default function AdvisorPage() {
                 size="sm"
                 className="rounded-xl h-10 w-10 p-0 shrink-0 text-muted-foreground hover:text-foreground"
               >
-                <RotateCcw size={16} />
+                <ArrowLeft size={16} className="rtl:rotate-180" />
               </Button>
               <input
                 ref={inputRef}
