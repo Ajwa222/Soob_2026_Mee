@@ -82,7 +82,7 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             {carrierLogo && (
-              <img src={carrierLogo} alt={plan.provider} className="h-5 w-auto object-contain max-w-[48px] shrink-0" />
+              <img src={carrierLogo} alt={plan.provider} loading="lazy" className="h-5 w-auto object-contain max-w-[48px] shrink-0" />
             )}
             <span className="text-[11px] font-bold uppercase tracking-wider truncate" style={{ color: carrierColor }}>
               {plan.provider}

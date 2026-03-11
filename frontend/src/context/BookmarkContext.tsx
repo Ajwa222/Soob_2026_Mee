@@ -24,7 +24,7 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
 
   // Fetch bookmarks from Firestore when user logs in, then apply any pending bookmark
   useEffect(() => {
-    if (!isLoggedIn || !user) {
+    if (!isLoggedIn || !user?.uid) {
       setBookmarkedIds([]);
       fetched.current = false;
       return;

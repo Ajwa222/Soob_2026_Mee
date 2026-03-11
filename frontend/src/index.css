@@ -195,6 +195,10 @@
   0% { transform: translateX(0); }
   100% { transform: translateX(50%); }
 }
+@keyframes scan {
+  0% { top: -2rem; }
+  100% { top: calc(100% + 2rem); }
+}
 
 /* Animation utility classes */
 .animate-fade-up {
@@ -219,6 +223,7 @@
 
 .animate-float {
   animation: float 4s ease-in-out infinite;
+  will-change: transform;
 }
 
 .animate-shimmer {
@@ -260,6 +265,7 @@
     linear-gradient(135deg, #FFD568, #E37417);
   background-size: 200% 200%, 200% 200%, 100% 100%, 100% 100%, 100% 100%;
   animation: gradient-shift 12s ease infinite;
+  will-change: background-position;
 }
 
 .hero-gradient-lion {
@@ -351,12 +357,10 @@
   border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
 }
 
-/* Floating bubble animation */
+/* Floating bubble animation — GPU-accelerated, no scale/opacity changes to avoid repaints */
 @keyframes floatBubble {
-  0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
-  25% { transform: translateY(-15px) scale(1.05); opacity: 0.8; }
-  50% { transform: translateY(-8px) scale(0.95); opacity: 0.5; }
-  75% { transform: translateY(-20px) scale(1.02); opacity: 0.7; }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
