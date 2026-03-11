@@ -143,11 +143,22 @@ export default function ProfilePage() {
               {bookmarkedPlans.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t('bookmark.empty')}</p>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {bookmarkedPlans.map(plan => (
-                    <ConnectedPlanCard key={plan.id} plan={plan} />
-                  ))}
-                </div>
+                <>
+                  {/* Mobile: horizontal scroll */}
+                  <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    {bookmarkedPlans.map(plan => (
+                      <div key={plan.id} className="shrink-0 w-[260px]">
+                        <ConnectedPlanCard plan={plan} compact style={{ height: '100%' }} />
+                      </div>
+                    ))}
+                  </div>
+                  {/* Tablet+: grid */}
+                  <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {bookmarkedPlans.map(plan => (
+                      <ConnectedPlanCard key={plan.id} plan={plan} />
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </div>

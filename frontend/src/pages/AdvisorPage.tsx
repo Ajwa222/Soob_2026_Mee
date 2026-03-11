@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  Send, RotateCcw, Loader2,
+  Send, Loader2,
   Bot, X, MessageSquareText, HelpCircle, History,
+  ArrowLeftRight, Sparkles, ArrowLeft,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -90,8 +91,8 @@ export default function AdvisorPage() {
   const { plans } = usePlans();
   const { user } = useAuth();
 
-  // Flow state: 'choice' = initial card picker, number = quiz step, null = quiz done / free chat
-  const [quizStep, setQuizStep] = useState<number | 'choice' | null>('choice');
+  // Flow state: 'intent' = first layer, 'choice' = describe/guide picker, number = quiz step, null = quiz done / free chat
+  const [quizStep, setQuizStep] = useState<number | 'intent' | 'choice' | null>('intent');
   const [quizAnswers, setQuizAnswers] = useState<string[]>([]);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -106,12 +107,13 @@ export default function AdvisorPage() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const quizDone = quizStep === null;
+  const inIntent = quizStep === 'intent';
   const inChoice = quizStep === 'choice';
   const inQuiz = typeof quizStep === 'number';
 
   // Check for saved conversation on mount (logged-in users only)
   useEffect(() => {
-    if (!user?.uid || quizStep !== 'choice') return;
+    if (!user?.uid || (quizStep !== 'intent' && quizStep !== 'choice')) return;
     getDoc(doc(db, 'users', user.uid, 'advisor', 'lastConversation'))
       .then(snap => {
         if (snap.exists()) {
@@ -174,7 +176,7 @@ export default function AdvisorPage() {
 
   // Reset when language changes
   useEffect(() => {
-    setQuizStep('choice');
+    setQuizStep('intent');
     setQuizAnswers([]);
     setMessages([]);
   }, [lang]);
@@ -288,7 +290,7 @@ export default function AdvisorPage() {
 
   const restart = () => {
     trackEvent('advisor_restarted');
-    setQuizStep('choice');
+    setQuizStep('intent');
     setQuizAnswers([]);
     setMessages([]);
     setInput('');
@@ -305,6 +307,89 @@ export default function AdvisorPage() {
     }
     return -1;
   })();
+
+  // ─── Intent screen (first layer) ───
+  if (inIntent) {
+    return (
+      <div className="relative z-10 h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] md:h-auto flex flex-col">
+        <section className="shrink-0 relative overflow-hidden hero-gradient grain">
+          <WaveLines />
+          <div className="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-3 md:pt-6 md:pb-4 relative z-[2]">
+            <div className="flex items-center gap-2.5 animate-fade-up">
+              <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
+                <Bot size={18} className="text-white" />
+              </div>
+              <div>
+                <h1 className="font-heading font-normal text-lg md:text-xl text-black tracking-tight">
+                  {t('advisor.chatTitle')}
+                </h1>
+                <p className="text-black/50 text-[11px] md:text-xs">
+                  {t('advisor.chatSubtitle')}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="flex-1 flex items-center justify-center bg-background px-4">
+          <div className="max-w-md w-full space-y-6 animate-fade-up">
+            <div className="text-center space-y-2">
+              <h2 className="font-heading text-xl md:text-2xl font-medium text-foreground">
+                {t('advisor.intentQuestion')}
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {/* Card: Compare current plan */}
+              <button
+                onClick={() => {
+                  trackEvent('advisor_intent_selected', { intent: 'compare' });
+                  navigate('/switch');
+                }}
+                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
+                  <ArrowLeftRight size={24} className="text-primary" />
+                </div>
+                <span className="font-medium text-sm text-foreground">{t('advisor.intentCompare')}</span>
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  {t('advisor.intentCompareDesc')}
+                </span>
+              </button>
+
+              {/* Card: I want a new plan */}
+              <button
+                onClick={() => {
+                  trackEvent('advisor_intent_selected', { intent: 'new_plan' });
+                  setQuizStep('choice');
+                }}
+                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
+                  <Sparkles size={24} className="text-primary" />
+                </div>
+                <span className="font-medium text-sm text-foreground">{t('advisor.intentNew')}</span>
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  {t('advisor.intentNewDesc')}
+                </span>
+              </button>
+            </div>
+
+            {/* Resume previous conversation */}
+            {hasSavedConvo && (
+              <button
+                onClick={resumeConversation}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border bg-muted/50 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+              >
+                <History size={16} />
+                {lang === 'ar' ? 'متابعة المحادثة السابقة' : 'Continue previous conversation'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ─── Choice screen (before chat) ───
   if (inChoice) {
@@ -369,17 +454,6 @@ export default function AdvisorPage() {
                 </span>
               </button>
             </div>
-
-            {/* Resume previous conversation */}
-            {hasSavedConvo && (
-              <button
-                onClick={resumeConversation}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border bg-muted/50 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
-              >
-                <History size={16} />
-                {lang === 'ar' ? 'متابعة المحادثة السابقة' : 'Continue previous conversation'}
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -495,7 +569,7 @@ export default function AdvisorPage() {
                 size="sm"
                 className="rounded-xl h-10 w-10 p-0 shrink-0 text-muted-foreground hover:text-foreground"
               >
-                <RotateCcw size={16} />
+                <ArrowLeft size={16} className="rtl:rotate-180" />
               </Button>
               <input
                 ref={inputRef}
