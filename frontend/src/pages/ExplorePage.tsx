@@ -540,32 +540,6 @@ export default function ExplorePage() {
                   </button>
                 )}
               </div>
-              {/* Category chips — under search, same width */}
-              <div className="flex gap-1 overflow-x-auto mt-2 pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                {CATEGORIES.map((cat) => {
-                  const Icon = cat.icon;
-                  const isActive = activeCategory === cat.key;
-                  return (
-                    <button
-                      key={cat.key}
-                      onClick={() => {
-                        const next = activeCategory === cat.key ? null : cat.key;
-                        if (next) trackEvent('category_selected', { category: next });
-                        setActiveCategory(next);
-                      }}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap
-                        transition-all duration-200 shrink-0
-                        ${isActive
-                          ? 'bg-white text-foreground shadow-sm'
-                          : 'bg-white/15 text-white/80 hover:bg-white/25'
-                        }`}
-                    >
-                      <Icon size={11} />
-                      {t(`explore.${cat.key}`)}
-                    </button>
-                  );
-                })}
-              </div>
             </div>
             <Button
               variant="ghost"
@@ -577,6 +551,32 @@ export default function ExplorePage() {
               {t('browse.filters')}
               {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-primary" />}
             </Button>
+          </div>
+          {/* Category chips — full width under search row */}
+          <div className="flex gap-1 overflow-x-auto mt-2 pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {CATEGORIES.map((cat) => {
+              const Icon = cat.icon;
+              const isActive = activeCategory === cat.key;
+              return (
+                <button
+                  key={cat.key}
+                  onClick={() => {
+                    const next = activeCategory === cat.key ? null : cat.key;
+                    if (next) trackEvent('category_selected', { category: next });
+                    setActiveCategory(next);
+                  }}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap
+                    transition-all duration-200 shrink-0
+                    ${isActive
+                      ? 'bg-white text-foreground shadow-sm'
+                      : 'bg-white/15 text-white/80 hover:bg-white/25'
+                    }`}
+                >
+                  <Icon size={11} />
+                  {t(`explore.${cat.key}`)}
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>

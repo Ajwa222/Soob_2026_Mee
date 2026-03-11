@@ -90,7 +90,7 @@ export default function SwitchSavePage() {
         </div>
       </section>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-8 pb-20">
         {/* Calculator inputs */}
         <div className="bg-card rounded-2xl border border-border p-6 space-y-6">
           <h2 className="font-heading font-bold text-lg text-foreground">
