@@ -1,14 +1,15 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, TrendingDown, Sparkles, BadgeCheck } from 'lucide-react';
+import { ArrowRight, TrendingDown, Sparkles, BadgeCheck, Search, X } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
-import { getValueScore } from '../data/plans';
+import { getValueScore, getCarrierLogo } from '../data/plans';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { trackEvent } from '../lib/analytics';
+import type { Plan } from '../types';
 
 export default function SwitchSavePage() {
   const { t, lang } = useLang();
@@ -18,6 +19,48 @@ export default function SwitchSavePage() {
   const [currentData, setCurrentData] = useState(20);
   const [currentMins, setCurrentMins] = useState(100);
   const [showResults, setShowResults] = useState(false);
+
+  // Plan search
+  const [planSearch, setPlanSearch] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const searchResults = useMemo(() => {
+    if (!planSearch.trim()) return [];
+    const q = planSearch.trim().toLowerCase();
+    return plans
+      .filter(p => p.planName.toLowerCase().includes(q) || p.provider.toLowerCase().includes(q))
+      .slice(0, 6);
+  }, [plans, planSearch]);
+
+  const selectPlan = (plan: Plan) => {
+    setSelectedPlan(plan);
+    setPlanSearch('');
+    setShowDropdown(false);
+    setCurrentPrice(plan.priceSAR);
+    const gb = plan.dataGB === 'Unlimited' ? 100 : parseFloat(plan.dataGB) || 20;
+    setCurrentData(Math.min(gb, 100));
+    const mins = plan.localCallMinutes === 'Unlimited' ? 1000 : parseFloat(plan.localCallMinutes) || 100;
+    setCurrentMins(Math.min(mins, 1000));
+    setShowResults(false);
+    trackEvent('switch_plan_selected', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider });
+  };
+
+  const clearSelectedPlan = () => {
+    setSelectedPlan(null);
+    setPlanSearch('');
+    setShowResults(false);
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setShowDropdown(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const results = useMemo(() => {
     if (!showResults) return [];
@@ -96,6 +139,61 @@ export default function SwitchSavePage() {
           <h2 className="font-heading font-bold text-lg text-foreground">
             {isAr ? 'باقتك الحالية' : 'Your Current Plan'}
           </h2>
+
+          {/* Plan search */}
+          <div ref={searchRef} className="relative">
+            <label className="text-sm font-medium text-foreground mb-2 block">
+              {isAr ? 'ابحث عن باقتك الحالية' : 'Find your current plan'}
+            </label>
+            {selectedPlan ? (
+              <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/50 px-4 py-3">
+                {getCarrierLogo(selectedPlan.provider) && (
+                  <img src={getCarrierLogo(selectedPlan.provider)!} alt={selectedPlan.provider} className="h-5 w-auto object-contain shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">{selectedPlan.planName}</p>
+                  <p className="text-[11px] text-muted-foreground">{selectedPlan.provider} · {selectedPlan.priceSAR} SAR</p>
+                </div>
+                <button onClick={clearSelectedPlan} className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                  <X size={16} />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Search size={16} className="absolute top-1/2 -translate-y-1/2 start-3.5 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={planSearch}
+                  onChange={e => { setPlanSearch(e.target.value); setShowDropdown(true); }}
+                  onFocus={() => setShowDropdown(true)}
+                  placeholder={isAr ? 'مثال: Mini X 5G, Sawa...' : 'e.g. Mini X 5G, Sawa...'}
+                  className="w-full ps-10 pe-4 py-3 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30"
+                />
+              </div>
+            )}
+            {showDropdown && searchResults.length > 0 && !selectedPlan && (
+              <div className="absolute z-20 top-full mt-1 w-full rounded-xl border border-border bg-card shadow-lg overflow-hidden">
+                {searchResults.map(plan => (
+                  <button
+                    key={plan.id}
+                    onClick={() => selectPlan(plan)}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-start hover:bg-muted/50 transition-colors"
+                  >
+                    {getCarrierLogo(plan.provider) && (
+                      <img src={getCarrierLogo(plan.provider)!} alt={plan.provider} className="h-4 w-auto object-contain shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{plan.planName}</p>
+                      <p className="text-[11px] text-muted-foreground">{plan.provider} · {plan.priceSAR} SAR</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            <p className="text-[11px] text-muted-foreground mt-1.5">
+              {isAr ? 'أو عدّل القيم يدوياً بالأسفل' : 'Or adjust the values manually below'}
+            </p>
+          </div>
 
           {/* Price slider */}
           <div>
@@ -176,9 +274,11 @@ export default function SwitchSavePage() {
             <ArrowRight size={16} className="rtl:rotate-180" />
           </Button>
         </div>
+      </div>
 
-        {/* Results */}
-        {showResults && (
+      {/* Results — wider container */}
+      {showResults && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-20">
           <div className="mt-8 space-y-6 animate-fade-up">
             {results.length > 0 ? (
               <>
@@ -240,10 +340,12 @@ export default function SwitchSavePage() {
               </div>
             )}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Advisor CTA */}
-        {!showResults && (
+      {/* Advisor CTA */}
+      {!showResults && (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 pb-20">
           <div className="mt-8">
             <Link
               to="/advisor"
@@ -269,8 +371,8 @@ export default function SwitchSavePage() {
               </div>
             </Link>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

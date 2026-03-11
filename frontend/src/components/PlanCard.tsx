@@ -128,7 +128,7 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
             ...(hasSocial ? [{ icon: Share2, value: plan.socialMediaData === 'Unlimited' ? t('detail.unlimited') : (/gb/i.test(plan.socialMediaData) ? plan.socialMediaData : `${plan.socialMediaData} GB`), label: t('planCard.social') }] : []),
           ];
           return (
-            <div className={`grid ${hasSocial ? 'grid-cols-4' : 'grid-cols-3'} gap-2 text-sm`}>
+            <div className={`grid ${hasSocial ? 'grid-cols-2' : 'grid-cols-3'} gap-2 text-sm`}>
               {metrics.map(({ icon: Icon, value, label }) => (
                 <div key={label} className={`flex flex-col items-center gap-1 ${compact ? 'py-1.5' : 'py-2.5'} px-1 rounded-xl bg-muted/50 dark:bg-muted/30 transition-colors`}>
                   <Icon size={compact ? 12 : 14} className="text-primary" />
