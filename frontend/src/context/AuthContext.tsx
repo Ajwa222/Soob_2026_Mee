@@ -1,7 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
-import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db, googleProvider } from '../lib/firebase';
+import { getFirebaseAuth, getFirebaseDb, getGoogleProvider } from '../lib/firebase';
 import { identifyUser, resetUser } from '../lib/analytics';
 import type { SimbaUser } from '../types';
 
@@ -39,13 +37,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Google Sign-In (popup with redirect fallback)
   const loginWithGoogle = useCallback(async () => {
+    const auth = await getFirebaseAuth();
+    const provider = await getGoogleProvider();
+    const { signInWithPopup, signInWithRedirect } = await import('firebase/auth');
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithPopup(auth, provider);
     } catch (error: unknown) {
       const code = (error as { code?: string })?.code;
       if (code === 'auth/popup-blocked') {
         localStorage.setItem('simba-auth-redirect', 'pending');
-        await signInWithRedirect(auth, googleProvider);
+        await signInWithRedirect(auth, provider);
         return;
       }
       throw error;
@@ -56,6 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updatePhone = useCallback(async (phone: string) => {
     if (!user || user.provider !== 'google') return;
     try {
+      const db = await getFirebaseDb();
+      const { doc, setDoc } = await import('firebase/firestore');
       await setDoc(doc(db, 'users', user.uid), { phone }, { merge: true });
       const updatedUser: SimbaUser = { ...user, phone };
       setUser(updatedUser);
@@ -73,73 +76,81 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Logout
   const logout = useCallback(async () => {
+    const auth = await getFirebaseAuth();
+    const { signOut } = await import('firebase/auth');
     await signOut(auth);
     resetUser();
     setUser(null);
     localStorage.removeItem('simba-user');
   }, []);
 
-  // Firebase auth state listener
+  // Firebase auth state listener — loads Firebase lazily
   useEffect(() => {
-    // Handle redirect result (fallback from popup-blocked)
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          // Redirect sign-in succeeded — clear the pending flag
+    let unsubscribe: (() => void) | null = null;
+
+    getFirebaseAuth().then(async (auth) => {
+      const { onAuthStateChanged, getRedirectResult } = await import('firebase/auth');
+
+      // Handle redirect result (fallback from popup-blocked)
+      getRedirectResult(auth)
+        .then((result) => {
+          if (result) localStorage.removeItem('simba-auth-redirect');
+        })
+        .catch((error: unknown) => {
+          const code = (error as { code?: string })?.code;
+          const message = (error as { message?: string })?.message;
+          console.error('Redirect sign-in error:', code, message);
           localStorage.removeItem('simba-auth-redirect');
-        }
-      })
-      .catch((error: unknown) => {
-        const code = (error as { code?: string })?.code;
-        const message = (error as { message?: string })?.message;
-        console.error('Redirect sign-in error:', code, message);
-        // Clear pending flag so user isn't stuck
-        localStorage.removeItem('simba-auth-redirect');
-      });
+        });
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const { displayName, email, photoURL, uid } = firebaseUser;
+      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
+          const { displayName, email, photoURL, uid } = firebaseUser;
 
-        // Set user immediately so UI updates without waiting for Firestore
-        const baseUser: SimbaUser = {
-          name: displayName || email || '',
-          email: email || '',
-          photoURL,
-          uid,
-          provider: 'google',
-          phone: null,
-        };
-        setUser(baseUser);
-        localStorage.setItem('simba-user', JSON.stringify(baseUser));
-        localStorage.setItem('simba-has-account', 'true');
-        setHasAccount(true);
+          const baseUser: SimbaUser = {
+            name: displayName || email || '',
+            email: email || '',
+            photoURL,
+            uid,
+            provider: 'google',
+            phone: null,
+          };
+          setUser(baseUser);
+          localStorage.setItem('simba-user', JSON.stringify(baseUser));
+          localStorage.setItem('simba-has-account', 'true');
+          setHasAccount(true);
 
-        // Fetch phone from Firestore in background
-        let phone: string | null = null;
-        try {
-          const userDoc = await getDoc(doc(db, 'users', uid));
-          if (userDoc.exists()) {
-            phone = (userDoc.data()?.phone as string) || null;
+          // Fetch phone from Firestore in background
+          let phone: string | null = null;
+          try {
+            const db = await getFirebaseDb();
+            const { doc, getDoc } = await import('firebase/firestore');
+            const userDoc = await getDoc(doc(db, 'users', uid));
+            if (userDoc.exists()) {
+              phone = (userDoc.data()?.phone as string) || null;
+            }
+          } catch (err) {
+            if (import.meta.env.DEV) console.warn('Firestore read failed:', err);
           }
-        } catch (err) {
-          if (import.meta.env.DEV) console.warn('Firestore read failed:', err);
-        }
 
-        const userData: SimbaUser = { ...baseUser, phone };
-        setUser(userData);
-        setPhoneChecked(true);
-        try { identifyUser(userData); } catch { /* analytics non-critical */ }
-        localStorage.setItem('simba-user', JSON.stringify(userData));
-      } else {
-        setUser(null);
-        setPhoneChecked(false);
-        localStorage.removeItem('simba-user');
-      }
+          const userData: SimbaUser = { ...baseUser, phone };
+          setUser(userData);
+          setPhoneChecked(true);
+          try { identifyUser(userData); } catch { /* analytics non-critical */ }
+          localStorage.setItem('simba-user', JSON.stringify(userData));
+        } else {
+          setUser(null);
+          setPhoneChecked(false);
+          localStorage.removeItem('simba-user');
+        }
+        setLoading(false);
+      });
+    }).catch(() => {
+      // Firebase failed to init — still allow the app to work
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => { unsubscribe?.(); };
   }, []);
 
   return (

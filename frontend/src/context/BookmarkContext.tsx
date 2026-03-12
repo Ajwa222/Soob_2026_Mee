@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo, type ReactNode } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { getFirebaseDb } from '../lib/firebase';
 import { useAuth } from './AuthContext';
 
 const PENDING_KEY = 'simba-pending-bookmark';
@@ -33,9 +32,13 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     setLoading(true);
 
-    getDoc(doc(db, 'users', user.uid))
-      .then(snap => {
+    (async () => {
+      try {
+        const db = await getFirebaseDb();
+        const { doc, getDoc, setDoc } = await import('firebase/firestore');
+        const snap = await getDoc(doc(db, 'users', user.uid));
         if (cancelled) return;
+
         let ids: number[] = [];
         if (snap.exists()) {
           const data = snap.data();
@@ -49,20 +52,18 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
           const pendingId = Number(pendingRaw);
           if (pendingId && !ids.includes(pendingId)) {
             ids = [...ids, pendingId];
-            // Persist the updated list
             setDoc(doc(db, 'users', user.uid), { bookmarks: ids }, { merge: true }).catch(() => {});
           }
         }
 
         setBookmarkedIds(ids);
         fetched.current = true;
-      })
-      .catch(err => {
+      } catch (err) {
         if (import.meta.env.DEV) console.warn('Failed to fetch bookmarks:', err);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    })();
 
     return () => { cancelled = true; };
   }, [isLoggedIn, user?.uid]);
@@ -75,10 +76,16 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
         ? prev.filter(id => id !== planId)
         : [...prev, planId];
 
-      setDoc(doc(db, 'users', user.uid), { bookmarks: next }, { merge: true })
-        .catch(err => {
+      // Fire-and-forget Firestore write
+      (async () => {
+        try {
+          const db = await getFirebaseDb();
+          const { doc, setDoc } = await import('firebase/firestore');
+          await setDoc(doc(db, 'users', user.uid), { bookmarks: next }, { merge: true });
+        } catch (err) {
           if (import.meta.env.DEV) console.error('Failed to save bookmarks:', err);
-        });
+        }
+      })();
 
       return next;
     });

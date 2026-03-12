@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useCallback } from 'react';
+import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ChevronRight, GraduationCap, Globe2, Wifi, Phone,
@@ -304,6 +304,26 @@ export default function ExplorePage() {
   const visibleCategories = activeCategory
     ? categoryData.filter(c => c.key === activeCategory)
     : categoryData;
+
+  // Stagger rendering: show first 2 rows immediately, rest after idle
+  const INITIAL_ROWS = 2;
+  const [rowLimit, setRowLimit] = useState(INITIAL_ROWS);
+  useEffect(() => {
+    if (rowLimit >= visibleCategories.length) return;
+    const cb = () => setRowLimit(visibleCategories.length);
+    if ('requestIdleCallback' in window) {
+      const id = requestIdleCallback(cb, { timeout: 300 });
+      return () => cancelIdleCallback(id);
+    } else {
+      const id = setTimeout(cb, 100);
+      return () => clearTimeout(id);
+    }
+  }, [visibleCategories.length, rowLimit]);
+
+  // Reset row limit when category filter changes
+  useEffect(() => {
+    setRowLimit(INITIAL_ROWS);
+  }, [activeCategory]);
 
   /* ---- filter panel content (shared desktop + mobile) ---- */
   const filterContent = (
@@ -678,7 +698,7 @@ export default function ExplorePage() {
               )}
 
               {/* ---- CATEGORY ROWS ---- */}
-              {visibleCategories.map((cat) => (
+              {visibleCategories.slice(0, rowLimit).map((cat) => (
                 <PlanRow
                   key={cat.key}
                   id={`cat-${cat.key}`}

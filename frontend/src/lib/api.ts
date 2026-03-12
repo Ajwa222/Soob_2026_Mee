@@ -1,9 +1,10 @@
-import { auth } from "./firebase";
+import { getAuthSync } from "./firebase";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 async function getAuthHeader(): Promise<Record<string, string>> {
-  const user = auth.currentUser;
+  const auth = getAuthSync();
+  const user = auth?.currentUser;
   if (!user) return {};
   const token = await user.getIdToken();
   return { Authorization: `Bearer ${token}` };

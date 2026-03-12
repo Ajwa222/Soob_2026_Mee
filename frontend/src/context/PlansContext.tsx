@@ -37,9 +37,9 @@ export function PlansProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    // Fetch plans without auth header — it's a public endpoint
+    // Fetch slim card data — no auth needed, smaller payload
     const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    fetch(`${API_BASE}/api/plans`)
+    fetch(`${API_BASE}/api/plans/cards`)
       .then((res) => {
         if (!res.ok) throw new Error(`API error ${res.status}`);
         return res.json() as Promise<Plan[]>;

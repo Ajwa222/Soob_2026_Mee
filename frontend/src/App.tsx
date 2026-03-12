@@ -12,7 +12,7 @@ import Footer from './components/Footer';
 import CompareBar from './components/CompareBar';
 import Onboarding from './components/Onboarding';
 import PhoneGate from './components/PhoneGate';
-import HomePage from './pages/HomePage';
+const HomePage = lazy(() => import('./pages/HomePage'));
 
 const PlansPage = lazy(() => import('./pages/PlansPage'));
 const PlanDetailPage = lazy(() => import('./pages/PlanDetailPage'));

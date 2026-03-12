@@ -5,8 +5,7 @@ import {
   ArrowLeftRight, Sparkles, ArrowLeft, Lock,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { getFirebaseDb } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
@@ -217,14 +216,14 @@ export default function AdvisorPage() {
   // Check for saved conversation on mount (logged-in users only)
   useEffect(() => {
     if (!user?.uid || (quizStep !== 'intent' && quizStep !== 'choice')) return;
-    getDoc(doc(db, 'users', user.uid, 'advisor', 'lastConversation'))
-      .then(snap => {
-        if (snap.exists()) {
-          const data = snap.data();
-          if (data?.messages?.length > 0) setHasSavedConvo(true);
-        }
-      })
-      .catch(() => {});
+    getFirebaseDb().then(async (db) => {
+      const { doc, getDoc } = await import('firebase/firestore');
+      const snap = await getDoc(doc(db, 'users', user.uid, 'advisor', 'lastConversation'));
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data?.messages?.length > 0) setHasSavedConvo(true);
+      }
+    }).catch(() => {});
   }, [user?.uid, quizStep]);
 
   // Save conversation to Firestore (debounced, only when quiz is done)
@@ -232,11 +231,14 @@ export default function AdvisorPage() {
     if (!user?.uid || !quizDone || messages.length === 0) return;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      setDoc(
-        doc(db, 'users', user.uid, 'advisor', 'lastConversation'),
-        { messages, updatedAt: Date.now(), lang },
-        { merge: true },
-      ).catch(() => {});
+      getFirebaseDb().then(async (db) => {
+        const { doc, setDoc } = await import('firebase/firestore');
+        await setDoc(
+          doc(db, 'users', user.uid, 'advisor', 'lastConversation'),
+          { messages, updatedAt: Date.now(), lang },
+          { merge: true },
+        );
+      }).catch(() => {});
     }, 2000);
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
   }, [messages, user?.uid, quizDone, lang]);
@@ -245,6 +247,8 @@ export default function AdvisorPage() {
   const resumeConversation = useCallback(async () => {
     if (!user?.uid) return;
     try {
+      const db = await getFirebaseDb();
+      const { doc, getDoc } = await import('firebase/firestore');
       const snap = await getDoc(doc(db, 'users', user.uid, 'advisor', 'lastConversation'));
       if (snap.exists()) {
         const data = snap.data();
