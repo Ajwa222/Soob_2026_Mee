@@ -9,8 +9,8 @@ const PLAN_MAP = new Map(PLANS_DATA.map((p) => [p.id, p]));
 
 // Slim payload for card rendering — drop url, roamingDataGB (heavy fields unused in cards)
 const PLANS_CARDS_JSON = JSON.stringify(
-  PLANS_DATA.map(({ id, provider, planName, planType, priceSAR, dataGB, socialMediaData, localCallMinutes, internationalCallMinutes, sms, contractTerms, specialFeatures }) => ({
-    id, provider, planName, planType, priceSAR, dataGB, socialMediaData, localCallMinutes, internationalCallMinutes, sms, contractTerms, specialFeatures,
+  PLANS_DATA.map(({ id, provider, planName, planType, priceSAR, dataGB, socialMediaData, localCallMinutes, internationalCallMinutes, sms, roamingDataGB, contractTerms, specialFeatures, url }) => ({
+    id, provider, planName, planType, priceSAR, dataGB, socialMediaData, localCallMinutes, internationalCallMinutes, sms, roamingDataGB, contractTerms, specialFeatures, url,
   }))
 );
 
