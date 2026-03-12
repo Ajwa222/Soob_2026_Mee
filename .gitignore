@@ -35,3 +35,5 @@ pnpm-debug.log*
 # Firebase service account keys
 service-account.json
 *-firebase-adminsdk-*.json
+
+SimbaApp_Codebase_Report.md

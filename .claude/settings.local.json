@@ -19,7 +19,9 @@
       "Bash(npm uninstall openai)",
       "Bash(npm install express-rate-limit)",
       "Bash(ls /c/Users/Abdulrhman24/Documents/projects/SimbaApp/*.rules)",
-      "Bash(xargs grep -l \"finder\\\\|Finder\")"
+      "Bash(xargs grep -l \"finder\\\\|Finder\")",
+      "Bash(grep -E \"\\\\.\\(ts|js\\)$\")",
+      "Bash(ls -la /c/Users/Abdulrhman24/Documents/projects/SimbaApp/backend/.env*)"
     ]
   }
 }
