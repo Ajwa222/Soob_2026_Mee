@@ -104,6 +104,8 @@ const CATEGORIES: CategoryDef[] = [
 ];
 
 /* ---- Horizontal scroll row ---- */
+const INITIAL_CARDS = 8;
+
 function PlanRow({ id, plans, label, icon: Icon, description }: {
   id: string;
   plans: Plan[];
@@ -113,6 +115,21 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
 }) {
   const { lang } = useLang();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [showAll, setShowAll] = useState(plans.length <= INITIAL_CARDS);
+
+  useEffect(() => {
+    if (plans.length <= INITIAL_CARDS) { setShowAll(true); return; }
+    const cb = () => setShowAll(true);
+    if ('requestIdleCallback' in window) {
+      const id = requestIdleCallback(cb, { timeout: 1500 });
+      return () => cancelIdleCallback(id);
+    } else {
+      const id = setTimeout(cb, 800);
+      return () => clearTimeout(id);
+    }
+  }, [plans.length]);
+
+  const visiblePlans = showAll ? plans : plans.slice(0, INITIAL_CARDS);
 
   const scroll = (dir: 'left' | 'right') => {
     const el = scrollRef.current;
@@ -161,7 +178,7 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
           className="flex items-stretch gap-3 md:gap-4 overflow-x-auto px-4 sm:px-6 md:px-10 pb-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {plans.map((plan) => (
+          {visiblePlans.map((plan) => (
             <div key={plan.id} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px] self-stretch" style={{ contentVisibility: 'auto', containIntrinsicSize: '280px 320px' }}>
               <ConnectedPlanCard plan={plan} compact style={CARD_FULL_HEIGHT} />
             </div>
