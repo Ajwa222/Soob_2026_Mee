@@ -15,14 +15,14 @@
     "express": "^5.1.0",
     "express-rate-limit": "^8.3.0",
     "firebase-admin": "^13.7.0",
-    "openai": "^6.27.0"
-  },
-  "devDependencies": {
+    "openai": "^6.27.0",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.15.0",
-    "tsx": "^4.19.0",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
   }
 }
