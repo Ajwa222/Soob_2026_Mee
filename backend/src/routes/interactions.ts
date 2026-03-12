@@ -12,6 +12,14 @@ const router = Router();
 const REACTIONS_COL = "planReactions";
 const COMMENTS_COL = "planComments";
 
+// In-memory engagement cache (avoids hitting Firestore on every page load)
+let engagementCache: { data: string; expires: number } | null = null;
+const ENGAGEMENT_TTL = 60_000; // 60 seconds
+
+function invalidateEngagementCache() {
+  engagementCache = null;
+}
+
 const defaultReaction: PlanReaction = {
   likes: 0,
   dislikes: 0,
@@ -22,6 +30,14 @@ const defaultReaction: PlanReaction = {
 /** GET /api/plans/engagement — batch fetch reactions + comment counts for all plans */
 router.get("/engagement", async (_req, res) => {
   try {
+    // Return cached data if fresh
+    if (engagementCache && Date.now() < engagementCache.expires) {
+      res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
+      res.set("Content-Type", "application/json");
+      res.send(engagementCache.data);
+      return;
+    }
+
     const [reactionsSnap, commentsSnap] = await Promise.all([
       db.collection(REACTIONS_COL).get(),
       db.collection(COMMENTS_COL).get(),
@@ -48,7 +64,12 @@ router.get("/engagement", async (_req, res) => {
     });
     await Promise.all(commentCountPromises);
 
-    res.json(engagement);
+    const json = JSON.stringify(engagement);
+    engagementCache = { data: json, expires: Date.now() + ENGAGEMENT_TTL };
+
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
+    res.set("Content-Type", "application/json");
+    res.send(json);
   } catch (err) {
     console.error("Fetch engagement error:", err);
     res.status(500).json({ error: "Failed to fetch engagement" });
@@ -115,6 +136,7 @@ router.post("/:id/reactions/like", requireAuth, async (req, res) => {
     }
 
     await ref.update(updates);
+    invalidateEngagementCache();
     res.json({ toggled: alreadyLiked ? "unliked" : "liked" });
   } catch (err) {
     console.error("Toggle like error:", err);
@@ -160,6 +182,7 @@ router.post("/:id/reactions/dislike", requireAuth, async (req, res) => {
     }
 
     await ref.update(updates);
+    invalidateEngagementCache();
     res.json({ toggled: alreadyDisliked ? "undisliked" : "disliked" });
   } catch (err) {
     console.error("Toggle dislike error:", err);
@@ -233,6 +256,7 @@ router.post("/:id/comments", requireAuth, async (req, res) => {
       .doc(planId)
       .collection("comments");
     const docRef = await colRef.add(commentData);
+    invalidateEngagementCache();
 
     res.status(201).json({ id: docRef.id, ...commentData });
   } catch (err) {
@@ -267,6 +291,7 @@ router.delete("/:id/comments/:commentId", requireAuth, async (req, res) => {
     }
 
     await docRef.delete();
+    invalidateEngagementCache();
     res.json({ deleted: true });
   } catch (err) {
     console.error("Delete comment error:", err);

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo, type ReactNode } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from './AuthContext';
@@ -98,8 +98,12 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
     return false;
   }, [isLoggedIn, user, toggleBookmark]);
 
+  const value = useMemo(() => ({
+    bookmarkedIds, toggleBookmark, isBookmarked, requestBookmark, loading,
+  }), [bookmarkedIds, toggleBookmark, isBookmarked, requestBookmark, loading]);
+
   return (
-    <BookmarkContext.Provider value={{ bookmarkedIds, toggleBookmark, isBookmarked, requestBookmark, loading }}>
+    <BookmarkContext.Provider value={value}>
       {children}
     </BookmarkContext.Provider>
   );

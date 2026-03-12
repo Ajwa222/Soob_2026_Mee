@@ -296,6 +296,9 @@
     background-size: 100% 100%;
     will-change: auto;
   }
+  .card-hover {
+    transition: none;
+  }
 }
 
 /* Card hover lift */
@@ -345,6 +348,13 @@
 
 .gradient-border:hover::before {
   opacity: 1;
+}
+
+/* Disable gradient-border pseudo-element on mobile — mask-composite is GPU-heavy */
+@media (max-width: 768px) {
+  .gradient-border::before {
+    display: none;
+  }
 }
 
 /* Glow effect for CTAs */

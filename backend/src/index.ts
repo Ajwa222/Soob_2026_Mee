@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import compression from "compression";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
 
@@ -15,6 +16,8 @@ const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  "http://localhost:5175",
+  "http://localhost:5176",
   process.env.PRODUCTION_URL,
 ].filter(Boolean) as string[];
 
@@ -22,6 +25,7 @@ if (process.env.NODE_ENV === "production" && !process.env.PRODUCTION_URL) {
   console.warn("WARNING: PRODUCTION_URL is not set. CORS will only allow localhost.");
 }
 
+app.use(compression());
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
