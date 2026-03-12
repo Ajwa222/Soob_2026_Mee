@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { ChevronRight, Share2, Check } from 'lucide-react';
+import { ChevronRight, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -55,42 +54,20 @@ function getBest(plans: Plan[], attr: Attr): number[] {
 
 export default function CompareOverlay() {
   const { lang, t } = useLang();
-  const { selectedPlans, setShowOverlay, removePlan, getShareUrl } = useCompare();
-  const [copied, setCopied] = useState(false);
-
-  const handleShare = async () => {
-    const url = getShareUrl();
-    trackEvent('compare_shared', {
-      plan_count: selectedPlans.length,
-      plan_ids: selectedPlans.map(p => p.id),
-    });
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback for older browsers
-      window.prompt(lang === 'ar' ? 'انسخ الرابط:' : 'Copy this link:', url);
-    }
-  };
+  const { selectedPlans, setShowOverlay, removePlan } = useCompare();
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) setShowOverlay(false); }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+      <DialogContent className="max-w-2xl max-h-[85vh] md:max-h-[90vh] flex flex-col p-0 gap-0 [&>button:last-child]:hidden">
         <DialogHeader className="px-5 py-4 border-b border-border shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle>{t('compare.title')}</DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleShare}
-              className="rounded-xl gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+            <button
+              onClick={() => setShowOverlay(false)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
-              {copied ? <Check size={14} className="text-success" /> : <Share2 size={14} />}
-              {copied
-                ? (lang === 'ar' ? 'تم النسخ!' : 'Copied!')
-                : (lang === 'ar' ? 'شارك' : 'Share')}
-            </Button>
+              <X size={18} />
+            </button>
           </div>
         </DialogHeader>
 
@@ -162,7 +139,7 @@ export default function CompareOverlay() {
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-border p-3 flex gap-2">
+        <div className="shrink-0 border-t border-border p-3 pb-6 md:pb-3 flex gap-2">
           {selectedPlans.map((plan) => (
             <Button key={plan.id} className="flex-1" asChild>
               <Link to={`/plan/${plan.id}`} onClick={() => { trackEvent('compare_view_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider }); setShowOverlay(false); }}>

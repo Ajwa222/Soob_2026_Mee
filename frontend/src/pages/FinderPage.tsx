@@ -9,7 +9,8 @@ import {
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { getValueScore, isValidValue } from '../data/plans';
+import { useCompare } from '../context/CompareContext';
+import { getValueScore, isValidValue, CARRIERS } from '../data/plans';
 import { usePlans } from '../context/PlansContext';
 import type { Plan } from '../types';
 import { ConnectedPlanCard } from '../components/PlanCard';
@@ -141,10 +142,157 @@ function scorePlans(allPlans: Plan[], answers: Record<string, string | number>) 
   }));
 }
 
+function ScanningAnimation({ plans, lang, t }: { plans: Plan[]; lang: string; t: (k: string) => string }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [phase, setPhase] = useState<'fast' | 'slow' | 'lock'>('fast');
+  const [scannedCount, setScannedCount] = useState(0);
+  const [litCarriers, setLitCarriers] = useState<Set<string>>(new Set());
+
+  const shuffled = useMemo(() => {
+    const arr = plans.filter(p => p.planType !== 'Data-only');
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [plans]);
+
+  useEffect(() => {
+    if (shuffled.length === 0) return;
+    // Phase timing: fast 0-1.2s, slow 1.2-2.2s, lock 2.2s+
+    const t1 = setTimeout(() => setPhase('slow'), 1200);
+    const t2 = setTimeout(() => setPhase('lock'), 2200);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  useEffect(() => {
+    if (phase === 'lock' || shuffled.length === 0) return;
+    const speed = phase === 'fast' ? 80 : 200;
+    const interval = setInterval(() => {
+      setCurrentIndex(prev => {
+        const next = (prev + 1) % shuffled.length;
+        const plan = shuffled[next];
+        setLitCarriers(s => new Set(s).add(plan.provider));
+        setScannedCount(c => c + 1);
+        return next;
+      });
+    }, speed);
+    return () => clearInterval(interval);
+  }, [phase, shuffled]);
+
+  const current = shuffled[currentIndex];
+  const carrierLogo = CARRIERS.find(c => c.name === current?.provider);
+
+  if (!current) {
+    return (
+      <div className="relative z-10 flex items-center justify-center hero-gradient grain min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] overflow-hidden">
+        <WaveLines />
+        <div className="text-center text-white/60 text-sm">{lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative z-10 flex items-center justify-center hero-gradient grain min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] overflow-hidden">
+      <WaveLines />
+      <div className="relative z-10 w-full max-w-sm mx-auto px-6">
+        {/* Scanning counter */}
+        <div className="text-center mb-6 animate-fade-up">
+          <p className="text-white/50 text-xs font-medium tracking-wide uppercase mb-1">
+            {lang === 'ar' ? 'جاري المسح...' : 'Scanning...'}
+          </p>
+          <p className="text-white font-heading font-normal text-lg">
+            <span className="tabular-nums">{Math.min(scannedCount, plans.length)}</span>
+            <span className="text-white/40"> / {plans.length} </span>
+            <span className="text-white/60 text-sm">{lang === 'ar' ? 'باقة' : 'plans'}</span>
+          </p>
+        </div>
+
+        {/* The "slot machine" card */}
+        <div className={`relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 transition-all duration-300 ${
+          phase === 'lock' ? 'scale-105 border-white/40 shadow-lg shadow-white/10' : ''
+        }`}>
+          {/* Scanning line effect */}
+          {phase !== 'lock' && (
+            <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+              <div className="absolute inset-x-0 h-8 bg-gradient-to-b from-white/10 to-transparent animate-[scan_1s_ease-in-out_infinite]" />
+            </div>
+          )}
+
+          <div className="flex items-center gap-4">
+            {/* Carrier logo */}
+            <div className={`w-14 h-14 rounded-xl bg-white/15 flex items-center justify-center shrink-0 transition-all duration-200 ${
+              phase === 'lock' ? 'bg-white/25 shadow-md' : ''
+            }`}>
+              {carrierLogo && (
+                <img
+                  key={current?.id}
+                  src={carrierLogo.logo}
+                  alt={current?.provider}
+                  className={`w-9 h-9 object-contain ${phase === 'fast' ? 'opacity-60' : 'opacity-100'}`}
+                />
+              )}
+            </div>
+
+            {/* Plan info */}
+            <div className="flex-1 min-w-0">
+              <p className={`text-white font-heading font-medium text-sm truncate transition-all duration-200 ${
+                phase === 'fast' ? 'blur-[1px]' : 'blur-0'
+              }`}>
+                {current?.planName}
+              </p>
+              <p className="text-white/50 text-xs mt-0.5">{current?.provider}</p>
+              <div className="flex items-center gap-3 mt-1.5">
+                <span className={`text-white font-heading font-bold text-lg tabular-nums transition-all duration-200 ${
+                  phase === 'fast' ? 'blur-[2px]' : 'blur-0'
+                }`}>
+                  {current?.priceSAR}
+                </span>
+                <span className="text-white/40 text-xs">{lang === 'ar' ? 'ر.س/شهر' : 'SAR/mo'}</span>
+              </div>
+            </div>
+
+            {/* Lock indicator */}
+            {phase === 'lock' && (
+              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center animate-scale-in">
+                <Lock size={18} className="text-[#E37417]" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Carrier logos lighting up */}
+        <div className="flex items-center justify-center gap-2 mt-6">
+          {CARRIERS.map(c => (
+            <div
+              key={c.name}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                litCarriers.has(c.name)
+                  ? 'bg-white/20 border border-white/30 scale-100'
+                  : 'bg-white/5 border border-white/10 scale-90 opacity-40'
+              }`}
+            >
+              <img src={c.logo} alt={c.name} className="w-5 h-5 object-contain" />
+            </div>
+          ))}
+        </div>
+
+        {/* Status text */}
+        <p className="text-center text-white/40 text-xs mt-4">
+          {phase === 'lock'
+            ? (lang === 'ar' ? 'لقينا أفضل الخيارات!' : 'Found your best matches!')
+            : (lang === 'ar' ? 'نقارن الأسعار والمميزات...' : 'Comparing prices & features...')}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function FinderPage() {
   const { t, lang } = useLang();
   const { isLoggedIn, hasAccount } = useAuth();
   const { plans: PLANS_DATA } = usePlans();
+  const { selectedPlans } = useCompare();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   // Restore finder results from session (e.g. after navigating back from plan detail)
@@ -235,7 +383,7 @@ export default function FinderPage() {
       setIsThinking(false);
       setShowResults(true);
       trackEvent('finder_results_viewed', { answers });
-    }, 1500);
+    }, 2800);
     return () => clearTimeout(timer);
   }, [isThinking]);
 
@@ -262,7 +410,6 @@ export default function FinderPage() {
   const recommendations = useMemo(() => {
     if (!showResults) return [];
     if (allNo) {
-      // Pick 3 cheapest non-data-only plans within budget
       const budget = Number(answers.budget) || 150;
       const cheap = PLANS_DATA
         .filter(p => p.planType !== 'Data-only' && p.priceSAR <= budget * 1.15)
@@ -365,28 +512,9 @@ export default function FinderPage() {
     );
   }
 
-  // --- Thinking animation ---
+  // --- Thinking animation: slot-machine scanning ---
   if (isThinking) {
-    return (
-      <div className="relative z-10 flex items-center justify-center hero-gradient grain min-h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] overflow-hidden">
-        <WaveLines />
-        <div className="text-center px-6 animate-scale-in">
-          <div className="relative w-16 h-16 mx-auto mb-5">
-            <div className="absolute inset-0 rounded-full border-4 border-white/15" />
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-white animate-spin" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkles size={24} className="text-white" />
-            </div>
-          </div>
-          <h2 className="font-heading font-normal text-xl md:text-3xl text-white mb-1.5 tracking-tight">
-            {t('finder.thinking')}
-          </h2>
-          <p className="text-white/60 text-xs md:text-sm">
-            {t('finder.thinkingDesc')}
-          </p>
-        </div>
-      </div>
-    );
+    return <ScanningAnimation plans={PLANS_DATA} lang={lang} t={t} />;
   }
 
   // --- Results view ---
@@ -452,7 +580,7 @@ export default function FinderPage() {
           </section>
         )}
 
-        <div className="bg-background rounded-t-3xl max-w-7xl mx-auto px-4 md:px-8 py-6">
+        <div className={`bg-background rounded-t-3xl max-w-7xl mx-auto px-4 md:px-8 py-6 ${selectedPlans.length > 0 ? 'pb-28' : ''}`}>
             <>
               {/* "Just in case" label for all-No */}
               {allNo && recommendations.length > 0 && (
