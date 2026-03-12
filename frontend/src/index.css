@@ -279,7 +279,7 @@
   animation: gradient-shift 12s ease infinite;
 }
 
-/* Noise/grain overlay for texture */
+/* Noise/grain overlay for texture — hidden on mobile for performance */
 .grain::after {
   content: '';
   position: absolute;
@@ -288,6 +288,14 @@
   pointer-events: none;
   z-index: 1;
   opacity: 0.5;
+}
+@media (max-width: 768px) {
+  .grain::after { display: none; }
+  .hero-gradient, .hero-gradient-lion {
+    animation: none;
+    background-size: 100% 100%;
+    will-change: auto;
+  }
 }
 
 /* Card hover lift */

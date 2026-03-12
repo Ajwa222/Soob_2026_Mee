@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import { apiFetch } from '../lib/api';
 import type { Plan } from '../types';
 
@@ -50,8 +50,10 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, [refreshEngagement]);
 
+  const value = useMemo(() => ({ plans, loading, engagement, refreshEngagement }), [plans, loading, engagement, refreshEngagement]);
+
   return (
-    <PlansContext.Provider value={{ plans, loading, engagement, refreshEngagement }}>
+    <PlansContext.Provider value={value}>
       {children}
     </PlansContext.Provider>
   );

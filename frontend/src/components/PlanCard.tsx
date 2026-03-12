@@ -53,7 +53,7 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
 
   return (
     <Card
-      className={`relative flex flex-col overflow-hidden card-hover gradient-border
+      className={`relative flex flex-col overflow-hidden ${compact ? '' : 'card-hover'} gradient-border
         ${selected ? 'ring-2 ring-primary shadow-lg' : ''}`}
       style={{ borderInlineStart: `4px solid ${carrierColor}`, ...style }}
     >
@@ -167,7 +167,7 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
 /** Thin wrapper that subscribes to CompareContext.
  *  Only this component re-renders on context changes —
  *  the memoized PlanCard underneath skips if `selected` didn't change. */
-export function ConnectedPlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
+export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
   const { togglePlan, isSelected } = useCompare();
   const { requestBookmark, isBookmarked } = useBookmarks();
   const { engagement } = usePlans();
@@ -189,6 +189,6 @@ export function ConnectedPlanCard({ plan, style, compact }: { plan: Plan; style?
       }}
     />
   );
-}
+});
 
 export default PlanCard;

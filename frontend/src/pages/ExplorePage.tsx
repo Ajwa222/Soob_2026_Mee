@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useCallback } from 'react';
+import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ChevronRight, GraduationCap, Globe2, Wifi, Phone,
@@ -28,7 +28,8 @@ function parseNum(val: string): number {
 const PLAN_TYPES = ['Prepaid', 'Postpaid', 'Data-only'] as const;
 const PRICE_MAX = 1000;
 const CARD_FULL_HEIGHT: React.CSSProperties = { height: '100%' };
-const MAX_PLANS_PER_CATEGORY = 15;
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+const MAX_PLANS_PER_CATEGORY = isMobile ? 8 : 15;
 
 const TYPE_COLORS: Record<string, { active: string; bg: string; ring: string }> = {
   Prepaid:     { active: '#059669', bg: '#10B98118', ring: '#10B98140' },
@@ -103,6 +104,22 @@ const CATEGORIES: CategoryDef[] = [
   },
 ];
 
+/* ---- Lazy visibility hook ---- */
+function useIsVisible(ref: React.RefObject<HTMLElement | null>, rootMargin = '200px') {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { rootMargin }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref, rootMargin]);
+  return visible;
+}
+
 /* ---- Horizontal scroll row ---- */
 function PlanRow({ id, plans, label, icon: Icon, description }: {
   id: string;
@@ -113,6 +130,8 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
 }) {
   const { lang } = useLang();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const isVisible = useIsVisible(sectionRef, '50px');
 
   const scroll = (dir: 'left' | 'right') => {
     const el = scrollRef.current;
@@ -129,7 +148,7 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
   if (plans.length === 0) return null;
 
   return (
-    <section id={id} className="mb-6 scroll-mt-4">
+    <section ref={sectionRef} id={id} className="mb-6 scroll-mt-4">
       {/* Row header */}
       <div className="flex items-center gap-2.5 md:gap-3 mb-2.5 md:mb-3 px-4 sm:px-6 md:px-8">
         <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-[#E37417]/10 flex items-center justify-center shrink-0">
@@ -161,11 +180,13 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
           className="flex items-stretch gap-3 md:gap-4 overflow-x-auto px-4 sm:px-6 md:px-10 pb-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {plans.map((plan) => (
-            <div key={plan.id} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px] self-stretch">
+          {isVisible ? plans.map((plan) => (
+            <div key={plan.id} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px] self-stretch" style={{ contentVisibility: 'auto', containIntrinsicSize: '280px 320px' }}>
               <ConnectedPlanCard plan={plan} compact style={CARD_FULL_HEIGHT} />
             </div>
-          ))}
+          )) : (
+            <div style={{ width: plans.length * 276, height: 200 }} />
+          )}
         </div>
 
       </div>

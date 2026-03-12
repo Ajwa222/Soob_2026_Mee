@@ -70,7 +70,7 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop Nav */}
-      <nav className="hidden md:block sticky top-0 z-50 bg-[#FFF0D0]/80 dark:bg-card/80 backdrop-blur-xl border-b border-border/60">
+      <nav className="hidden md:block sticky top-0 z-50 bg-[#FFF0D0]/80 dark:bg-card/80 backdrop-blur-md border-b border-border/60">
         <div className="w-full max-w-5xl mx-auto px-8 flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2.5 group">
             <img src="/icon-512.png" alt="Simba" className="w-9 h-9 rounded-xl shadow-sm group-hover:shadow-md transition-shadow" />
@@ -121,7 +121,7 @@ export default function Navigation() {
 
       {/* Mobile Bottom Tab Bar */}
       <nav
-        className={`md:hidden fixed bottom-0 inset-x-0 z-[200] bg-[#FFF0D0]/90 dark:bg-card/90 backdrop-blur-xl border-t border-border/60`}
+        className={`md:hidden fixed bottom-0 inset-x-0 z-[200] bg-[#FFF0D0]/90 dark:bg-card/90 backdrop-blur-md border-t border-border/60`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex items-center justify-around h-16 px-2">
@@ -166,7 +166,7 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Top Bar */}
-      <div className="md:hidden sticky top-0 z-[200] bg-[#FFF0D0]/90 dark:bg-card/90 backdrop-blur-xl border-b border-border/60">
+      <div className="md:hidden sticky top-0 z-[200] bg-[#FFF0D0]/90 dark:bg-card/90 backdrop-blur-md border-b border-border/60">
         <div className="flex items-center justify-between px-4 h-14">
           <Link to="/" className="flex items-center gap-2">
             <img src="/icon-512.png" alt="Simba" className="w-8 h-8 rounded-xl shadow-sm" />
