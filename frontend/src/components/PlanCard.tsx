@@ -11,6 +11,7 @@ import { useCompare } from '../context/CompareContext';
 import { useBookmarks } from '../context/BookmarkContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
 import { usePlans } from '../context/PlansContext';
+import { trackEvent } from '../lib/analytics';
 import { Link } from 'react-router-dom';
 import type { Plan } from '../types';
 
@@ -148,7 +149,7 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
 
       <CardFooter className={`gap-2 ${compact ? 'px-3.5 pb-2 pt-0' : 'px-5 pb-5'}`}>
         <Button variant="secondary" size={compact ? 'sm' : 'default'} className={`flex-1 rounded-xl ${compact ? 'text-xs font-medium py-1' : 'font-semibold'}`} asChild>
-          <Link to={`/plan/${plan.id}`}>{t('planCard.viewDetails')}</Link>
+          <Link to={`/plan/${plan.id}`} onClick={() => trackEvent('plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR })}>{t('planCard.viewDetails')}</Link>
         </Button>
         <Button
           variant={selected ? 'default' : 'outline'}
