@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
-import { apiFetch } from '../lib/api';
 import type { Plan } from '../types';
 
 export interface PlanEngagement {
@@ -23,7 +22,12 @@ export function PlansProvider({ children }: { children: ReactNode }) {
   const [engagement, setEngagement] = useState<Record<string, PlanEngagement>>({});
 
   const refreshEngagement = useCallback(() => {
-    apiFetch<Record<string, PlanEngagement>>('/api/plans/engagement')
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    fetch(`${API_BASE}/api/plans/engagement`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`API error ${res.status}`);
+        return res.json() as Promise<Record<string, PlanEngagement>>;
+      })
       .then(setEngagement)
       .catch((err) => {
         if (import.meta.env.DEV) console.warn('Failed to fetch engagement:', err);
@@ -33,7 +37,13 @@ export function PlansProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    apiFetch<Plan[]>('/api/plans')
+    // Fetch plans without auth header — it's a public endpoint
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    fetch(`${API_BASE}/api/plans`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`API error ${res.status}`);
+        return res.json() as Promise<Plan[]>;
+      })
       .then((data) => {
         if (!cancelled) {
           setPlans(data);
