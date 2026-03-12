@@ -308,7 +308,7 @@ export default function PlansPage() {
                 className={`rounded-xl text-sm font-semibold
                   ${active
                     ? 'ring-1'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    : 'bg-muted text-black hover:bg-muted/80'
                   }`}
                 style={active ? { backgroundColor: tc.bg, color: tc.active, '--tw-ring-color': tc.ring } as React.CSSProperties : {}}
               >

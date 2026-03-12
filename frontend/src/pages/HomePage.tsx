@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, ChevronRight, TrendingDown } from 'lucide-react';
+import { Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CommunityBanner from '../components/CommunityBanner';
 import WaveLines from '../components/WaveLines';
@@ -29,10 +29,6 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative overflow-hidden hero-gradient grain">
         <WaveLines />
-        {/* Decorative elements */}
-        <div className="absolute top-0 end-0 w-80 h-80 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob animate-float" />
-        <div className="absolute bottom-0 start-0 w-52 h-52 rounded-full bg-white/[0.04] translate-y-1/3 -translate-x-1/3 blob-alt" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 end-1/4 w-32 h-32 rounded-full bg-accent/10 animate-float hidden md:block" style={{ animationDelay: '1s' }} />
 
         <div className="relative z-[2] max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-10 pb-12 md:pt-20 md:pb-24">
           <div className="max-w-lg md:max-w-2xl">
@@ -44,7 +40,7 @@ export default function HomePage() {
             </p>
 
             <div className="animate-fade-up delay-3 mt-7 flex flex-wrap items-center gap-3">
-              <Button asChild size="lg" className="bg-gradient-to-l from-[#FFD568] from-2% via-[#EEAE4E] via-40% to-[#E37417] text-white hover:opacity-90 font-bold shadow-lg shadow-black/10 rounded-xl h-12 px-6 text-[14px] border-0">
+              <Button asChild size="lg" className="bg-[#E37417] text-[#FFF0D0] hover:bg-[#CC6612] font-bold shadow-lg shadow-[#E37417]/30 rounded-xl h-12 px-6 text-[14px] border-0">
                 <Link to="/advisor" onClick={() => trackEvent('homepage_cta_clicked', { cta: 'finder' })}>
                   {t('hero.ctaFinder')}
                   <ArrowRight size={17} className="rtl:rotate-180" />
@@ -127,22 +123,23 @@ export default function HomePage() {
         <Link
           to="/switch"
           onClick={() => trackEvent('homepage_cta_clicked', { cta: 'switch_save' })}
-          className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 md:p-6 group hover:border-success/40 hover:shadow-lg hover:shadow-success/5 transition-all"
+          className="relative flex items-center gap-4 rounded-2xl p-5 md:p-6 group hero-gradient grain overflow-hidden transition-all hover:shadow-lg hover:shadow-black/10"
         >
-          <div className="shrink-0 w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
-            <TrendingDown size={22} className="text-success" />
+          <WaveLines />
+          <div className="relative z-[2] shrink-0 w-12 h-12 rounded-xl bg-[#FFF0D0] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+            <Sparkles size={20} className="text-[#E37417]" />
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-heading font-bold text-base text-foreground">
-              {lang === 'ar' ? 'احسب توفيرك' : 'Switch & Save'}
+          <div className="relative z-[2] flex-1 min-w-0">
+            <h3 className="font-heading font-bold text-base text-black">
+              {lang === 'ar' ? 'غيّر ووفّر' : 'Switch & Save'}
             </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-black/60 mt-0.5">
               {lang === 'ar'
                 ? 'ادخل باقتك الحالية وبنلقالك باقات أرخص وأفضل'
                 : 'Enter your current plan and find cheaper alternatives instantly'}
             </p>
           </div>
-          <ArrowRight size={18} className="text-muted-foreground group-hover:text-success shrink-0 rtl:rotate-180 transition-colors" />
+          <ArrowRight size={18} className="relative z-[2] text-black/70 group-hover:text-black shrink-0 rtl:rotate-180 transition-colors" />
         </Link>
       </div>
 
@@ -159,24 +156,22 @@ export default function HomePage() {
           className="relative block overflow-hidden rounded-2xl p-7 md:p-10 group hero-gradient grain"
         >
           <WaveLines />
-          <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
-          <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-white/[0.04] translate-y-1/3 -translate-x-1/3 blob-alt" />
 
           <div className="relative z-[2] flex items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFF0D0] text-black/70/70 text-[11px] font-medium mb-3">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFF0D0] text-black/70 text-[11px] font-medium mb-3">
                 <Sparkles size={11} />
                 {t('home.just30Seconds')}
               </div>
               <h2 className="font-heading font-bold text-lg md:text-2xl text-black leading-tight">
                 {t('finderCta.title')}
               </h2>
-              <p className="mt-1.5 text-black/70/70 text-sm max-w-sm leading-relaxed">
+              <p className="mt-1.5 text-black/60 text-sm max-w-sm leading-relaxed">
                 {t('finderCta.subtitle')}
               </p>
             </div>
-            <div className="shrink-0 w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
-              <ArrowRight size={18} className="text-primary rtl:rotate-180" />
+            <div className="shrink-0 w-12 h-12 rounded-xl bg-[#FFF0D0] flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+              <ArrowRight size={18} className="text-[#E37417] rtl:rotate-180" />
             </div>
           </div>
         </Link>

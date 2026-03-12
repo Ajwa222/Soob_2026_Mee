@@ -50,13 +50,6 @@ export default function WaveLines() {
           </filter>
         </defs>
       </svg>
-      {/* Floating bubbles */}
-      <span className="pointer-events-none absolute rounded-full bg-white/10 z-[1]" style={{ width: 120, height: 120, top: '15%', left: '10%', animation: 'floatBubble 10s ease-in-out infinite', willChange: 'transform' }} />
-      <span className="pointer-events-none absolute rounded-full bg-white/[0.06] z-[1]" style={{ width: 200, height: 200, top: '60%', right: '5%', animation: 'floatBubble 14s ease-in-out infinite', animationDelay: '2s', willChange: 'transform' }} />
-      <span className="pointer-events-none absolute rounded-full bg-white/[0.08] z-[1]" style={{ width: 80, height: 80, top: '40%', left: '50%', animation: 'floatBubble 8s ease-in-out infinite', animationDelay: '1s', willChange: 'transform' }} />
-      <span className="pointer-events-none absolute rounded-full bg-white/[0.04] z-[1]" style={{ width: 150, height: 150, bottom: '10%', left: '25%', animation: 'floatBubble 12s ease-in-out infinite', animationDelay: '3s', willChange: 'transform' }} />
-      <span className="pointer-events-none absolute rounded-full bg-white/[0.06] z-[1]" style={{ width: 60, height: 60, top: '25%', right: '20%', animation: 'floatBubble 9s ease-in-out infinite', animationDelay: '4s', willChange: 'transform' }} />
-      <span className="pointer-events-none absolute rounded-full bg-white/[0.05] z-[1]" style={{ width: 100, height: 100, bottom: '30%', right: '35%', animation: 'floatBubble 11s ease-in-out infinite', animationDelay: '1.5s', willChange: 'transform' }} />
     </>
   );
 }

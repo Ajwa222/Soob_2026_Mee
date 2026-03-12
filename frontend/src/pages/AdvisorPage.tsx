@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Send, Loader2,
   Bot, X, MessageSquareText, HelpCircle, History,
-  ArrowLeftRight, Sparkles, ArrowLeft,
+  ArrowLeftRight, Sparkles, ArrowLeft, Lock,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -10,6 +10,8 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
+import { CARRIERS } from '../data/plans';
+import type { Plan } from '../types';
 import { trackEvent } from '../lib/analytics';
 import {
   sendAdvisorMessage, getPlansById,
@@ -18,32 +20,35 @@ import {
 import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
 
 // ─── Guided questionnaire config ───
 interface QuizStep {
   questionEn: string;
   questionAr: string;
+  type?: 'slider';
+  sliderConfig?: { min: number; max: number; step: number; unitEn: string; unitAr: string };
   options: { labelEn: string; labelAr: string; valueEn: string; valueAr: string }[];
 }
 
 const QUIZ_STEPS: QuizStep[] = [
   {
-    questionEn: 'How much mobile data do you need?',
-    questionAr: 'كم تحتاج بيانات جوال؟',
+    questionEn: 'Do you need internet in the plan?',
+    questionAr: 'تبي الباقة يكون فيها انترنت ؟',
     options: [
-      { labelEn: 'Light browsing', labelAr: 'تصفح خفيف', valueEn: 'I only need light data for browsing and messaging.', valueAr: 'أحتاج بيانات خفيفة للتصفح والرسائل بس.' },
-      { labelEn: 'Moderate use', labelAr: 'استخدام متوسط', valueEn: 'I need moderate data for social media and some streaming.', valueAr: 'أحتاج بيانات متوسطة للسوشل وشوية بث.' },
-      { labelEn: 'Heavy / Unlimited', labelAr: 'كثير / لا محدود', valueEn: 'I need heavy or unlimited data for streaming and downloads.', valueAr: 'أحتاج بيانات كثيرة أو لا محدودة للبث والتحميل.' },
+      { labelEn: 'Yes', labelAr: 'ايه', valueEn: 'Yes, I need internet/data in my plan.', valueAr: 'ايه، أبي انترنت بالباقة.' },
+      { labelEn: "I don't know", labelAr: 'مدري', valueEn: "I'm not sure if I need data.", valueAr: 'مدري إذا أحتاج انترنت.' },
+      { labelEn: 'No', labelAr: 'لا', valueEn: "No, I don't need internet/data.", valueAr: 'لا، ما أحتاج انترنت.' },
     ],
   },
   {
     questionEn: 'Do you make a lot of calls?',
-    questionAr: 'تسوي مكالمات كثير؟',
+    questionAr: 'تكلم كثير ؟',
     options: [
       { labelEn: 'Local calls', labelAr: 'مكالمات محلية', valueEn: 'I mostly make local calls.', valueAr: 'أغلب مكالماتي محلية.' },
       { labelEn: 'International calls', labelAr: 'مكالمات دولية', valueEn: 'I need international calling minutes.', valueAr: 'أحتاج دقائق مكالمات دولية.' },
       { labelEn: 'Both', labelAr: 'الاثنين', valueEn: 'I need both local and international calls.', valueAr: 'أحتاج مكالمات محلية ودولية.' },
-      { labelEn: 'Not really', labelAr: 'مو كثير', valueEn: "I don't make many calls.", valueAr: 'ما أسوي مكالمات كثير.' },
+      { labelEn: 'No', labelAr: 'لا', valueEn: "I don't make many calls.", valueAr: 'لا، ما أكلم كثير.' },
     ],
   },
   {
@@ -58,13 +63,9 @@ const QUIZ_STEPS: QuizStep[] = [
   {
     questionEn: "What's your monthly budget?",
     questionAr: 'كم ميزانيتك الشهرية؟',
-    options: [
-      { labelEn: 'Under 50 SAR', labelAr: 'أقل من 50 ريال', valueEn: 'My budget is under 50 SAR per month.', valueAr: 'ميزانيتي أقل من 50 ريال بالشهر.' },
-      { labelEn: '50–100 SAR', labelAr: '50–100 ريال', valueEn: 'My budget is 50 to 100 SAR per month.', valueAr: 'ميزانيتي من 50 إلى 100 ريال بالشهر.' },
-      { labelEn: '100–200 SAR', labelAr: '100–200 ريال', valueEn: 'My budget is 100 to 200 SAR per month.', valueAr: 'ميزانيتي من 100 إلى 200 ريال بالشهر.' },
-      { labelEn: '200–300 SAR', labelAr: '200–300 ريال', valueEn: 'My budget is 200 to 300 SAR per month.', valueAr: 'ميزانيتي من 200 إلى 300 ريال بالشهر.' },
-      { labelEn: '300+ SAR', labelAr: 'أكثر من 300 ريال', valueEn: 'My budget is over 300 SAR per month.', valueAr: 'ميزانيتي أكثر من 300 ريال بالشهر.' },
-    ],
+    type: 'slider',
+    sliderConfig: { min: 30, max: 1000, step: 10, unitEn: 'SAR', unitAr: 'ريال' },
+    options: [],
   },
 ];
 
@@ -84,6 +85,107 @@ function useSearchStatus(loading: boolean, t: (k: string) => string) {
   return statusMessages[statusIdx];
 }
 
+function InlineScanningWidget({ plans, lang, quizDone, searchStatus }: { plans: Plan[]; lang: string; quizDone: boolean; searchStatus: string }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [litCarriers, setLitCarriers] = useState<Set<string>>(new Set());
+
+  const shuffled = useMemo(() => {
+    const arr = plans.filter(p => p.planType !== 'Data-only');
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [plans]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex(prev => {
+        const next = (prev + 1) % shuffled.length;
+        const plan = shuffled[next];
+        setLitCarriers(s => new Set(s).add(plan.provider));
+        return next;
+      });
+    }, 120);
+    return () => clearInterval(interval);
+  }, [shuffled]);
+
+  const current = shuffled[currentIndex];
+  const carrierLogo = CARRIERS.find(c => c.name === current?.provider);
+
+  // Short loading between quiz questions — just show simple bubble
+  if (!quizDone) {
+    return (
+      <div className="flex justify-start">
+        <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-2.5">
+          <Loader2 size={16} className="animate-spin text-primary" />
+          <span className="text-sm text-muted-foreground animate-pulse">{searchStatus}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Full scanning widget for AI search
+  return (
+    <div className="flex justify-start">
+      <div className="w-full max-w-[85%] md:max-w-[75%] bg-muted rounded-2xl rounded-bl-md p-4 space-y-3">
+        {/* Scanning plan card */}
+        <div className="relative bg-background/60 border border-border/40 rounded-xl p-3 overflow-hidden">
+          {/* Scan line */}
+          <div className="absolute inset-0 overflow-hidden rounded-xl pointer-events-none">
+            <div className="absolute inset-x-0 h-6 bg-gradient-to-b from-primary/8 to-transparent animate-[scan_1s_ease-in-out_infinite]" />
+          </div>
+
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+              {carrierLogo && (
+                <img
+                  key={current?.id}
+                  src={carrierLogo.logo}
+                  alt={current?.provider}
+                  className="w-6 h-6 object-contain opacity-70"
+                />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-foreground text-xs font-medium truncate blur-[1px]">
+                {current?.planName}
+              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-foreground font-bold text-sm tabular-nums blur-[1.5px]">
+                  {current?.priceSAR}
+                </span>
+                <span className="text-muted-foreground/50 text-[10px]">{lang === 'ar' ? 'ر.س' : 'SAR'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Carrier dots */}
+        <div className="flex items-center justify-center gap-1.5">
+          {CARRIERS.map(c => (
+            <div
+              key={c.name}
+              className={`w-6 h-6 rounded-md flex items-center justify-center transition-all duration-300 ${
+                litCarriers.has(c.name)
+                  ? 'bg-background border border-border scale-100'
+                  : 'bg-muted/50 border border-transparent scale-90 opacity-30'
+              }`}
+            >
+              <img src={c.logo} alt={c.name} className="w-4 h-4 object-contain" />
+            </div>
+          ))}
+        </div>
+
+        {/* Status */}
+        <p className="text-center text-muted-foreground text-xs animate-pulse">
+          {searchStatus}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function AdvisorPage() {
   const { t, lang } = useLang();
   const navigate = useNavigate();
@@ -97,6 +199,7 @@ export default function AdvisorPage() {
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
+  const [budgetValue, setBudgetValue] = useState(150);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSavedConvo, setHasSavedConvo] = useState(false);
@@ -258,6 +361,56 @@ export default function AdvisorPage() {
     }
   }, [quizStep, loading, lang, quizAnswers]);
 
+  // Handle budget slider submit
+  const handleBudgetSubmit = useCallback(async () => {
+    if (typeof quizStep !== 'number' || loading) return;
+
+    const userTextEn = `My budget is ${budgetValue} SAR per month.`;
+    const userTextAr = `ميزانيتي ${budgetValue} ريال بالشهر.`;
+    const userText = lang === 'ar' ? userTextAr : userTextEn;
+    const userLabel = `${budgetValue} ${lang === 'ar' ? 'ريال' : 'SAR'}`;
+    const newAnswers = [...quizAnswers, userText];
+
+    setMessages(prev => [...prev, { role: 'user', text: userLabel }]);
+    setQuizAnswers(newAnswers);
+    trackEvent('advisor_quiz_answered', { step: quizStep, step_name: 'budget', answer: `${budgetValue} SAR` });
+
+    const nextStep = quizStep + 1;
+
+    if (nextStep < QUIZ_STEPS.length) {
+      setLoading(true);
+      const nextQ = lang === 'ar' ? QUIZ_STEPS[nextStep].questionAr : QUIZ_STEPS[nextStep].questionEn;
+      setTimeout(() => {
+        setLoading(false);
+        setMessages(prev => [...prev, { role: 'assistant', text: nextQ, planIds: [] }]);
+        setQuizStep(nextStep);
+      }, 800 + Math.random() * 400);
+    } else {
+      setQuizStep(null);
+      setSearchParams({ chat: '1' }, { replace: true });
+      setLoading(true);
+      setError(null);
+      trackEvent('advisor_started');
+
+      const summary = newAnswers.join(' ');
+      const fullHistory: ChatMessage[] = [];
+      for (let i = 0; i < QUIZ_STEPS.length; i++) {
+        fullHistory.push({ role: 'assistant', text: lang === 'ar' ? QUIZ_STEPS[i].questionAr : QUIZ_STEPS[i].questionEn });
+        fullHistory.push({ role: 'user', text: newAnswers[i] });
+      }
+
+      try {
+        const { reply, planIds } = await sendAdvisorMessage(lang, fullHistory, summary);
+        setMessages(prev => [...prev, { role: 'assistant', text: reply, planIds }]);
+      } catch (e) {
+        console.error('Advisor error:', e);
+        setError(lang === 'ar' ? 'حصل خطأ، جرب مرة ثانية.' : 'Something went wrong. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  }, [quizStep, loading, lang, quizAnswers, budgetValue, setSearchParams]);
+
   // Free-chat send (after quiz is done)
   const sendText = useCallback(async (text: string) => {
     if (!text || loading) return;
@@ -315,9 +468,13 @@ export default function AdvisorPage() {
         <section className="shrink-0 relative overflow-hidden hero-gradient grain">
           <WaveLines />
           <div className="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-3 md:pt-6 md:pb-4 relative z-[2]">
+            <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-black/60 text-xs font-medium mb-2 hover:text-black transition-colors">
+              <ArrowLeft size={14} className="rtl:rotate-180" />
+              {lang === 'ar' ? 'رجوع' : 'Back'}
+            </button>
             <div className="flex items-center gap-2.5 animate-fade-up">
               <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-                <Bot size={18} className="text-white" />
+                <Bot size={18} className="text-black" />
               </div>
               <div>
                 <h1 className="font-heading font-normal text-lg md:text-xl text-black tracking-tight">
@@ -339,24 +496,7 @@ export default function AdvisorPage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {/* Card: Compare current plan */}
-              <button
-                onClick={() => {
-                  trackEvent('advisor_intent_selected', { intent: 'compare' });
-                  navigate('/switch');
-                }}
-                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
-                  <ArrowLeftRight size={24} className="text-primary" />
-                </div>
-                <span className="font-medium text-sm text-foreground">{t('advisor.intentCompare')}</span>
-                <span className="text-xs text-muted-foreground leading-relaxed">
-                  {t('advisor.intentCompareDesc')}
-                </span>
-              </button>
-
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {/* Card: I want a new plan */}
               <button
                 onClick={() => {
@@ -371,6 +511,23 @@ export default function AdvisorPage() {
                 <span className="font-medium text-sm text-foreground">{t('advisor.intentNew')}</span>
                 <span className="text-xs text-muted-foreground leading-relaxed">
                   {t('advisor.intentNewDesc')}
+                </span>
+              </button>
+
+              {/* Card: Compare current plan */}
+              <button
+                onClick={() => {
+                  trackEvent('advisor_intent_selected', { intent: 'compare' });
+                  navigate('/switch');
+                }}
+                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
+                  <ArrowLeftRight size={24} className="text-primary" />
+                </div>
+                <span className="font-medium text-sm text-foreground">{t('advisor.intentCompare')}</span>
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  {t('advisor.intentCompareDesc')}
                 </span>
               </button>
             </div>
@@ -398,9 +555,13 @@ export default function AdvisorPage() {
         <section className="shrink-0 relative overflow-hidden hero-gradient grain">
           <WaveLines />
           <div className="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-3 md:pt-6 md:pb-4 relative z-[2]">
+            <button onClick={() => setQuizStep('intent')} className="flex items-center gap-1 text-black/60 text-xs font-medium mb-2 hover:text-black transition-colors">
+              <ArrowLeft size={14} className="rtl:rotate-180" />
+              {lang === 'ar' ? 'رجوع' : 'Back'}
+            </button>
             <div className="flex items-center gap-2.5 animate-fade-up">
               <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-                <Bot size={18} className="text-white" />
+                <Bot size={18} className="text-black" />
               </div>
               <div>
                 <h1 className="font-heading font-normal text-lg md:text-xl text-black tracking-tight">
@@ -420,12 +581,23 @@ export default function AdvisorPage() {
               <h2 className="font-heading text-xl md:text-2xl font-medium text-foreground">
                 {t('advisor.choiceQuestion')}
               </h2>
-              <p className="text-muted-foreground text-sm">
-                {t('advisor.welcomeMessage')}
-              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              {/* Card: Guide me */}
+              <button
+                onClick={() => handleChoice('guide')}
+                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
+                  <HelpCircle size={24} className="text-primary" />
+                </div>
+                <span className="font-medium text-sm text-foreground">{t('advisor.choiceGuide')}</span>
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  {t('advisor.choiceGuideDesc')}
+                </span>
+              </button>
+
               {/* Card: I know what I want */}
               <button
                 onClick={() => handleChoice('describe')}
@@ -436,21 +608,7 @@ export default function AdvisorPage() {
                 </div>
                 <span className="font-medium text-sm text-foreground">{t('advisor.choiceDescribe')}</span>
                 <span className="text-xs text-muted-foreground leading-relaxed">
-                  {lang === 'ar' ? 'وصف لي وش تبي وأنا ألقاك النتائج مباشرة' : 'Describe what you need and get results right away'}
-                </span>
-              </button>
-
-              {/* Card: Help me choose */}
-              <button
-                onClick={() => handleChoice('guide')}
-                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
-                  <HelpCircle size={24} className="text-primary" />
-                </div>
-                <span className="font-medium text-sm text-foreground">{t('advisor.choiceGuide')}</span>
-                <span className="text-xs text-muted-foreground leading-relaxed">
-                  {lang === 'ar' ? 'أجاوب على أسئلة بسيطة وألقاك الباقة المناسبة' : "Answer a few quick questions and I'll find the right plan"}
+                  {t('advisor.choiceDescribeDesc')}
                 </span>
               </button>
             </div>
@@ -467,10 +625,14 @@ export default function AdvisorPage() {
       <section className="shrink-0 relative overflow-hidden hero-gradient grain">
         <WaveLines />
         <div className="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-3 md:pt-6 md:pb-4 relative z-[2]">
+          <button onClick={restart} className="flex items-center gap-1 text-black/60 text-xs font-medium mb-2 hover:text-black transition-colors">
+            <ArrowLeft size={14} className="rtl:rotate-180" />
+            {lang === 'ar' ? 'رجوع' : 'Back'}
+          </button>
           <div className="flex items-center justify-between animate-fade-up">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-                <Bot size={18} className="text-white" />
+                <Bot size={18} className="text-black" />
               </div>
               <div>
                 <h1 className="font-heading font-normal text-lg md:text-xl text-black tracking-tight">
@@ -514,31 +676,49 @@ export default function AdvisorPage() {
                 </div>
               )}
 
-              {/* Quiz option chips — show on the last assistant message during quiz */}
+              {/* Quiz option chips or slider — show on the last assistant message during quiz */}
               {inQuiz && i === lastAssistantIdx && !loading && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {QUIZ_STEPS[quizStep as number].options.map((option: QuizStep['options'][number]) => (
-                    <button
-                      key={option.labelEn}
-                      onClick={() => handleQuizOption(option)}
-                      className="inline-flex items-center px-3.5 py-2 rounded-full border border-border bg-background text-xs font-medium text-foreground hover:bg-muted hover:border-primary/30 transition-colors cursor-pointer"
-                    >
-                      {lang === 'ar' ? option.labelAr : option.labelEn}
-                    </button>
-                  ))}
-                </div>
+                QUIZ_STEPS[quizStep as number].type === 'slider' ? (
+                  <div className="mt-3 w-full max-w-[85%] md:max-w-[75%] bg-muted rounded-2xl rounded-bl-md p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-foreground">
+                        {lang === 'ar' ? QUIZ_STEPS[quizStep as number].sliderConfig!.unitAr : QUIZ_STEPS[quizStep as number].sliderConfig!.unitEn}
+                      </span>
+                      <span className="text-sm font-bold text-primary">{budgetValue} {lang === 'ar' ? 'ريال' : 'SAR'}</span>
+                    </div>
+                    <div dir="ltr">
+                      <Slider
+                        min={QUIZ_STEPS[quizStep as number].sliderConfig!.min}
+                        max={QUIZ_STEPS[quizStep as number].sliderConfig!.max}
+                        step={QUIZ_STEPS[quizStep as number].sliderConfig!.step}
+                        value={[budgetValue]}
+                        onValueChange={([v]) => setBudgetValue(v)}
+                      />
+                    </div>
+                    <Button onClick={handleBudgetSubmit} size="sm" className="w-full rounded-xl text-xs font-bold">
+                      {lang === 'ar' ? 'التالي' : 'Next'}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {QUIZ_STEPS[quizStep as number].options.map((option: QuizStep['options'][number]) => (
+                      <button
+                        key={option.labelEn}
+                        onClick={() => handleQuizOption(option)}
+                        className="inline-flex items-center px-3.5 py-2 rounded-full border border-[#FFE4B0] bg-[#FFF0D0] text-xs font-medium text-foreground hover:bg-[#FFE4B0] transition-colors cursor-pointer"
+                      >
+                        {lang === 'ar' ? option.labelAr : option.labelEn}
+                      </button>
+                    ))}
+                  </div>
+                )
               )}
             </div>
           ))}
 
-          {/* Loading indicator */}
+          {/* Loading indicator — inline scanning animation */}
           {loading && (
-            <div className="flex justify-start">
-              <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-2.5">
-                <Loader2 size={16} className="animate-spin text-primary" />
-                <span className="text-sm text-muted-foreground animate-pulse">{searchStatus}</span>
-              </div>
-            </div>
+            <InlineScanningWidget plans={plans} lang={lang} quizDone={quizDone} searchStatus={searchStatus} />
           )}
 
           {/* Error */}

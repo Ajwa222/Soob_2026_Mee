@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, TrendingDown, Sparkles, BadgeCheck, Search, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, TrendingDown, BadgeCheck, Search, X } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
 import { getValueScore, getCarrierLogo } from '../data/plans';
@@ -13,11 +13,14 @@ import type { Plan } from '../types';
 
 export default function SwitchSavePage() {
   const { t, lang } = useLang();
+  const navigate = useNavigate();
   const { plans } = usePlans();
 
   const [currentPrice, setCurrentPrice] = useState(150);
   const [currentData, setCurrentData] = useState(20);
   const [currentMins, setCurrentMins] = useState(100);
+  const [currentIntlMins, setCurrentIntlMins] = useState(0);
+  const [currentSocial, setCurrentSocial] = useState(0);
   const [showResults, setShowResults] = useState(false);
 
   // Plan search
@@ -39,10 +42,14 @@ export default function SwitchSavePage() {
     setPlanSearch('');
     setShowDropdown(false);
     setCurrentPrice(plan.priceSAR);
-    const gb = plan.dataGB === 'Unlimited' ? 100 : parseFloat(plan.dataGB) || 20;
-    setCurrentData(Math.min(gb, 100));
-    const mins = plan.localCallMinutes === 'Unlimited' ? 1000 : parseFloat(plan.localCallMinutes) || 100;
-    setCurrentMins(Math.min(mins, 1000));
+    const gb = plan.dataGB === 'Unlimited' ? 501 : parseFloat(plan.dataGB) || 20;
+    setCurrentData(Math.min(gb, 501));
+    const mins = plan.localCallMinutes === 'Unlimited' ? 1001 : parseFloat(plan.localCallMinutes) || 100;
+    setCurrentMins(Math.min(mins, 1001));
+    const intl = plan.internationalCallMinutes === 'Unlimited' ? 501 : parseFloat(plan.internationalCallMinutes) || 0;
+    setCurrentIntlMins(Math.min(intl, 501));
+    const social = plan.socialMediaData === 'Unlimited' ? 101 : parseFloat(plan.socialMediaData) || 0;
+    setCurrentSocial(Math.min(social, 101));
     setShowResults(false);
     trackEvent('switch_plan_selected', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider });
   };
@@ -70,11 +77,29 @@ export default function SwitchSavePage() {
         // Must be cheaper
         if (p.priceSAR >= currentPrice) return false;
         // Must have at least as much data
+        const wantUnlimitedData = currentData >= 501;
         const planGB = p.dataGB === 'Unlimited' ? Infinity : parseFloat(p.dataGB) || 0;
-        if (planGB < currentData) return false;
-        // Must have at least as many minutes
+        if (wantUnlimitedData) { if (p.dataGB !== 'Unlimited') return false; }
+        else if (planGB < currentData) return false;
+        // Must have at least as many local call minutes
+        const wantUnlimitedMins = currentMins >= 1001;
         const planMins = p.localCallMinutes === 'Unlimited' ? Infinity : parseFloat(p.localCallMinutes) || 0;
-        if (planMins < currentMins) return false;
+        if (wantUnlimitedMins) { if (p.localCallMinutes !== 'Unlimited') return false; }
+        else if (planMins < currentMins) return false;
+        // International calls
+        if (currentIntlMins > 0) {
+          const wantUnlimitedIntl = currentIntlMins >= 501;
+          const planIntl = p.internationalCallMinutes === 'Unlimited' ? Infinity : parseFloat(p.internationalCallMinutes) || 0;
+          if (wantUnlimitedIntl) { if (p.internationalCallMinutes !== 'Unlimited') return false; }
+          else if (planIntl < currentIntlMins) return false;
+        }
+        // Social media data
+        if (currentSocial > 0) {
+          const wantUnlimitedSocial = currentSocial >= 101;
+          const planSocial = p.socialMediaData === 'Unlimited' ? Infinity : parseFloat(p.socialMediaData) || 0;
+          if (wantUnlimitedSocial) { if (p.socialMediaData !== 'Unlimited' && !p.socialMediaData?.toLowerCase().includes('unlimited')) return false; }
+          else if (planSocial < currentSocial) return false;
+        }
         return true;
       })
       .sort((a, b) => {
@@ -84,7 +109,7 @@ export default function SwitchSavePage() {
         if (savingsB !== savingsA) return savingsB - savingsA;
         return getValueScore(b) - getValueScore(a);
       })
-      .slice(0, 6);
+      .slice(0, 3);
   }, [plans, currentPrice, currentData, currentMins, showResults]);
 
   const maxSaving = results.length > 0 ? Math.round((currentPrice - results[0].priceSAR) * 100) / 100 : 0;
@@ -116,27 +141,31 @@ export default function SwitchSavePage() {
       {/* Hero */}
       <section className="relative overflow-hidden hero-gradient grain">
         <WaveLines />
-        <div className="relative z-[2] max-w-3xl mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10">
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-              <TrendingDown size={18} className="text-white" />
+        <div className="relative z-[2] max-w-3xl mx-auto px-4 sm:px-6 md:px-8 pt-5 pb-4 md:pt-8 md:pb-6">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-black/60 text-xs font-medium mb-2 hover:text-black transition-colors">
+            <ArrowLeft size={14} className="rtl:rotate-180" />
+            {isAr ? 'رجوع' : 'Back'}
+          </button>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
+              <TrendingDown size={14} className="text-black" />
             </div>
-            <h1 className="font-heading font-normal text-2xl md:text-3xl text-black tracking-tight">
-              {isAr ? 'احسب توفيرك' : 'Switch & Save'}
+            <h1 className="font-heading font-normal text-xl md:text-2xl text-black tracking-tight">
+              {isAr ? 'غيّر ووفّر' : 'Switch & Save'}
             </h1>
           </div>
-          <p className="text-black/60 text-sm md:text-base max-w-lg">
+          <p className="text-black/60 text-xs md:text-sm max-w-lg">
             {isAr
-              ? 'ادخل تفاصيل باقتك الحالية وبنلقالك باقات أرخص وأفضل.'
-              : 'Enter your current plan details and we\'ll find cheaper plans with the same or better features.'}
+              ? 'عطنا باقتك، ونجيب لك عرض أفضل.'
+              : 'Tell us your plan. We\'ll find a better deal.'}
           </p>
         </div>
       </section>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-8 pb-20">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-4 pb-20">
         {/* Calculator inputs */}
-        <div className="bg-card rounded-2xl border border-border p-6 space-y-6">
-          <h2 className="font-heading font-bold text-lg text-foreground">
+        <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
+          <h2 className="font-heading font-bold text-sm text-foreground">
             {isAr ? 'باقتك الحالية' : 'Your Current Plan'}
           </h2>
 
@@ -195,75 +224,49 @@ export default function SwitchSavePage() {
             </p>
           </div>
 
-          {/* Price slider */}
+          {/* Price */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-foreground">
-                {isAr ? 'كم تدفع شهرياً؟' : 'Monthly price'}
-              </label>
-              <span className="text-sm font-bold text-primary">{currentPrice} SAR</span>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-foreground">{isAr ? 'السعر الشهري' : 'Monthly price'}</label>
+              <span className="text-xs font-bold text-primary">{currentPrice} SAR</span>
             </div>
-            <div dir="ltr">
-              <Slider
-                min={30}
-                max={500}
-                step={5}
-                value={[currentPrice]}
-                onValueChange={([v]) => { setCurrentPrice(v); setShowResults(false); }}
-              />
-            </div>
-            <div className="flex justify-between mt-1 text-[11px] text-muted-foreground">
-              <span>30 SAR</span>
-              <span>500 SAR</span>
-            </div>
+            <div dir="ltr"><Slider min={30} max={1000} step={5} value={[currentPrice]} onValueChange={([v]) => { setCurrentPrice(v); setShowResults(false); }} /></div>
           </div>
 
-          {/* Data slider */}
+          {/* Data */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-foreground">
-                {isAr ? 'كم بيانات عندك؟' : 'Data included'}
-              </label>
-              <span className="text-sm font-bold text-primary">{currentData} GB</span>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-foreground">{isAr ? 'البيانات' : 'Data'}</label>
+              <span className="text-xs font-bold text-primary">{currentData >= 501 ? (isAr ? 'مفتوح' : 'Unlimited') : `${currentData} GB`}</span>
             </div>
-            <div dir="ltr">
-              <Slider
-                min={1}
-                max={100}
-                step={1}
-                value={[currentData]}
-                onValueChange={([v]) => { setCurrentData(v); setShowResults(false); }}
-              />
-            </div>
-            <div className="flex justify-between mt-1 text-[11px] text-muted-foreground">
-              <span>1 GB</span>
-              <span>100 GB</span>
-            </div>
+            <div dir="ltr"><Slider min={0} max={501} step={5} value={[currentData]} onValueChange={([v]) => { setCurrentData(v); setShowResults(false); }} /></div>
           </div>
 
-          {/* Minutes slider */}
+          {/* Social media data */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-foreground">
-                {isAr ? 'كم دقائق مكالمات؟' : 'Call minutes'}
-              </label>
-              <span className="text-sm font-bold text-primary">
-                {currentMins >= 1000 ? (isAr ? 'مفتوح' : 'Unlimited') : `${currentMins} min`}
-              </span>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-foreground">{isAr ? 'بيانات التواصل' : 'Social media data'}</label>
+              <span className="text-xs font-bold text-primary">{currentSocial >= 101 ? (isAr ? 'مفتوح' : 'Unlimited') : `${currentSocial} GB`}</span>
             </div>
-            <div dir="ltr">
-              <Slider
-                min={0}
-                max={1000}
-                step={50}
-                value={[currentMins]}
-                onValueChange={([v]) => { setCurrentMins(v); setShowResults(false); }}
-              />
+            <div dir="ltr"><Slider min={0} max={101} step={1} value={[currentSocial]} onValueChange={([v]) => { setCurrentSocial(v); setShowResults(false); }} /></div>
+          </div>
+
+          {/* Local calls */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-foreground">{isAr ? 'مكالمات محلية' : 'Local calls'}</label>
+              <span className="text-xs font-bold text-primary">{currentMins >= 1001 ? (isAr ? 'مفتوح' : 'Unlimited') : `${currentMins} min`}</span>
             </div>
-            <div className="flex justify-between mt-1 text-[11px] text-muted-foreground">
-              <span>0 min</span>
-              <span>{isAr ? 'مفتوح' : 'Unlimited'}</span>
+            <div dir="ltr"><Slider min={0} max={1001} step={50} value={[currentMins]} onValueChange={([v]) => { setCurrentMins(v); setShowResults(false); }} /></div>
+          </div>
+
+          {/* International calls */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-foreground">{isAr ? 'مكالمات دولية' : 'International calls'}</label>
+              <span className="text-xs font-bold text-primary">{currentIntlMins >= 501 ? (isAr ? 'مفتوح' : 'Unlimited') : `${currentIntlMins} min`}</span>
             </div>
+            <div dir="ltr"><Slider min={0} max={501} step={10} value={[currentIntlMins]} onValueChange={([v]) => { setCurrentIntlMins(v); setShowResults(false); }} /></div>
           </div>
 
           <Button
@@ -276,103 +279,85 @@ export default function SwitchSavePage() {
         </div>
       </div>
 
-      {/* Results — wider container */}
+      {/* Results — fullscreen bottom sheet, Netflix-style horizontal scroll */}
       {showResults && (
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-20">
-          <div className="mt-8 space-y-6 animate-fade-up">
-            {results.length > 0 ? (
-              <>
-                {/* Savings highlight */}
-                <div className="bg-success/10 border border-success/20 rounded-2xl p-5 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <BadgeCheck size={20} className="text-success" />
-                    <span className="text-sm font-bold text-success">
-                      {isAr ? 'لقينا لك خيارات أوفر!' : 'We found cheaper options!'}
-                    </span>
-                  </div>
-                  <p className="text-2xl font-heading font-bold text-foreground">
-                    {isAr ? `وفّر لين ${maxSaving} ريال/شهر` : `Save up to ${maxSaving} SAR/month`}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {isAr
-                      ? `يعني ${yearlySaving} ريال بالسنة`
-                      : `That's ${yearlySaving} SAR per year`}
-                  </p>
-                </div>
+        <div className="fixed inset-0 z-50">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowResults(false)} />
 
-                {/* Plan cards */}
-                <div>
-                  <h3 className="font-heading font-bold text-lg text-foreground mb-4">
-                    {isAr ? `${results.length} باقات أوفر` : `${results.length} cheaper plan${results.length > 1 ? 's' : ''} found`}
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {results.map((plan, idx) => (
-                      <div key={plan.id} className="relative" onClick={() => trackEvent('switch_save_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, saving: Math.round((currentPrice - plan.priceSAR) * 100) / 100, position: idx + 1 })}>
-                        <div className="absolute -top-2.5 start-3 z-10 bg-success text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                          -{Math.round((currentPrice - plan.priceSAR) * 100) / 100} SAR
-                        </div>
-                        <ConnectedPlanCard plan={plan} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            ) : (
-              /* No results */
-              <div className="text-center py-12">
-                <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                  <TrendingDown size={28} className="text-muted-foreground" />
-                </div>
-                <h3 className="font-heading font-bold text-xl text-foreground">
-                  {isAr ? 'ما لقينا باقات أرخص' : 'No cheaper plans found'}
+          {/* Sheet */}
+          <div className="absolute top-10 inset-x-0 bg-background rounded-3xl flex flex-col animate-fade-in mx-3" style={{ maxHeight: 'min(600px, 80dvh)' }}>
+            {/* Header */}
+            <div className="shrink-0 px-5 pt-5 pb-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-heading font-bold text-lg text-foreground">
+                  {results.length > 0
+                    ? (isAr ? 'باقات أوفر' : 'Cheaper plans found')
+                    : (isAr ? 'النتائج' : 'Results')}
                 </h3>
-                <p className="text-muted-foreground mt-2 text-sm max-w-sm mx-auto">
-                  {isAr
-                    ? 'يبدو إن باقتك الحالية سعرها كويس! جرب تقلل المتطلبات أو تصفح كل الباقات.'
-                    : 'Looks like your current plan is well-priced! Try lowering your requirements or browse all plans.'}
-                </p>
-                <Button asChild variant="ghost" className="mt-4 text-primary font-bold">
-                  <Link to="/browse">
-                    {isAr ? 'تصفح كل الباقات' : 'Browse all plans'}
-                    <ArrowRight size={16} className="rtl:rotate-180" />
-                  </Link>
-                </Button>
+                <button onClick={() => setShowResults(false)} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                  <X size={16} />
+                </button>
               </div>
-            )}
+
+              {results.length > 0 && (
+                <div className="flex items-center justify-center gap-3 bg-success/10 border border-success/20 rounded-xl px-4 py-2.5">
+                  <BadgeCheck size={18} className="text-success shrink-0" />
+                  <p className="text-sm font-bold text-foreground">
+                    {isAr ? `وفّر لين ${maxSaving} ريال/شهر` : `Save up to ${maxSaving} SAR/mo`}
+                    <span className="text-muted-foreground font-normal"> · {isAr ? `${yearlySaving} ريال/سنة` : `${yearlySaving} SAR/yr`}</span>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Netflix-style horizontal slider */}
+            <div className="flex-1 min-h-0 px-5 pb-6 pt-3">
+              {results.length > 0 ? (
+                <div
+                  className="flex gap-4 overflow-x-auto h-full snap-x snap-mandatory pb-2 pt-4"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+                >
+                  {results.map((plan, idx) => (
+                    <div
+                      key={plan.id}
+                      className="relative shrink-0 snap-center flex flex-col"
+                      style={{ width: 'min(85vw, 300px)' }}
+                      onClick={() => trackEvent('switch_save_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, saving: Math.round((currentPrice - plan.priceSAR) * 100) / 100, position: idx + 1 })}
+                    >
+                      <div className="absolute -top-3 start-3 z-10 bg-success text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
+                        -{Math.round((currentPrice - plan.priceSAR) * 100) / 100} SAR
+                      </div>
+                      <ConnectedPlanCard plan={plan} compact style={{ height: '100%' }} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
+                    <TrendingDown size={24} className="text-muted-foreground" />
+                  </div>
+                  <h3 className="font-heading font-bold text-lg text-foreground">
+                    {isAr ? 'ما لقينا باقات أرخص' : 'No cheaper plans found'}
+                  </h3>
+                  <p className="text-muted-foreground mt-1.5 text-sm max-w-xs mx-auto">
+                    {isAr
+                      ? 'جرب تقلل المتطلبات أو تصفح كل الباقات.'
+                      : 'Try lowering your requirements or browse all plans.'}
+                  </p>
+                  <Button asChild variant="ghost" className="mt-3 text-primary font-bold">
+                    <Link to="/browse">
+                      {isAr ? 'تصفح كل الباقات' : 'Browse all plans'}
+                      <ArrowRight size={16} className="rtl:rotate-180" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Advisor CTA */}
-      {!showResults && (
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 pb-20">
-          <div className="mt-8">
-            <Link
-              to="/advisor"
-              className="relative block overflow-hidden rounded-2xl p-6 group hero-gradient grain"
-            >
-              <WaveLines />
-              <div className="relative z-[2] flex items-center justify-between gap-4">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFF0D0] text-black/70 text-[11px] font-medium mb-2">
-                    <Sparkles size={11} />
-                    {t('home.just30Seconds')}
-                  </div>
-                  <h3 className="font-heading font-bold text-base md:text-lg text-black leading-tight">
-                    {isAr ? 'مو متأكد من باقتك؟' : 'Not sure about your plan?'}
-                  </h3>
-                  <p className="mt-1 text-black/60 text-xs max-w-sm">
-                    {isAr ? 'المستشار الذكي يساعدك تلقى الباقة المثالية' : 'Our Smart Advisor helps you find the perfect plan'}
-                  </p>
-                </div>
-                <div className="shrink-0 w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <ArrowRight size={16} className="text-primary rtl:rotate-180" />
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -568,8 +568,8 @@ export default function ExplorePage() {
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap
                     transition-all duration-200 shrink-0
                     ${isActive
-                      ? 'bg-white text-foreground shadow-sm'
-                      : 'bg-white/15 text-white/80 hover:bg-white/25'
+                      ? 'bg-[#FFF0D0] text-black shadow-sm'
+                      : 'bg-white/15 text-black/70 hover:bg-white/25'
                     }`}
                 >
                   <Icon size={11} />

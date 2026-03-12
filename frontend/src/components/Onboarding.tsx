@@ -1,12 +1,30 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import WaveLines from './WaveLines';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { CARRIERS } from '../data/plans';
 import { trackEvent } from '../lib/analytics';
+
+/** Waves only — no floating bubbles */
+function WaveLinesOnly() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 w-full h-full z-[1]"
+      preserveAspectRatio="xMidYMid slice"
+      viewBox="0 0 1440 800"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M-50,500 C150,380 350,580 600,450 C850,320 1050,520 1250,400 C1350,340 1400,380 1500,360" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+      <path d="M-50,520 C180,400 380,600 630,470 C880,340 1080,540 1280,420 C1380,360 1420,400 1500,380" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+      <path d="M-50,560 C200,440 400,640 650,510 C900,380 1100,560 1300,440 C1400,380 1440,420 1500,400" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+      <path d="M-50,500 C150,380 350,580 600,450 C850,320 1050,520 1250,400 C1350,340 1400,380 1500,360" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="25" filter="url(#waveGlowOnb)" />
+      <defs><filter id="waveGlowOnb"><feGaussianBlur stdDeviation="6" /></filter></defs>
+    </svg>
+  );
+}
 
 function SceneCarriers() {
   return (
@@ -49,32 +67,12 @@ function SceneMatch() {
   );
 }
 
-function SceneTrust() {
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl bg-white/10 flex items-center justify-center">
-        <ShieldCheck size={36} className="text-white md:hidden" strokeWidth={1.8} />
-        <ShieldCheck size={48} className="text-white hidden md:block" strokeWidth={1.8} />
-      </div>
-      <div className="flex items-center gap-2 mt-1">
-        {CARRIERS.slice(0, 4).map((c) => (
-          <div key={c.name} className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center">
-            <img src={c.logo} alt={c.name} className="w-5 h-5 md:w-6 md:h-6 object-contain" />
-          </div>
-        ))}
-        <span className="text-xs font-semibold text-white/50">+4</span>
-      </div>
-    </div>
-  );
-}
-
 export default function Onboarding() {
   const { lang, toggleLang } = useLang();
   const { markOnboarded } = useAuth();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(() => !localStorage.getItem('simba-onboarded'));
   const [page, setPage] = useState(0);
-  const [langChosen, setLangChosen] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -88,7 +86,6 @@ export default function Onboarding() {
 
   const chooseLang = (chosen: string) => {
     if (chosen !== lang) toggleLang();
-    setLangChosen(true);
     trackEvent('onboarding_language_selected', { language: chosen });
     setPage(1);
   };
@@ -96,7 +93,7 @@ export default function Onboarding() {
   const complete = () => {
     localStorage.setItem('simba-onboarded', 'true');
     markOnboarded();
-    trackEvent('onboarding_completed', { skipped: !langChosen || page < pages.length - 1 });
+    trackEvent('onboarding_completed');
     setVisible(false);
     navigate('/advisor');
   };
@@ -105,37 +102,27 @@ export default function Onboarding() {
     { id: 'lang' },
     {
       scene: <SceneCarriers />,
-      title: lang === 'ar' ? 'كل الشركات. مكان واحد.' : 'All carriers. One place.',
-      sub: lang === 'ar' ? 'بدون تنقل بين المواقع.' : 'No more jumping between websites.',
+      title: lang === 'ar' ? 'كل الشركات في مكان واحد.' : 'All carriers in one place.',
+      sub: lang === 'ar' ? 'قارن الباقات فوراً.' : 'Compare plans instantly.',
     },
     {
       scene: <SceneMatch />,
-      title: lang === 'ar' ? 'باقتك المثالية. بثوانٍ.' : 'Your match. In seconds.',
-      sub: lang === 'ar' ? 'قلنا وش تبي. نلقاها لك.' : 'Tell us what you need. We find it.',
+      title: lang === 'ar' ? 'باقتك بثواني.' : 'Matched in seconds.',
+      sub: lang === 'ar' ? 'بس علمنا وش تحتاج.' : 'Just tell us what you need.',
     },
   ];
 
   const isLast = page === pages.length - 1;
-  const isLangPage = page === 0;
   const current = pages[page];
 
-  if (isLangPage) {
+  // Page 0: Logo + language selection only
+  if (page === 0) {
     return (
       <div className="fixed inset-0 z-[300] flex flex-col items-center justify-center px-6 hero-gradient grain overflow-hidden">
-        <WaveLines />
-        <img src="/icon-512.png" alt="Simba" className="relative z-10 w-16 h-16 md:w-20 md:h-20 mb-5 rounded-2xl shadow-lg" />
-        <h1 className="relative z-10 font-heading font-medium text-[26px] md:text-[34px] text-black text-center leading-tight mb-1">
-          Welcome to Simba
-        </h1>
-        <p className="relative z-10 text-[18px] md:text-[22px] text-black/70 text-center mb-6 font-semibold">
-          حياك في سيمبا
-        </p>
-        <h2 className="relative z-10 font-heading font-medium text-[17px] text-black/80 text-center leading-tight mb-2">
-          Choose your language
-        </h2>
-        <p className="relative z-10 font-heading font-medium text-[17px] text-black/80 text-center mb-8">
-          اختر لغتك المفضلة
-        </p>
+        <WaveLinesOnly />
+        <div className="relative z-10 w-20 h-20 md:w-28 md:h-28 mb-10 rounded-[22%] overflow-hidden shadow-lg">
+          <img src="/icon-512.png" alt="Simba" className="w-full h-full object-cover scale-[1.05]" />
+        </div>
         <div className="relative z-10 flex gap-3 w-full max-w-xs md:max-w-sm">
           <Button
             onClick={() => chooseLang('en')}
@@ -156,9 +143,10 @@ export default function Onboarding() {
     );
   }
 
+  // Pages 1+: Onboarding slides
   return (
     <div className="fixed inset-0 z-[300] flex flex-col hero-gradient grain overflow-hidden">
-      <WaveLines />
+      <WaveLinesOnly />
       <div className="relative z-10 px-6 pt-6" />
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6" key={page}>
