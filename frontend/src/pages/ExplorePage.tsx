@@ -28,8 +28,7 @@ function parseNum(val: string): number {
 const PLAN_TYPES = ['Prepaid', 'Postpaid', 'Data-only'] as const;
 const PRICE_MAX = 1000;
 const CARD_FULL_HEIGHT: React.CSSProperties = { height: '100%' };
-const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-const MAX_PLANS_PER_CATEGORY = isMobile ? 8 : 15;
+const MAX_PLANS_PER_CATEGORY = 15;
 
 const TYPE_COLORS: Record<string, { active: string; bg: string; ring: string }> = {
   Prepaid:     { active: '#059669', bg: '#10B98118', ring: '#10B98140' },
