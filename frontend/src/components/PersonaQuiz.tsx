@@ -5,7 +5,7 @@ import { useLang } from '../context/LanguageContext';
 import { usePersona } from '../context/PersonaContext';
 import { inferSegmentFromQuiz, createEmptySignals, getSegmentLabel } from '../lib/persona';
 import { trackEvent } from '../lib/analytics';
-import type { PersonaQuizAnswers } from '@/types';
+import type { PersonaQuizAnswers, PersonaSegment } from '@/types';
 
 interface QuizStepConfig {
   key: keyof PersonaQuizAnswers;
@@ -125,7 +125,7 @@ export default function PersonaQuiz({ onComplete, onSkip, showSkip = true }: Per
 
   // Result screen
   if (resultSegment) {
-    const label = getSegmentLabel(resultSegment as PersonaQuizAnswers['usage'], lang);
+    const label = getSegmentLabel(resultSegment as PersonaSegment, lang);
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-6 animate-fade-up">
         <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
