@@ -8,6 +8,7 @@ import {
 import { useLang } from '../context/LanguageContext';
 import { CARRIERS } from '../data/plans';
 import { usePlans } from '../context/PlansContext';
+import { usePersona } from '../context/PersonaContext';
 import { trackEvent } from '../lib/analytics';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
@@ -190,9 +191,22 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
   );
 }
 
+// Map persona segments to category keys
+const SEGMENT_TO_CATEGORY: Record<string, string> = {
+  gamer: 'gamers',
+  student: 'students',
+  budget: 'budget',
+  expat: 'expats',
+  family: 'balanced',
+  streamer: 'unlimited',
+  power_user: 'unlimited',
+  business: 'expats',
+};
+
 export default function ExplorePage() {
   const { t } = useLang();
   const { plans: PLANS_DATA } = usePlans();
+  const { segment, trackSignal } = usePersona();
 
   /* ---- filter state ---- */
   const [search, setSearch] = useState('');
@@ -206,6 +220,18 @@ export default function ExplorePage() {
   const [fiveGFilter, setFiveGFilter] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [personaAutoApplied, setPersonaAutoApplied] = useState(false);
+
+  // Auto-select category based on persona segment (once)
+  useEffect(() => {
+    if (segment && !personaAutoApplied && !activeCategory) {
+      const catKey = SEGMENT_TO_CATEGORY[segment];
+      if (catKey) {
+        setActiveCategory(catKey);
+        setPersonaAutoApplied(true);
+      }
+    }
+  }, [segment, personaAutoApplied, activeCategory]);
 
   const toggleCarrier = useCallback((name: string) => {
     setSelectedCarriers(prev => prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]);
@@ -413,7 +439,11 @@ export default function ExplorePage() {
             max={PRICE_MAX}
             step={10}
             value={priceRange}
-            onValueChange={setPriceRange}
+            onValueChange={(v) => {
+              setPriceRange(v);
+              const bucket = v[1] <= 100 ? 'low' : v[1] <= 300 ? 'mid' : 'high';
+              trackSignal('priceRangeClicks', bucket);
+            }}
             className="w-full"
           />
         </div>
@@ -527,7 +557,7 @@ export default function ExplorePage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => { setFiveGFilter(prev => { trackEvent('filter_applied', { filter: '5g', active: !prev }); return !prev; }); }}
+          onClick={() => { setFiveGFilter(prev => { trackEvent('filter_applied', { filter: '5g', active: !prev }); if (!prev) trackSignal('filtersUsed', '5g'); return !prev; }); }}
           className={`rounded-lg text-xs font-semibold
             ${fiveGFilter
               ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
@@ -599,7 +629,10 @@ export default function ExplorePage() {
                   key={cat.key}
                   onClick={() => {
                     const next = activeCategory === cat.key ? null : cat.key;
-                    if (next) trackEvent('category_selected', { category: next });
+                    if (next) {
+                      trackEvent('category_selected', { category: next });
+                      trackSignal('categoriesViewed', next);
+                    }
                     setActiveCategory(next);
                   }}
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap

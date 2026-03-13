@@ -1,15 +1,36 @@
-import { X } from 'lucide-react';
+import { useMemo } from 'react';
+import { X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLang } from '../context/LanguageContext';
 import { useCompare } from '../context/CompareContext';
+import { usePersona } from '../context/PersonaContext';
+import { usePlans } from '../context/PlansContext';
+import { getPersonalizedScore } from '../lib/persona';
 import { getCarrierColor, getCarrierLogo } from '../data/plans';
 import { trackEvent } from '../lib/analytics';
 import CompareOverlay from './CompareOverlay';
 
 export default function CompareBar() {
-  const { t } = useLang();
-  const { selectedPlans, removePlan, showOverlay, setShowOverlay, toast, setToast } = useCompare();
+  const { t, lang } = useLang();
+  const { selectedPlans, removePlan, addPlan, showOverlay, setShowOverlay, toast, setToast } = useCompare();
+  const { segment } = usePersona();
+  const { plans } = usePlans();
+
+  // Auto-suggest 2 plans when only 1 is selected and persona exists
+  const suggestedPlans = useMemo(() => {
+    if (selectedPlans.length !== 1 || !segment || plans.length === 0) return [];
+    const current = selectedPlans[0];
+    return plans
+      .filter((p) => p.id !== current.id)
+      .sort((a, b) => getPersonalizedScore(b, segment) - getPersonalizedScore(a, segment))
+      .filter((p) => {
+        // Find plans that differ interestingly — same-ish price range OR same data tier
+        const priceDiff = Math.abs(p.priceSAR - current.priceSAR);
+        return priceDiff < current.priceSAR * 0.5;
+      })
+      .slice(0, 2);
+  }, [selectedPlans, segment, plans]);
 
   if (selectedPlans.length === 0 && !toast && !showOverlay) return null;
 
@@ -90,6 +111,35 @@ export default function CompareBar() {
                   : t('compareBar.selectMoreShort')}
               </Button>
             </div>
+
+            {/* Auto-suggest comparisons */}
+            {suggestedPlans.length > 0 && selectedPlans.length === 1 && (
+              <div className="mt-2 pt-2 border-t border-border">
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1 mb-1.5">
+                  <Sparkles size={10} className="text-primary" />
+                  {lang === 'ar' ? 'مقترحات للمقارنة' : 'Suggested comparisons'}
+                </p>
+                <div className="flex gap-1.5">
+                  {suggestedPlans.map((plan) => {
+                    const logo = getCarrierLogo(plan.provider);
+                    return (
+                      <button
+                        key={plan.id}
+                        onClick={() => {
+                          addPlan(plan);
+                          trackEvent('compare_suggestion_added', { plan_id: plan.id });
+                        }}
+                        className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/50 hover:bg-muted text-[10px] font-medium text-foreground transition-colors"
+                      >
+                        {logo && <img src={logo} alt={plan.provider} className="w-4 h-4 object-contain" />}
+                        <span className="truncate max-w-[80px]">{plan.priceSAR} SAR</span>
+                        <span className="text-primary font-bold">+</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

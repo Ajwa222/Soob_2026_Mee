@@ -1,12 +1,14 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
+import { Sparkles, ArrowRight, ChevronRight, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CommunityBanner from '../components/CommunityBanner';
 import WaveLines from '../components/WaveLines';
 import { useLang } from '../context/LanguageContext';
 import { CARRIERS, getValueScore } from '../data/plans';
 import { usePlans } from '../context/PlansContext';
+import { usePersona } from '../context/PersonaContext';
+import { getPersonalizedScore, getSegmentLabel } from '../lib/persona';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import FinderModal, { useFinderModal } from '../components/FinderModal';
 import { trackEvent } from '../lib/analytics';
@@ -17,12 +19,20 @@ export default function HomePage() {
   const { t, lang } = useLang();
   const { show: showFinderModal, dismiss: dismissFinderModal } = useFinderModal();
   const { plans } = usePlans();
+  const { segment } = usePersona();
 
   const trendingPlans = useMemo(() => {
+    if (segment) {
+      return [...plans]
+        .sort((a, b) => getPersonalizedScore(b, segment) - getPersonalizedScore(a, segment))
+        .slice(0, 8);
+    }
     return [...plans]
       .sort((a, b) => getValueScore(b) - getValueScore(a))
       .slice(0, 8);
-  }, [plans]);
+  }, [plans, segment]);
+
+  const isPersonalized = !!segment;
 
   return (
     <div className="safe-pb">
@@ -89,16 +99,45 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Trending Plans */}
+      {/* Persona Insight Banner */}
+      {isPersonalized && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-8 md:pt-12">
+          <Link
+            to="/plans"
+            className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 group hover:bg-primary/10 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <User size={18} className="text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                {lang === 'ar'
+                  ? `كـ${getSegmentLabel(segment!, lang)}، لقينا لك باقات تناسب أسلوبك.`
+                  : `As a ${getSegmentLabel(segment!, lang)}, we found plans that match your style.`}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {lang === 'ar' ? 'اضغط لاستكشاف الباقات المقترحة' : 'Tap to explore your recommended plans'}
+              </p>
+            </div>
+            <ChevronRight size={16} className="text-primary shrink-0 rtl:rotate-180" />
+          </Link>
+        </div>
+      )}
+
+      {/* Trending Plans / Personalized Plans */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-12 md:pt-20 pb-10 md:pb-14">
         <div className="flex items-end justify-between mb-6 md:mb-8">
           <div>
             <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-primary">
               <Sparkles size={12} />
-              {t('home.popularNow')}
+              {isPersonalized
+                ? (lang === 'ar' ? 'مقترحة لك' : 'For You')
+                : t('home.popularNow')}
             </span>
             <h2 className="font-heading font-bold text-2xl md:text-[32px] text-foreground mt-1.5 tracking-tight">
-              {t('trending.title')}
+              {isPersonalized
+                ? (lang === 'ar' ? 'باقات تناسبك' : 'Recommended for You')
+                : t('trending.title')}
             </h2>
           </div>
           <Button variant="link" asChild className="text-primary font-semibold">

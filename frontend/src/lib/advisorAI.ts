@@ -11,10 +11,11 @@ export async function sendAdvisorMessage(
   lang: 'en' | 'ar',
   history: ChatMessage[],
   userMessage: string,
+  segment?: string,
 ): Promise<{ reply: string; planIds: number[] }> {
   return apiFetch<{ reply: string; planIds: number[] }>('/api/advisor/message', {
     method: 'POST',
-    body: JSON.stringify({ lang, history, userMessage }),
+    body: JSON.stringify({ lang, history, userMessage, segment }),
   });
 }
 

@@ -9,6 +9,7 @@ dotenv.config();
 import plansRouter from "./routes/plans.js";
 import advisorRouter from "./routes/advisor.js";
 import interactionsRouter from "./routes/interactions.js";
+import personaRouter from "./routes/persona.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -58,6 +59,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/plans", interactionLimiter, interactionsRouter);
 app.use("/api/plans", plansRouter);
 app.use("/api/advisor", advisorLimiter, advisorRouter);
+app.use("/api/persona", interactionLimiter, personaRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

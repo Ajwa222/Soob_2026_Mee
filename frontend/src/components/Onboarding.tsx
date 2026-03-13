@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { CARRIERS } from '../data/plans';
 import { trackEvent } from '../lib/analytics';
+
+const PersonaQuiz = lazy(() => import('./PersonaQuiz'));
 
 /** Waves only — no floating bubbles */
 function WaveLinesOnly() {
@@ -98,22 +100,10 @@ export default function Onboarding() {
     navigate('/advisor');
   };
 
-  const pages = [
-    { id: 'lang' },
-    {
-      scene: <SceneCarriers />,
-      title: lang === 'ar' ? 'كل الشركات في مكان واحد.' : 'All carriers in one place.',
-      sub: lang === 'ar' ? 'قارن الباقات فوراً.' : 'Compare plans instantly.',
-    },
-    {
-      scene: <SceneMatch />,
-      title: lang === 'ar' ? 'باقتك بثواني.' : 'Matched in seconds.',
-      sub: lang === 'ar' ? 'بس علمنا وش تحتاج.' : 'Just tell us what you need.',
-    },
-  ];
+  const SLIDE_COUNT = 3; // lang (0) + 2 slides (1,2) + quiz (3)
 
-  const isLast = page === pages.length - 1;
-  const current = pages[page];
+  const isQuizPage = page === 3;
+  const isLastSlide = page === 2;
 
   // Page 0: Logo + language selection only
   if (page === 0) {
@@ -143,7 +133,38 @@ export default function Onboarding() {
     );
   }
 
-  // Pages 1+: Onboarding slides
+  // Page 3: Persona Quiz
+  if (isQuizPage) {
+    return (
+      <div className="fixed inset-0 z-[300] flex flex-col hero-gradient grain overflow-hidden">
+        <WaveLinesOnly />
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
+          <div className="w-full max-w-md bg-white/95 dark:bg-background/95 backdrop-blur-sm rounded-2xl shadow-lg">
+            <Suspense fallback={<div className="p-8 flex items-center justify-center"><div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>}>
+              <PersonaQuiz onComplete={complete} onSkip={complete} showSkip />
+            </Suspense>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Slide data for pages 1-2
+  const slides = [
+    {
+      scene: <SceneCarriers />,
+      title: lang === 'ar' ? 'كل الشركات في مكان واحد.' : 'All carriers in one place.',
+      sub: lang === 'ar' ? 'قارن الباقات فوراً.' : 'Compare plans instantly.',
+    },
+    {
+      scene: <SceneMatch />,
+      title: lang === 'ar' ? 'باقتك بثواني.' : 'Matched in seconds.',
+      sub: lang === 'ar' ? 'بس علمنا وش تحتاج.' : 'Just tell us what you need.',
+    },
+  ];
+  const current = slides[page - 1];
+
+  // Pages 1-2: Onboarding slides
   return (
     <div className="fixed inset-0 z-[300] flex flex-col hero-gradient grain overflow-hidden">
       <WaveLinesOnly />
@@ -161,24 +182,22 @@ export default function Onboarding() {
 
       <div className={`relative z-10 px-6 pb-8 flex items-center justify-between ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
         <div className={`flex gap-2 ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
-          {pages.slice(1).map((_, i) => (
+          {[1, 2, 3].map((i) => (
             <div
               key={i}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                i + 1 === page ? 'w-6 bg-white' : i + 1 < page ? 'w-1.5 bg-white/40' : 'w-1.5 bg-white/20'
+                i === page ? 'w-6 bg-white' : i < page ? 'w-1.5 bg-white/40' : 'w-1.5 bg-white/20'
               }`}
             />
           ))}
         </div>
 
         <Button
-          onClick={isLast ? complete : () => setPage((p) => p + 1)}
+          onClick={() => setPage((p) => p + 1)}
           variant="secondary"
-          className={`bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md font-medium ${
-            isLast ? 'px-7 h-12' : 'w-12 h-12 p-0'
-          }`}
+          className="bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md font-medium w-12 h-12 p-0"
         >
-          {isLast ? (lang === 'ar' ? 'ابدأ الآن' : 'Get Started') : <ArrowRight size={18} />}
+          <ArrowRight size={18} />
         </Button>
       </div>
     </div>
