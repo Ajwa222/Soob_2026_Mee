@@ -6,6 +6,8 @@ import {
 } from "../middleware/auth.js";
 import type { PlanReaction, PlanComment } from "../types.js";
 import { FieldValue } from "firebase-admin/firestore";
+import { isValidSegment } from "../lib/persona-scoring.js";
+import { updateUserSegment } from "../lib/segment-stats.js";
 
 const router = Router();
 
@@ -137,6 +139,18 @@ router.post("/:id/reactions/like", requireAuth, async (req, res) => {
 
     await ref.update(updates);
     invalidateEngagementCache();
+
+    // Update segment stats (fire-and-forget)
+    const segment = req.headers["x-persona-segment"] as string | undefined;
+    if (segment && isValidSegment(segment)) {
+      updateUserSegment(
+        userId,
+        segment,
+        Number(planId),
+        alreadyLiked ? "remove" : "add",
+      ).catch(() => { /* non-critical */ });
+    }
+
     res.json({ toggled: alreadyLiked ? "unliked" : "liked" });
   } catch (err) {
     console.error("Toggle like error:", err);

@@ -5,6 +5,7 @@ import { LanguageProvider, useLang } from './context/LanguageContext';
 import { CompareProvider } from './context/CompareContext';
 import { BookmarkProvider } from './context/BookmarkContext';
 import { AuthProvider } from './context/AuthContext';
+import { PersonaProvider } from './context/PersonaContext';
 import { PlansProvider } from './context/PlansContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navigation from './components/Navigation';
@@ -62,6 +63,7 @@ function App() {
       <ScrollToTop />
       <LanguageProvider>
         <AuthProvider>
+        <PersonaProvider>
       <AnalyticsTracker />
         <PlansProvider>
         <BookmarkProvider>
@@ -96,6 +98,7 @@ function App() {
         </CompareProvider>
         </BookmarkProvider>
         </PlansProvider>
+        </PersonaProvider>
         </AuthProvider>
         </LanguageProvider>
     </BrowserRouter>

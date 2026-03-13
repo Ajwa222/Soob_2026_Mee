@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wifi, Phone, MessageSquare, Share2, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle, Bookmark } from 'lucide-react';
+import { Wifi, Phone, MessageSquare, Share2, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle, Bookmark, Users } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import SarSymbol from './SarSymbol';
 import { useNavigate } from 'react-router-dom';
 import { useCompare } from '../context/CompareContext';
 import { useBookmarks } from '../context/BookmarkContext';
+import { usePersona } from '../context/PersonaContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
 import { usePlans } from '../context/PlansContext';
 import { trackEvent } from '../lib/analytics';
@@ -42,11 +43,12 @@ interface PlanCardProps {
   likes?: number;
   dislikes?: number;
   commentCount?: number;
+  segmentBadge?: string | null;
   onToggleCompare?: (plan: Plan) => void;
   onToggleBookmark?: (planId: number) => void;
 }
 
-const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected = false, bookmarked = false, likes = 0, dislikes = 0, commentCount = 0, onToggleCompare, onToggleBookmark }: PlanCardProps) {
+const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected = false, bookmarked = false, likes = 0, dislikes = 0, commentCount = 0, segmentBadge, onToggleCompare, onToggleBookmark }: PlanCardProps) {
   const { t } = useLang();
   const carrierColor = getCarrierColor(plan.provider);
   const carrierLogo = getCarrierLogo(plan.provider);
@@ -128,6 +130,16 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
         })()}
 
 
+        {/* Segment social proof badge */}
+        {segmentBadge && (
+          <div className={`${compact ? 'mt-2' : 'mt-3'}`}>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
+              <Users size={10} />
+              {segmentBadge}
+            </span>
+          </div>
+        )}
+
         {/* Engagement */}
         <div className={`flex items-center gap-4 ${compact ? 'mt-2' : 'mt-3'} text-muted-foreground`}>
           <div className="flex items-center gap-1.5 hover:text-primary transition-colors">
@@ -149,7 +161,7 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
 
       <CardFooter className={`gap-2 ${compact ? 'px-3.5 pb-2 pt-0' : 'px-5 pb-5'}`}>
         <Button variant="secondary" size={compact ? 'sm' : 'default'} className={`flex-1 rounded-xl ${compact ? 'text-xs font-medium py-1' : 'font-semibold'}`} asChild>
-          <Link to={`/plan/${plan.id}`} onClick={() => trackEvent('plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR })}>{t('planCard.viewDetails')}</Link>
+          <Link to={`/plan/${plan.id}`} onClick={() => { trackEvent('plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR }); }}>{t('planCard.viewDetails')}</Link>
         </Button>
         <Button
           variant={selected ? 'default' : 'outline'}
@@ -168,15 +180,20 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
 /** Thin wrapper that subscribes to CompareContext.
  *  Only this component re-renders on context changes —
  *  the memoized PlanCard underneath skips if `selected` didn't change. */
-export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
+export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, style, compact, segmentBadge }: { plan: Plan; style?: React.CSSProperties; compact?: boolean; segmentBadge?: string | null }) {
   const { togglePlan, isSelected } = useCompare();
   const { requestBookmark, isBookmarked } = useBookmarks();
   const { engagement } = usePlans();
+  const { trackSignal } = usePersona();
   const navigate = useNavigate();
   const e = engagement[String(plan.id)];
   const handleToggleBookmark = React.useCallback((id: number) => {
     if (!requestBookmark(id)) navigate('/profile');
   }, [requestBookmark, navigate]);
+  const handleToggleCompare = React.useCallback((p: Plan) => {
+    togglePlan(p);
+    trackSignal('compareCount');
+  }, [togglePlan, trackSignal]);
   return (
     <PlanCard
       plan={plan}
@@ -187,7 +204,8 @@ export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, s
       likes={e?.likes ?? 0}
       dislikes={e?.dislikes ?? 0}
       commentCount={e?.comments ?? 0}
-      onToggleCompare={togglePlan}
+      segmentBadge={segmentBadge}
+      onToggleCompare={handleToggleCompare}
       onToggleBookmark={handleToggleBookmark}
     />
   );
