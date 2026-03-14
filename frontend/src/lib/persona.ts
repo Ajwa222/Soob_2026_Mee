@@ -1,4 +1,4 @@
-import type { PersonaSegment, PersonaQuizAnswers, PersonaSignals, SegmentWeights } from '@/types';
+import type { PersonaSegment, PersonaSignals, SegmentWeights } from '@/types';
 
 export const SEGMENT_WEIGHTS: Record<PersonaSegment, SegmentWeights> = {
   gamer:      { data: 10, calls: 1, international: 0, social: 3, price: 2, fiveG: 10, roaming: 0, unlimited: 8 },
@@ -37,65 +37,6 @@ export function createEmptySignals(): PersonaSignals {
   };
 }
 
-/** Infer segment from quiz answers */
-export function inferSegmentFromQuiz(answers: PersonaQuizAnswers): { segment: PersonaSegment; confidence: number } {
-  const scores: Record<PersonaSegment, number> = {
-    gamer: 0, student: 0, family: 0, business: 0,
-    expat: 0, budget: 0, streamer: 0, power_user: 0,
-  };
-
-  // Usage question (strongest signal)
-  switch (answers.usage) {
-    case 'gaming':   scores.gamer += 10; scores.power_user += 2; break;
-    case 'streaming': scores.streamer += 10; scores.power_user += 2; break;
-    case 'social':   scores.student += 6; scores.streamer += 3; break;
-    case 'work':     scores.business += 8; scores.power_user += 3; break;
-    case 'calls':    scores.family += 5; scores.business += 4; break;
-    case 'basic':    scores.budget += 6; scores.student += 3; break;
-  }
-
-  // Budget question
-  switch (answers.budget) {
-    case 'low':       scores.budget += 8; scores.student += 5; break;
-    case 'mid':       scores.student += 3; scores.family += 3; break;
-    case 'high':      scores.business += 4; scores.power_user += 3; break;
-    case 'unlimited': scores.power_user += 6; scores.business += 3; break;
-  }
-
-  // Priority question
-  switch (answers.priority) {
-    case 'data':          scores.gamer += 5; scores.streamer += 5; scores.power_user += 3; break;
-    case 'calls':         scores.family += 5; scores.business += 4; break;
-    case 'international': scores.expat += 8; scores.business += 3; break;
-    case 'price':         scores.budget += 7; scores.student += 4; break;
-    case 'speed':         scores.gamer += 6; scores.power_user += 5; break;
-  }
-
-  // Household question
-  switch (answers.household) {
-    case 'solo':   scores.student += 2; scores.gamer += 1; break;
-    case 'family': scores.family += 8; break;
-    case 'shared': scores.student += 3; scores.family += 2; break;
-  }
-
-  // Location question
-  switch (answers.location) {
-    case 'local':    break; // no strong signal
-    case 'expat':    scores.expat += 10; break;
-    case 'traveler': scores.expat += 5; scores.business += 4; break;
-  }
-
-  // Find top segment
-  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-  const top = sorted[0];
-  const total = sorted.reduce((sum, [, v]) => sum + v, 0) || 1;
-
-  return {
-    segment: top[0] as PersonaSegment,
-    confidence: Math.min(top[1] / total, 1),
-  };
-}
-
 /** Infer segment from implicit behavior signals */
 export function inferSegmentFromSignals(signals: PersonaSignals): { segment: PersonaSegment; confidence: number } {
   const scores: Record<PersonaSegment, number> = {
@@ -105,32 +46,47 @@ export function inferSegmentFromSignals(signals: PersonaSignals): { segment: Per
 
   // Category views (strongest implicit signal)
   const cv = signals.categoriesViewed;
-  if ((cv.gamers || 0) > 2) scores.gamer += (cv.gamers || 0) * 2;
-  if ((cv.students || 0) > 2) scores.student += (cv.students || 0) * 2;
-  if ((cv.expats || 0) > 2) scores.expat += (cv.expats || 0) * 2;
-  if ((cv.budget || 0) > 2) scores.budget += (cv.budget || 0) * 2;
-  if ((cv.unlimited || 0) > 2) { scores.power_user += (cv.unlimited || 0); scores.streamer += (cv.unlimited || 0); }
-  if ((cv['local-calls'] || 0) > 2) scores.family += (cv['local-calls'] || 0) * 1.5;
-  if ((cv['data-only'] || 0) > 2) { scores.streamer += (cv['data-only'] || 0); scores.gamer += (cv['data-only'] || 0); }
-  if ((cv.balanced || 0) > 2) scores.family += (cv.balanced || 0);
+  const g = (cv.gamers || 0); if (g) { scores.gamer += g * 2; }
+  const s = (cv.students || 0); if (s) { scores.student += s * 2; }
+  const ex = (cv.expats || 0); if (ex) { scores.expat += ex * 2; }
+  const bu = (cv.budget || 0); if (bu) { scores.budget += bu * 2; }
+  const un = (cv.unlimited || 0); if (un) { scores.power_user += un; scores.streamer += un; }
+  // Support both camelCase (current) and kebab-case (legacy) keys
+  const lc = (cv.localCalls || 0) + (cv['local-calls'] || 0); if (lc) { scores.family += lc * 1.5; }
+  const dOnly = (cv.dataOnly || 0) + (cv['data-only'] || 0); if (dOnly) { scores.streamer += dOnly; scores.gamer += dOnly; }
+  const bal = (cv.balanced || 0); if (bal) { scores.family += bal; }
+
+  // Plan type views (what types of plans the user explores)
+  const pt = signals.planTypesViewed;
+  if (pt['Data-only']) { scores.gamer += pt['Data-only']; scores.streamer += pt['Data-only']; }
+  if (pt.Prepaid) { scores.student += pt.Prepaid * 0.5; scores.budget += pt.Prepaid * 0.5; }
+  if (pt.Postpaid) { scores.business += pt.Postpaid * 0.5; scores.power_user += pt.Postpaid * 0.5; }
+
+  // Total plan views (light general engagement signal)
+  if (signals.totalPlanViews >= 3) { scores.power_user += 1; }
+
+  // Compare usage (comparison shoppers tend to be deliberate)
+  if (signals.compareCount >= 2) { scores.power_user += 2; scores.business += 1; }
 
   // Price range clicks
   const pr = signals.priceRangeClicks;
-  if (pr.low > pr.high * 2) scores.budget += 8;
-  if (pr.high > pr.low * 2) { scores.power_user += 5; scores.business += 3; }
+  if (pr.low > 0 && pr.low > pr.high * 2) scores.budget += 5;
+  if (pr.high > 0 && pr.high > pr.low * 2) { scores.power_user += 3; scores.business += 2; }
+  if (pr.low > 0 && pr.high === 0) scores.budget += 3;
+  if (pr.mid > 0) { scores.student += 1; scores.family += 1; }
 
   // Filter usage
   const fu = signals.filtersUsed;
-  if ((fu['5g'] || 0) > 2) { scores.gamer += 5; scores.power_user += 3; }
-  if ((fu.unlimited || 0) > 2) { scores.streamer += 5; scores.power_user += 4; }
-  if ((fu.international || 0) > 2) { scores.expat += 6; scores.business += 3; }
-  if ((fu.social || 0) > 2) { scores.student += 4; scores.streamer += 3; }
+  if (fu['5g']) { scores.gamer += 4; scores.power_user += 2; }
+  if (fu.unlimited) { scores.streamer += 4; scores.power_user += 3; }
+  if (fu.international) { scores.expat += 5; scores.business += 2; }
+  if (fu.social) { scores.student += 3; scores.streamer += 2; }
 
   // Find top segment
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   const top = sorted[0];
   const total = sorted.reduce((sum, [, v]) => sum + v, 0) || 1;
-  const confidence = total > 5 ? Math.min(top[1] / total, 1) : 0;
+  const confidence = total > 2 ? Math.min(top[1] / total, 1) : 0;
 
   return {
     segment: top[0] as PersonaSegment,

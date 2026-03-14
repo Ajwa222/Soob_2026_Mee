@@ -46,9 +46,10 @@ interface PlanCardProps {
   segmentBadge?: string | null;
   onToggleCompare?: (plan: Plan) => void;
   onToggleBookmark?: (planId: number) => void;
+  onViewPlan?: () => void;
 }
 
-const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected = false, bookmarked = false, likes = 0, dislikes = 0, commentCount = 0, segmentBadge, onToggleCompare, onToggleBookmark }: PlanCardProps) {
+const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected = false, bookmarked = false, likes = 0, dislikes = 0, commentCount = 0, segmentBadge, onToggleCompare, onToggleBookmark, onViewPlan }: PlanCardProps) {
   const { t } = useLang();
   const carrierColor = getCarrierColor(plan.provider);
   const carrierLogo = getCarrierLogo(plan.provider);
@@ -161,7 +162,7 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
 
       <CardFooter className={`gap-2 ${compact ? 'px-3.5 pb-2 pt-0' : 'px-5 pb-5'}`}>
         <Button variant="secondary" size={compact ? 'sm' : 'default'} className={`flex-1 rounded-xl ${compact ? 'text-xs font-medium py-1' : 'font-semibold'}`} asChild>
-          <Link to={`/plan/${plan.id}`} onClick={() => { trackEvent('plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR }); }}>{t('planCard.viewDetails')}</Link>
+          <Link to={`/plan/${plan.id}`} onClick={() => { trackEvent('plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR }); onViewPlan?.(); }}>{t('planCard.viewDetails')}</Link>
         </Button>
         <Button
           variant={selected ? 'default' : 'outline'}
@@ -194,6 +195,10 @@ export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, s
     togglePlan(p);
     trackSignal('compareCount');
   }, [togglePlan, trackSignal]);
+  const handleViewPlan = React.useCallback(() => {
+    trackSignal('totalPlanViews');
+    trackSignal('planTypesViewed', plan.planType);
+  }, [trackSignal, plan.planType]);
   return (
     <PlanCard
       plan={plan}
@@ -207,6 +212,7 @@ export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, s
       segmentBadge={segmentBadge}
       onToggleCompare={handleToggleCompare}
       onToggleBookmark={handleToggleBookmark}
+      onViewPlan={handleViewPlan}
     />
   );
 });
