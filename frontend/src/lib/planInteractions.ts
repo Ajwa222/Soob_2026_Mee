@@ -67,14 +67,20 @@ export async function fetchCommentCount(planId: number): Promise<number> {
   return promise;
 }
 
-export async function toggleLike(planId: number, _userId: string): Promise<void> {
+export async function toggleLike(planId: number, _userId: string, segment?: string): Promise<void> {
   invalidateReactionCache(planId);
-  await apiFetch(`/api/plans/${planId}/reactions/like`, { method: 'POST' });
+  await apiFetch(`/api/plans/${planId}/reactions/like`, {
+    method: 'POST',
+    headers: segment ? { 'x-persona-segment': segment } : undefined,
+  });
 }
 
-export async function toggleDislike(planId: number, _userId: string): Promise<void> {
+export async function toggleDislike(planId: number, _userId: string, segment?: string): Promise<void> {
   invalidateReactionCache(planId);
-  await apiFetch(`/api/plans/${planId}/reactions/dislike`, { method: 'POST' });
+  await apiFetch(`/api/plans/${planId}/reactions/dislike`, {
+    method: 'POST',
+    headers: segment ? { 'x-persona-segment': segment } : undefined,
+  });
 }
 
 export async function fetchComments(planId: number): Promise<PlanComment[]> {

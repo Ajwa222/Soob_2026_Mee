@@ -1,4 +1,4 @@
-import type { PersonaSegment, PersonaQuizAnswers, PersonaSignals, SegmentWeights } from '@/types';
+import type { PersonaSegment, PersonaSignals, SegmentWeights } from '@/types';
 
 export const SEGMENT_WEIGHTS: Record<PersonaSegment, SegmentWeights> = {
   gamer:      { data: 10, calls: 1, international: 0, social: 3, price: 2, fiveG: 10, roaming: 0, unlimited: 8 },
@@ -34,65 +34,6 @@ export function createEmptySignals(): PersonaSignals {
     planTypesViewed: {},
     totalPlanViews: 0,
     compareCount: 0,
-  };
-}
-
-/** Infer segment from quiz answers */
-export function inferSegmentFromQuiz(answers: PersonaQuizAnswers): { segment: PersonaSegment; confidence: number } {
-  const scores: Record<PersonaSegment, number> = {
-    gamer: 0, student: 0, family: 0, business: 0,
-    expat: 0, budget: 0, streamer: 0, power_user: 0,
-  };
-
-  // Usage question (strongest signal)
-  switch (answers.usage) {
-    case 'gaming':   scores.gamer += 10; scores.power_user += 2; break;
-    case 'streaming': scores.streamer += 10; scores.power_user += 2; break;
-    case 'social':   scores.student += 6; scores.streamer += 3; break;
-    case 'work':     scores.business += 8; scores.power_user += 3; break;
-    case 'calls':    scores.family += 5; scores.business += 4; break;
-    case 'basic':    scores.budget += 6; scores.student += 3; break;
-  }
-
-  // Budget question
-  switch (answers.budget) {
-    case 'low':       scores.budget += 8; scores.student += 5; break;
-    case 'mid':       scores.student += 3; scores.family += 3; break;
-    case 'high':      scores.business += 4; scores.power_user += 3; break;
-    case 'unlimited': scores.power_user += 6; scores.business += 3; break;
-  }
-
-  // Priority question
-  switch (answers.priority) {
-    case 'data':          scores.gamer += 5; scores.streamer += 5; scores.power_user += 3; break;
-    case 'calls':         scores.family += 5; scores.business += 4; break;
-    case 'international': scores.expat += 8; scores.business += 3; break;
-    case 'price':         scores.budget += 7; scores.student += 4; break;
-    case 'speed':         scores.gamer += 6; scores.power_user += 5; break;
-  }
-
-  // Household question
-  switch (answers.household) {
-    case 'solo':   scores.student += 2; scores.gamer += 1; break;
-    case 'family': scores.family += 8; break;
-    case 'shared': scores.student += 3; scores.family += 2; break;
-  }
-
-  // Location question
-  switch (answers.location) {
-    case 'local':    break; // no strong signal
-    case 'expat':    scores.expat += 10; break;
-    case 'traveler': scores.expat += 5; scores.business += 4; break;
-  }
-
-  // Find top segment
-  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-  const top = sorted[0];
-  const total = sorted.reduce((sum, [, v]) => sum + v, 0) || 1;
-
-  return {
-    segment: top[0] as PersonaSegment,
-    confidence: Math.min(top[1] / total, 1),
   };
 }
 
