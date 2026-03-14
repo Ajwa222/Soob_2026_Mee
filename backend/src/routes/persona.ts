@@ -7,6 +7,32 @@ import type { PersonaProfile, PersonaSignals } from "../types.js";
 
 const router = Router();
 
+function mergePendingSignals(base: PersonaSignals, pending: PersonaSignals): PersonaSignals {
+  const merged: PersonaSignals = {
+    categoriesViewed: { ...base.categoriesViewed },
+    priceRangeClicks: { ...base.priceRangeClicks },
+    filtersUsed: { ...base.filtersUsed },
+    planTypesViewed: { ...base.planTypesViewed },
+    totalPlanViews: base.totalPlanViews,
+    compareCount: base.compareCount,
+  };
+  for (const [k, v] of Object.entries(pending.categoriesViewed)) {
+    merged.categoriesViewed[k] = (merged.categoriesViewed[k] || 0) + v;
+  }
+  merged.priceRangeClicks.low += pending.priceRangeClicks.low;
+  merged.priceRangeClicks.mid += pending.priceRangeClicks.mid;
+  merged.priceRangeClicks.high += pending.priceRangeClicks.high;
+  for (const [k, v] of Object.entries(pending.filtersUsed)) {
+    merged.filtersUsed[k] = (merged.filtersUsed[k] || 0) + v;
+  }
+  for (const [k, v] of Object.entries(pending.planTypesViewed)) {
+    merged.planTypesViewed[k] = (merged.planTypesViewed[k] || 0) + v;
+  }
+  merged.totalPlanViews += pending.totalPlanViews;
+  merged.compareCount += pending.compareCount;
+  return merged;
+}
+
 const EMPTY_SIGNALS: PersonaSignals = {
   categoriesViewed: {},
   priceRangeClicks: { low: 0, mid: 0, high: 0 },
@@ -34,6 +60,22 @@ router.get("/", requireAuth, async (req, res) => {
   }
 });
 
+/** DELETE /api/persona — clear persona and pending signals */
+router.delete("/", requireAuth, async (req, res) => {
+  try {
+    const uid = (req as AuthenticatedRequest).uid!;
+    await db.collection("users").doc(uid).set(
+      { persona: null, pendingSignals: null },
+      { merge: true },
+    );
+    await db.collection("userSegments").doc(uid).delete().catch(() => {});
+    res.json({ cleared: true });
+  } catch (err) {
+    console.error("Delete persona error:", err);
+    res.status(500).json({ error: "Failed to delete persona" });
+  }
+});
+
 /** PUT /api/persona — save/update persona */
 router.put("/", requireAuth, async (req, res) => {
   try {
@@ -50,16 +92,27 @@ router.put("/", requireAuth, async (req, res) => {
       return;
     }
 
+    // Check for pending signals stored before persona existed
+    const userSnap = await db.collection("users").doc(uid).get();
+    const pendingSignals = userSnap.exists ? (userSnap.data()?.pendingSignals as PersonaSignals | undefined) : undefined;
+
+    const baseSignals = persona.signals || EMPTY_SIGNALS;
+    const finalSignals: PersonaSignals = pendingSignals
+      ? mergePendingSignals(baseSignals, pendingSignals)
+      : baseSignals;
+
     const profile: PersonaProfile = {
       segment: persona.segment,
       confidence: persona.confidence,
       quizAnswers: persona.quizAnswers,
-      signals: persona.signals || EMPTY_SIGNALS,
+      signals: finalSignals,
       updatedAt: Date.now(),
       createdAt: persona.createdAt || Date.now(),
     };
 
-    await db.collection("users").doc(uid).set({ persona: profile }, { merge: true });
+    const writeData: Record<string, unknown> = { persona: profile };
+    if (pendingSignals) writeData.pendingSignals = null; // clear pending
+    await db.collection("users").doc(uid).set(writeData, { merge: true });
 
     // Also update userSegments for community stats
     await db.collection("userSegments").doc(uid).set(
@@ -89,14 +142,9 @@ router.post("/signals", requireAuth, async (req, res) => {
     const snap = await db.collection("users").doc(uid).get();
     const current = snap.exists ? (snap.data()?.persona as PersonaProfile | undefined) : undefined;
 
-    if (!current) {
-      // No persona yet — store signals for later
-      res.json({ merged: false, message: "No persona to merge into" });
-      return;
-    }
-
-    // Merge signals additively
-    const merged: PersonaSignals = { ...current.signals };
+    // Merge signals additively (even if no persona exists yet, store as pendingSignals)
+    const baseSignals = current?.signals ?? EMPTY_SIGNALS;
+    const merged: PersonaSignals = { ...baseSignals };
 
     if (signals.categoriesViewed) {
       for (const [k, v] of Object.entries(signals.categoriesViewed)) {
@@ -121,10 +169,19 @@ router.post("/signals", requireAuth, async (req, res) => {
     merged.totalPlanViews += signals.totalPlanViews || 0;
     merged.compareCount += signals.compareCount || 0;
 
-    await db.collection("users").doc(uid).set(
-      { persona: { signals: merged, updatedAt: Date.now() } },
-      { merge: true },
-    );
+    if (current) {
+      // Update existing persona's signals
+      await db.collection("users").doc(uid).set(
+        { persona: { signals: merged, updatedAt: Date.now() } },
+        { merge: true },
+      );
+    } else {
+      // No persona yet — store as pending signals for later merge
+      await db.collection("users").doc(uid).set(
+        { pendingSignals: merged, pendingSignalsUpdatedAt: Date.now() },
+        { merge: true },
+      );
+    }
 
     res.json({ merged: true });
   } catch (err) {

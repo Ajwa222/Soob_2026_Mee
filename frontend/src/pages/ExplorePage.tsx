@@ -439,8 +439,8 @@ export default function ExplorePage() {
             max={PRICE_MAX}
             step={10}
             value={priceRange}
-            onValueChange={(v) => {
-              setPriceRange(v);
+            onValueChange={setPriceRange}
+            onValueCommit={(v) => {
               const bucket = v[1] <= 100 ? 'low' : v[1] <= 300 ? 'mid' : 'high';
               trackSignal('priceRangeClicks', bucket);
             }}
@@ -464,7 +464,7 @@ export default function ExplorePage() {
               key={opt.key}
               variant="ghost"
               size="sm"
-              onClick={() => setDataFilter(opt.key)}
+              onClick={() => { if (opt.key === 'unlimited') trackSignal('filtersUsed', 'unlimited'); setDataFilter(opt.key); }}
               className={`rounded-lg text-xs font-semibold
                 ${dataFilter === opt.key
                   ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
@@ -512,7 +512,7 @@ export default function ExplorePage() {
               key={opt.key}
               variant="ghost"
               size="sm"
-              onClick={() => setIntlCallsFilter(intlCallsFilter === opt.key ? null : opt.key)}
+              onClick={() => { const next = intlCallsFilter === opt.key ? null : opt.key; if (next === 'yes') trackSignal('filtersUsed', 'international'); setIntlCallsFilter(next); }}
               className={`rounded-lg text-xs font-semibold
                 ${intlCallsFilter === opt.key
                   ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
@@ -536,7 +536,7 @@ export default function ExplorePage() {
               key={opt.key}
               variant="ghost"
               size="sm"
-              onClick={() => setSocialFilter(socialFilter === opt.key ? null : opt.key)}
+              onClick={() => { const next = socialFilter === opt.key ? null : opt.key; if (next === 'yes') trackSignal('filtersUsed', 'social'); setSocialFilter(next); }}
               className={`rounded-lg text-xs font-semibold
                 ${socialFilter === opt.key
                   ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'

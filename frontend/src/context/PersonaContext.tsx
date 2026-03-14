@@ -5,7 +5,7 @@ import { createEmptySignals, inferSegmentFromSignals } from '@/lib/persona';
 import type { PersonaProfile, PersonaSegment, PersonaSignals } from '@/types';
 
 const STORAGE_KEY = 'simba-persona';
-const SIGNAL_FLUSH_INTERVAL = 30_000; // 30 seconds
+const SIGNAL_FLUSH_INTERVAL = 10_000; // 10 seconds
 
 interface PersonaContextValue {
   persona: PersonaProfile | null;
@@ -75,6 +75,8 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
 
   // Signal buffer for batching
   const signalBuffer = useRef<Partial<PersonaSignals>>(createEmptySignals());
+  // Accumulated signals for users with no persona yet (persists across flushes)
+  const pendingSignals = useRef<PersonaSignals>(createEmptySignals());
   const consecutiveInferenceMatches = useRef(0);
   const lastInferredSegment = useRef<PersonaSegment | null>(null);
 
@@ -117,15 +119,35 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, [isLoggedIn, user]);
 
-  // Set persona (from quiz or re-inference)
+  // Set persona (from advisor inference or re-inference)
   const setPersona = useCallback((profile: PersonaProfile) => {
-    setPersonaState(profile);
-    saveToStorage(profile);
+    // Merge any pending signals accumulated before persona existed
+    const pending = pendingSignals.current;
+    const mergedSignals = { ...profile.signals };
+    for (const [k, v] of Object.entries(pending.categoriesViewed)) {
+      mergedSignals.categoriesViewed[k] = (mergedSignals.categoriesViewed[k] || 0) + v;
+    }
+    mergedSignals.priceRangeClicks.low += pending.priceRangeClicks.low;
+    mergedSignals.priceRangeClicks.mid += pending.priceRangeClicks.mid;
+    mergedSignals.priceRangeClicks.high += pending.priceRangeClicks.high;
+    for (const [k, v] of Object.entries(pending.filtersUsed)) {
+      mergedSignals.filtersUsed[k] = (mergedSignals.filtersUsed[k] || 0) + v;
+    }
+    for (const [k, v] of Object.entries(pending.planTypesViewed)) {
+      mergedSignals.planTypesViewed[k] = (mergedSignals.planTypesViewed[k] || 0) + v;
+    }
+    mergedSignals.totalPlanViews += pending.totalPlanViews;
+    mergedSignals.compareCount += pending.compareCount;
+    pendingSignals.current = createEmptySignals();
+
+    const finalProfile = { ...profile, signals: mergedSignals };
+    setPersonaState(finalProfile);
+    saveToStorage(finalProfile);
 
     if (isLoggedIn) {
       apiFetch('/api/persona', {
         method: 'PUT',
-        body: JSON.stringify({ persona: profile }),
+        body: JSON.stringify({ persona: finalProfile }),
       }).catch(() => { /* non-critical */ });
     }
   }, [isLoggedIn]);
@@ -133,7 +155,17 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
   const clearPersona = useCallback(() => {
     setPersonaState(null);
     localStorage.removeItem(STORAGE_KEY);
-  }, []);
+    pendingSignals.current = createEmptySignals();
+    signalBuffer.current = createEmptySignals();
+    consecutiveInferenceMatches.current = 0;
+    lastInferredSegment.current = null;
+
+    if (isLoggedIn) {
+      apiFetch('/api/persona', {
+        method: 'DELETE',
+      }).catch(() => { /* non-critical */ });
+    }
+  }, [isLoggedIn]);
 
   // Track a signal (accumulated in buffer, flushed periodically)
   const trackSignal = useCallback((type: keyof PersonaSignals, key?: string) => {
@@ -187,8 +219,8 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
 
       // Merge into current persona's signals locally
       setPersonaState((prev) => {
-        if (!prev) return prev;
-        const merged = { ...prev.signals };
+        const baseSignals = prev?.signals ?? pendingSignals.current;
+        const merged = { ...baseSignals };
         if (buf.categoriesViewed) {
           for (const [k, v] of Object.entries(buf.categoriesViewed)) {
             merged.categoriesViewed[k] = (merged.categoriesViewed[k] || 0) + v;
@@ -212,11 +244,40 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
         merged.totalPlanViews += buf.totalPlanViews || 0;
         merged.compareCount += buf.compareCount || 0;
 
+        // Re-inference check
+        const inferred = inferSegmentFromSignals(merged);
+
+        if (!prev) {
+          // Persist accumulated signals so next flush builds on them
+          pendingSignals.current = merged;
+
+          // Bootstrap a new persona from signals alone
+          if (inferred.confidence > 0.4) {
+            if (inferred.segment === lastInferredSegment.current) {
+              consecutiveInferenceMatches.current += 1;
+            } else {
+              lastInferredSegment.current = inferred.segment;
+              consecutiveInferenceMatches.current = 1;
+            }
+            if (consecutiveInferenceMatches.current >= 2) {
+              pendingSignals.current = createEmptySignals(); // reset
+              const newPersona: PersonaProfile = {
+                segment: inferred.segment,
+                confidence: inferred.confidence,
+                signals: merged,
+                updatedAt: Date.now(),
+                createdAt: Date.now(),
+              };
+              saveToStorage(newPersona);
+              return newPersona;
+            }
+          }
+          return prev; // not enough signal yet
+        }
+
         const updated = { ...prev, signals: merged, updatedAt: Date.now() };
         saveToStorage(updated);
 
-        // Re-inference check
-        const inferred = inferSegmentFromSignals(merged);
         if (inferred.confidence > 0.7) {
           if (inferred.segment === lastInferredSegment.current) {
             consecutiveInferenceMatches.current += 1;

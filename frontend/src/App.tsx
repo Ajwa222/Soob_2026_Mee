@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { trackPageView } from './lib/analytics';
 import { LanguageProvider, useLang } from './context/LanguageContext';
@@ -24,6 +24,7 @@ const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ComparePage = lazy(() => import('./pages/ComparePage'));
 const SwitchSavePage = lazy(() => import('./pages/SwitchSavePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const PersonaDebug = lazy(() => import('./components/PersonaDebug'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -56,7 +57,23 @@ function AnalyticsTracker() {
   return null;
 }
 
+function usePersonaDebugToggle() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+        e.preventDefault();
+        setShow(v => !v);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+  return show;
+}
+
 function App() {
+  const showDebug = usePersonaDebugToggle();
   return (
     <ErrorBoundary>
     <BrowserRouter>
@@ -95,6 +112,7 @@ function App() {
           </div>
           <Onboarding />
           <PhoneGate />
+          {showDebug && <Suspense fallback={null}><PersonaDebug /></Suspense>}
         </CompareProvider>
         </BookmarkProvider>
         </PlansProvider>
