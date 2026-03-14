@@ -174,7 +174,7 @@ router.post("/message", async (req, res) => {
     ];
 
     const response = await client.chat.completions.create({
-      model: "gpt-5-mini",
+      model: "gpt-5.2",
       messages,
     });
 

@@ -23,7 +23,9 @@
       "Bash(grep -E \"\\\\.\\(ts|js\\)$\")",
       "Bash(ls -la /c/Users/Abdulrhman24/Documents/projects/SimbaApp/backend/.env*)",
       "Bash(npx tsc:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(find /c/Users/Abdulrhman24/Documents/projects/SimbaApp -type f \\\\\\(-name .env* -o -name tsconfig.json \\\\\\))",
+      "Bash(npm run:*)"
     ]
   }
 }
