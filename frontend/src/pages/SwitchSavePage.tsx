@@ -281,12 +281,12 @@ export default function SwitchSavePage() {
 
       {/* Results — fullscreen bottom sheet, Netflix-style horizontal scroll */}
       {showResults && (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowResults(false)} />
 
-          {/* Sheet */}
-          <div className="absolute top-10 inset-x-0 bg-background rounded-3xl flex flex-col animate-fade-in mx-3" style={{ maxHeight: 'min(600px, 80dvh)' }}>
+          {/* Modal */}
+          <div className="relative bg-background rounded-3xl flex flex-col animate-fade-in mx-4 w-full max-w-md overflow-hidden" style={{ maxHeight: 'min(600px, 80dvh)' }}>
             {/* Header */}
             <div className="shrink-0 px-5 pt-5 pb-4">
               <div className="flex items-center justify-between mb-3">
@@ -311,18 +311,17 @@ export default function SwitchSavePage() {
               )}
             </div>
 
-            {/* Netflix-style horizontal slider */}
-            <div className="flex-1 min-h-0 px-5 pb-6 pt-3">
+            {/* Horizontal slider */}
+            <div className="flex-1 min-h-0 overflow-y-auto pb-6 pt-3">
               {results.length > 0 ? (
                 <div
-                  className="flex gap-4 overflow-x-auto h-full snap-x snap-mandatory pb-2 pt-4"
+                  className="flex gap-4 overflow-x-auto pb-2 pt-4 px-5 snap-x snap-mandatory"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
                 >
                   {results.map((plan, idx) => (
                     <div
                       key={plan.id}
-                      className="relative shrink-0 snap-center flex flex-col"
-                      style={{ width: 'min(85vw, 300px)' }}
+                      className="relative shrink-0 snap-center flex flex-col w-[75%] max-w-[280px]"
                       onClick={() => trackEvent('switch_save_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, saving: Math.round((currentPrice - plan.priceSAR) * 100) / 100, position: idx + 1 })}
                     >
                       <div className="absolute -top-3 start-3 z-10 bg-success text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
@@ -333,7 +332,7 @@ export default function SwitchSavePage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8">
+                <div className="text-center py-8 px-5">
                   <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
                     <TrendingDown size={24} className="text-muted-foreground" />
                   </div>
