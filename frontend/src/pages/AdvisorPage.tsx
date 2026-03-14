@@ -280,10 +280,16 @@ export default function AdvisorPage() {
     return () => clearTimeout(t);
   }, [messages, loading, scrollChat]);
 
-  // Focus input when quiz is done
+  // Focus input once when quiz first completes (desktop only — on mobile it opens the keyboard and blocks results)
+  const hasAutoFocused = useRef(false);
   useEffect(() => {
-    if (quizDone && !loading) inputRef.current?.focus();
-  }, [quizDone, loading]);
+    if (quizDone && !hasAutoFocused.current) {
+      hasAutoFocused.current = true;
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        inputRef.current?.focus();
+      }
+    }
+  }, [quizDone]);
 
   // Reset when language changes
   useEffect(() => {
