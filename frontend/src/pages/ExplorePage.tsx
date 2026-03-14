@@ -220,18 +220,16 @@ export default function ExplorePage() {
   const [fiveGFilter, setFiveGFilter] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [personaAutoApplied, setPersonaAutoApplied] = useState(false);
 
-  // Auto-select category based on persona segment (once)
-  useEffect(() => {
-    if (segment && !personaAutoApplied && !activeCategory) {
-      const catKey = SEGMENT_TO_CATEGORY[segment];
-      if (catKey) {
-        setActiveCategory(catKey);
-        setPersonaAutoApplied(true);
-      }
-    }
-  }, [segment, personaAutoApplied, activeCategory]);
+  // Reorder categories so the persona's category appears first
+  const orderedCategories = useMemo(() => {
+    if (!segment) return CATEGORIES;
+    const catKey = SEGMENT_TO_CATEGORY[segment];
+    if (!catKey) return CATEGORIES;
+    const idx = CATEGORIES.findIndex(c => c.key === catKey);
+    if (idx <= 0) return CATEGORIES;
+    return [CATEGORIES[idx], ...CATEGORIES.slice(0, idx), ...CATEGORIES.slice(idx + 1)];
+  }, [segment]);
 
   const toggleCarrier = useCallback((name: string) => {
     setSelectedCarriers(prev => prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]);
@@ -338,11 +336,11 @@ export default function ExplorePage() {
     // Sort all by cheapest first
     base.sort((a, b) => a.priceSAR - b.priceSAR);
 
-    return CATEGORIES.map((cat) => {
+    return orderedCategories.map((cat) => {
       const plans = base.filter(cat.filter).slice(0, MAX_PLANS_PER_CATEGORY);
       return { ...cat, plans };
     });
-  }, [PLANS_DATA, search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, fiveGFilter]);
+  }, [PLANS_DATA, search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, fiveGFilter, orderedCategories]);
 
   const visibleCategories = activeCategory
     ? categoryData.filter(c => c.key === activeCategory)
@@ -621,7 +619,7 @@ export default function ExplorePage() {
           </div>
           {/* Category chips — full width under search row */}
           <div className="flex gap-1 overflow-x-auto mt-2 pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {CATEGORIES.map((cat) => {
+            {orderedCategories.map((cat) => {
               const Icon = cat.icon;
               const isActive = activeCategory === cat.key;
               return (
