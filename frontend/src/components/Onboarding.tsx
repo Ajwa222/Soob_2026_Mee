@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,8 +6,6 @@ import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { CARRIERS } from '../data/plans';
 import { trackEvent } from '../lib/analytics';
-
-const PersonaQuiz = lazy(() => import('./PersonaQuiz'));
 
 /** Waves only — no floating bubbles */
 function WaveLinesOnly() {
@@ -100,9 +98,6 @@ export default function Onboarding() {
     navigate('/advisor');
   };
 
-  const SLIDE_COUNT = 3; // lang (0) + 2 slides (1,2) + quiz (3)
-
-  const isQuizPage = page === 3;
   const isLastSlide = page === 2;
 
   // Page 0: Logo + language selection only
@@ -128,22 +123,6 @@ export default function Onboarding() {
           >
             العربية
           </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Page 3: Persona Quiz
-  if (isQuizPage) {
-    return (
-      <div className="fixed inset-0 z-[300] flex flex-col hero-gradient grain overflow-hidden">
-        <WaveLinesOnly />
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
-          <div className="w-full max-w-md bg-white/95 dark:bg-background/95 backdrop-blur-sm rounded-2xl shadow-lg">
-            <Suspense fallback={<div className="p-8 flex items-center justify-center"><div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>}>
-              <PersonaQuiz onComplete={complete} onSkip={complete} showSkip />
-            </Suspense>
-          </div>
         </div>
       </div>
     );
@@ -182,7 +161,7 @@ export default function Onboarding() {
 
       <div className={`relative z-10 px-6 pb-8 flex items-center justify-between ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
         <div className={`flex gap-2 ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
-          {[1, 2, 3].map((i) => (
+          {[1, 2].map((i) => (
             <div
               key={i}
               className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -193,7 +172,7 @@ export default function Onboarding() {
         </div>
 
         <Button
-          onClick={() => setPage((p) => p + 1)}
+          onClick={() => isLastSlide ? complete() : setPage((p) => p + 1)}
           variant="secondary"
           className="bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md font-medium w-12 h-12 p-0"
         >

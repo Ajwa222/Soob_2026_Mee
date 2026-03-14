@@ -138,6 +138,60 @@ export function inferSegmentFromSignals(signals: PersonaSignals): { segment: Per
   };
 }
 
+/** Infer segment from advisor chat quiz answers */
+export function inferSegmentFromAdvisorChat(
+  answers: { internet: string; calls: string; social: string; budget: number },
+): { segment: PersonaSegment; confidence: number } {
+  const scores: Record<PersonaSegment, number> = {
+    gamer: 0, student: 0, family: 0, business: 0,
+    expat: 0, budget: 0, streamer: 0, power_user: 0,
+  };
+
+  // Internet needs
+  if (answers.internet === 'Yes') {
+    scores.gamer += 3; scores.streamer += 3; scores.power_user += 2;
+  } else if (answers.internet === 'No') {
+    scores.budget += 4; scores.family += 2;
+  }
+
+  // Call type
+  switch (answers.calls) {
+    case 'Local calls':         scores.family += 5; scores.business += 2; break;
+    case 'International calls': scores.expat += 8; scores.business += 4; break;
+    case 'Both':                scores.business += 5; scores.expat += 4; scores.family += 2; break;
+    case 'No':                  scores.gamer += 3; scores.student += 3; scores.streamer += 2; break;
+  }
+
+  // Social media
+  if (answers.social === 'Yes, a must!') {
+    scores.student += 6; scores.streamer += 6;
+  } else if (answers.social === 'Nice to have') {
+    scores.student += 2; scores.streamer += 2;
+  } else if (answers.social === 'No') {
+    scores.business += 2; scores.budget += 1;
+  }
+
+  // Budget (SAR)
+  if (answers.budget <= 85) {
+    scores.budget += 8; scores.student += 5;
+  } else if (answers.budget <= 200) {
+    scores.student += 3; scores.family += 3;
+  } else if (answers.budget <= 400) {
+    scores.business += 4; scores.power_user += 3; scores.family += 2;
+  } else {
+    scores.power_user += 6; scores.business += 3;
+  }
+
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const top = sorted[0];
+  const total = sorted.reduce((sum, [, v]) => sum + v, 0) || 1;
+
+  return {
+    segment: top[0] as PersonaSegment,
+    confidence: Math.min(top[1] / total, 0.85), // cap slightly lower than explicit quiz
+  };
+}
+
 /** Client-side personalized plan scoring (mirrors backend) */
 export function getPersonalizedScore(
   plan: { dataGB: string; localCallMinutes: string; internationalCallMinutes: string; socialMediaData: string; priceSAR: number; specialFeatures: string; roamingDataGB: string },

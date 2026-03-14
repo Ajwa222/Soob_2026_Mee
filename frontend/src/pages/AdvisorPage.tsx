@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Send, Loader2,
   Bot, X, MessageSquareText, HelpCircle, History,
-  ArrowLeftRight, Sparkles, ArrowLeft, Lock, User,
+  ArrowLeftRight, Sparkles, ArrowLeft, Lock,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getFirebaseDb } from '../lib/firebase';
@@ -11,6 +11,7 @@ import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
 import { usePersona } from '../context/PersonaContext';
 import { CARRIERS } from '../data/plans';
+import { inferSegmentFromAdvisorChat, createEmptySignals } from '../lib/persona';
 import type { Plan } from '../types';
 import { trackEvent } from '../lib/analytics';
 import {
@@ -21,8 +22,6 @@ import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-
-const PersonaQuiz = lazy(() => import('../components/PersonaQuiz'));
 
 // ─── Guided questionnaire config ───
 interface QuizStep {
@@ -194,11 +193,12 @@ export default function AdvisorPage() {
   const [, setSearchParams] = useSearchParams();
   const { plans } = usePlans();
   const { user } = useAuth();
-  const { segment } = usePersona();
+  const { segment, persona, setPersona } = usePersona();
 
-  // Flow state: 'intent' = first layer, 'choice' = describe/guide picker, 'persona' = persona quiz, number = quiz step, null = quiz done / free chat
-  const [quizStep, setQuizStep] = useState<number | 'intent' | 'choice' | 'persona' | null>('intent');
+  // Flow state: 'intent' = first layer, 'choice' = describe/guide picker, number = quiz step, null = quiz done / free chat
+  const [quizStep, setQuizStep] = useState<number | 'intent' | 'choice' | null>('intent');
   const [quizAnswers, setQuizAnswers] = useState<string[]>([]);
+  const [quizLabels, setQuizLabels] = useState<string[]>([]); // English labels for persona inference
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -289,6 +289,7 @@ export default function AdvisorPage() {
   useEffect(() => {
     setQuizStep('intent');
     setQuizAnswers([]);
+    setQuizLabels([]);
     setMessages([]);
   }, [lang]);
 
@@ -325,6 +326,7 @@ export default function AdvisorPage() {
     // Add user's answer as a chat bubble (show the short label)
     setMessages(prev => [...prev, { role: 'user', text: userLabel }]);
     setQuizAnswers(newAnswers);
+    setQuizLabels(prev => [...prev, option.labelEn]);
 
     trackEvent('advisor_quiz_answered', { step: quizStep, step_name: QUIZ_STEPS[quizStep].questionEn, answer: option.labelEn });
 
@@ -394,6 +396,25 @@ export default function AdvisorPage() {
         setQuizStep(nextStep);
       }, 800 + Math.random() * 400);
     } else {
+      // Infer persona from advisor quiz answers
+      if (!persona || persona.confidence < 0.7) {
+        const inferred = inferSegmentFromAdvisorChat({
+          internet: quizLabels[0] || '',
+          calls: quizLabels[1] || '',
+          social: quizLabels[2] || '',
+          budget: budgetValue,
+        });
+        if (inferred.confidence > 0.3) {
+          setPersona({
+            segment: inferred.segment,
+            confidence: inferred.confidence,
+            signals: persona?.signals ?? createEmptySignals(),
+            updatedAt: Date.now(),
+            createdAt: persona?.createdAt ?? Date.now(),
+          });
+        }
+      }
+
       setQuizStep(null);
       setSearchParams({ chat: '1' }, { replace: true });
       setLoading(true);
@@ -417,7 +438,7 @@ export default function AdvisorPage() {
         setLoading(false);
       }
     }
-  }, [quizStep, loading, lang, quizAnswers, budgetValue, setSearchParams]);
+  }, [quizStep, loading, lang, quizAnswers, quizLabels, budgetValue, setSearchParams, persona, setPersona]);
 
   // Free-chat send (after quiz is done)
   const sendText = useCallback(async (text: string) => {
@@ -454,6 +475,7 @@ export default function AdvisorPage() {
     trackEvent('advisor_restarted');
     setQuizStep('intent');
     setQuizAnswers([]);
+    setQuizLabels([]);
     setMessages([]);
     setInput('');
     setError(null);
@@ -541,20 +563,6 @@ export default function AdvisorPage() {
               </button>
             </div>
 
-            {/* Let Simba know you — only if no persona yet */}
-            {!segment && (
-              <button
-                onClick={() => {
-                  trackEvent('advisor_intent_selected', { intent: 'persona_quiz' });
-                  setQuizStep('persona');
-                }}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 text-sm font-medium text-primary hover:bg-primary/10 hover:border-primary/50 transition-colors cursor-pointer"
-              >
-                <User size={16} />
-                {lang === 'ar' ? 'خلّ سمبا يتعرف عليك أول' : 'Let Simba know you first'}
-              </button>
-            )}
-
             {/* Resume previous conversation */}
             {hasSavedConvo && (
               <button
@@ -565,48 +573,6 @@ export default function AdvisorPage() {
                 {lang === 'ar' ? 'متابعة المحادثة السابقة' : 'Continue previous conversation'}
               </button>
             )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Persona quiz screen ───
-  if (quizStep === 'persona') {
-    return (
-      <div className="relative z-10 h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] md:h-auto flex flex-col">
-        <section className="shrink-0 relative overflow-hidden hero-gradient grain">
-          <WaveLines />
-          <div className="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-3 md:pt-6 md:pb-4 relative z-[2]">
-            <button onClick={() => setQuizStep('intent')} className="flex items-center gap-1 text-black/60 text-xs font-medium mb-2 hover:text-black transition-colors">
-              <ArrowLeft size={14} className="rtl:rotate-180" />
-              {lang === 'ar' ? 'رجوع' : 'Back'}
-            </button>
-            <div className="flex items-center gap-2.5 animate-fade-up">
-              <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-                <User size={18} className="text-black" />
-              </div>
-              <div>
-                <h1 className="font-heading font-normal text-lg md:text-xl text-black tracking-tight">
-                  {lang === 'ar' ? 'خلنا نتعرف عليك' : 'Tell us about you'}
-                </h1>
-                <p className="text-black/50 text-[11px] md:text-xs">
-                  {lang === 'ar' ? 'عشان نلاقي لك الباقة المناسبة' : 'So we can find your perfect plan'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div className="flex-1 flex items-center justify-center bg-background px-4">
-          <div className="max-w-md w-full">
-            <Suspense fallback={<div className="p-8 flex items-center justify-center"><div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>}>
-              <PersonaQuiz
-                onComplete={() => setQuizStep('choice')}
-                onSkip={() => setQuizStep('choice')}
-                showSkip
-              />
-            </Suspense>
           </div>
         </div>
       </div>
