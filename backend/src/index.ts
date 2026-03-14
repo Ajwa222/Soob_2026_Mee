@@ -30,7 +30,7 @@ if (process.env.NODE_ENV === "production" && !process.env.PRODUCTION_URL) {
 
 app.use(compression());
 app.use(cors({ origin: allowedOrigins }));
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
 // Rate limiting for AI advisor endpoints (expensive OpenAI calls)
 const advisorLimiter = rateLimit({
@@ -60,6 +60,29 @@ app.use("/api/plans", interactionLimiter, interactionsRouter);
 app.use("/api/plans", plansRouter);
 app.use("/api/advisor", advisorLimiter, advisorRouter);
 app.use("/api/persona", interactionLimiter, personaRouter);
+
+// Global error-handling middleware (must be after all routes)
+app.use(
+  (
+    err: Error,
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction,
+  ) => {
+    console.error("Unhandled error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  },
+);
+
+// Catch unhandled promise rejections and uncaught exceptions
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+  process.exit(1);
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

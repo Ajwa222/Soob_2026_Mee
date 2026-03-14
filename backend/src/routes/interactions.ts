@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Response } from "express";
 import { db } from "../lib/firebase.js";
 import {
   requireAuth,
@@ -8,11 +8,24 @@ import type { PlanReaction, PlanComment } from "../types.js";
 import { FieldValue } from "firebase-admin/firestore";
 import { isValidSegment } from "../lib/persona-scoring.js";
 import { updateUserSegment } from "../lib/segment-stats.js";
+import { PLANS_DATA } from "../data/plans.js";
 
 const router = Router();
 
 const REACTIONS_COL = "planReactions";
 const COMMENTS_COL = "planComments";
+
+const validPlanIds = new Set(PLANS_DATA.map((p) => p.id));
+
+function validatePlanId(id: string | string[], res: Response): string | null {
+  const raw = Array.isArray(id) ? id[0] : id;
+  const num = Number(raw);
+  if (!raw || !Number.isInteger(num) || !validPlanIds.has(num)) {
+    res.status(400).json({ error: "Invalid plan ID" });
+    return null;
+  }
+  return raw;
+}
 
 // In-memory engagement cache (avoids hitting Firestore on every page load)
 let engagementCache: { data: string; expires: number } | null = null;
@@ -56,15 +69,14 @@ router.get("/engagement", async (_req, res) => {
       };
     }
 
-    // Count comments per plan
-    const commentCountPromises = commentsSnap.docs.map(async (d) => {
-      const snap = await d.ref.collection("comments").get();
+    // Read commentCount from parent doc (no subcollection queries)
+    for (const d of commentsSnap.docs) {
+      const data = d.data();
       if (!engagement[d.id]) {
         engagement[d.id] = { likes: 0, dislikes: 0, comments: 0 };
       }
-      engagement[d.id].comments = snap.size;
-    });
-    await Promise.all(commentCountPromises);
+      engagement[d.id].comments = data.commentCount ?? 0;
+    }
 
     const json = JSON.stringify(engagement);
     engagementCache = { data: json, expires: Date.now() + ENGAGEMENT_TTL };
@@ -81,7 +93,8 @@ router.get("/engagement", async (_req, res) => {
 /** GET /api/plans/:id/reactions */
 router.get("/:id/reactions", async (req, res) => {
   try {
-    const planId = req.params.id as string;
+    const planId = validatePlanId(req.params.id, res);
+    if (!planId) return;
     const snap = await db.collection(REACTIONS_COL).doc(planId).get();
     if (!snap.exists) {
       res.json({ ...defaultReaction });
@@ -103,7 +116,8 @@ router.get("/:id/reactions", async (req, res) => {
 /** POST /api/plans/:id/reactions/like */
 router.post("/:id/reactions/like", requireAuth, async (req, res) => {
   try {
-    const planId = req.params.id as string;
+    const planId = validatePlanId(req.params.id, res);
+    if (!planId) return;
     const userId = (req as AuthenticatedRequest).uid!;
     const ref = db.collection(REACTIONS_COL).doc(planId);
     const snap = await ref.get();
@@ -161,7 +175,8 @@ router.post("/:id/reactions/like", requireAuth, async (req, res) => {
 /** POST /api/plans/:id/reactions/dislike */
 router.post("/:id/reactions/dislike", requireAuth, async (req, res) => {
   try {
-    const planId = req.params.id as string;
+    const planId = validatePlanId(req.params.id, res);
+    if (!planId) return;
     const userId = (req as AuthenticatedRequest).uid!;
     const ref = db.collection(REACTIONS_COL).doc(planId);
     const snap = await ref.get();
@@ -207,7 +222,8 @@ router.post("/:id/reactions/dislike", requireAuth, async (req, res) => {
 /** GET /api/plans/:id/comments */
 router.get("/:id/comments", async (req, res) => {
   try {
-    const planId = req.params.id as string;
+    const planId = validatePlanId(req.params.id, res);
+    if (!planId) return;
     const colRef = db
       .collection(COMMENTS_COL)
       .doc(planId)
@@ -227,7 +243,8 @@ router.get("/:id/comments", async (req, res) => {
 /** GET /api/plans/:id/comments/count */
 router.get("/:id/comments/count", async (req, res) => {
   try {
-    const planId = req.params.id as string;
+    const planId = validatePlanId(req.params.id, res);
+    if (!planId) return;
     const colRef = db
       .collection(COMMENTS_COL)
       .doc(planId)
@@ -243,7 +260,8 @@ router.get("/:id/comments/count", async (req, res) => {
 /** POST /api/plans/:id/comments */
 router.post("/:id/comments", requireAuth, async (req, res) => {
   try {
-    const planId = req.params.id as string;
+    const planId = validatePlanId(req.params.id, res);
+    if (!planId) return;
     const { uid, userName, userPhoto } = req as AuthenticatedRequest;
     const { text } = req.body as { text: string };
 
@@ -265,11 +283,10 @@ router.post("/:id/comments", requireAuth, async (req, res) => {
       createdAt: Date.now(),
     };
 
-    const colRef = db
-      .collection(COMMENTS_COL)
-      .doc(planId)
-      .collection("comments");
+    const parentRef = db.collection(COMMENTS_COL).doc(planId);
+    const colRef = parentRef.collection("comments");
     const docRef = await colRef.add(commentData);
+    parentRef.set({ commentCount: FieldValue.increment(1) }, { merge: true }).catch(() => {});
     invalidateEngagementCache();
 
     res.status(201).json({ id: docRef.id, ...commentData });
@@ -282,7 +299,8 @@ router.post("/:id/comments", requireAuth, async (req, res) => {
 /** DELETE /api/plans/:id/comments/:commentId */
 router.delete("/:id/comments/:commentId", requireAuth, async (req, res) => {
   try {
-    const planId = req.params.id as string;
+    const planId = validatePlanId(req.params.id, res);
+    if (!planId) return;
     const commentId = req.params.commentId as string;
     const userId = (req as AuthenticatedRequest).uid!;
 
@@ -305,6 +323,8 @@ router.delete("/:id/comments/:commentId", requireAuth, async (req, res) => {
     }
 
     await docRef.delete();
+    db.collection(COMMENTS_COL).doc(planId)
+      .set({ commentCount: FieldValue.increment(-1) }, { merge: true }).catch(() => {});
     invalidateEngagementCache();
     res.json({ deleted: true });
   } catch (err) {
