@@ -104,7 +104,7 @@ router.put("/", requireAuth, async (req, res) => {
     const profile: PersonaProfile = {
       segment: persona.segment,
       confidence: persona.confidence,
-      quizAnswers: persona.quizAnswers,
+      ...(persona.quizAnswers !== undefined && { quizAnswers: persona.quizAnswers }),
       signals: finalSignals,
       updatedAt: Date.now(),
       createdAt: persona.createdAt || Date.now(),
