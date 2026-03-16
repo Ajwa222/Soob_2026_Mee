@@ -47,8 +47,8 @@ app.get("/api/health", (_req, res) => {
 });
 
 // Routes
-app.use("/api/plan-interactions", interactionsRouter);
 app.use("/api/plans", plansRouter);
+app.use("/api/plan-interactions", interactionsRouter);
 app.use("/api/advisor", advisorLimiter, advisorRouter);
 app.use("/api/persona", personaRouter);
 
