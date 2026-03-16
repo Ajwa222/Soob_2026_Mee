@@ -6,8 +6,6 @@ import * as InteractionService from "../services/interaction.service.js";
 export const getEngagement = async (_req: Request, res: Response) => {
   try {
     const json = await InteractionService.getEngagement();
-    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
-    res.set("Content-Type", "application/json");
     res.send(json);
   } catch (err) {
     console.error("Fetch engagement error:", err);
