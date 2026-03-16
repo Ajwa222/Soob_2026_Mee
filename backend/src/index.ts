@@ -6,10 +6,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-import plansRouter from "./routes/plans.js";
-import advisorRouter from "./routes/advisor.js";
-import interactionsRouter from "./routes/interactions.js";
-import personaRouter from "./routes/persona.js";
+import plansRouter from "./routes/plans.routes.js";
+import advisorRouter from "./routes/advisor.routes.js";
+import interactionsRouter from "./routes/interactions.routes.js";
+import personaRouter from "./routes/persona.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
