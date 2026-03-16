@@ -1,5 +1,5 @@
-import { apiFetch } from './api';
-import type { PlanReaction, PlanComment, SimbaUser } from '../types';
+import { apiFetch } from "./apiClient";
+import type { PlanReaction, PlanComment, SimbaUser } from "../types";
 
 /* ── In-memory cache (TTL: 5 min) ── */
 const CACHE_TTL = 5 * 60 * 1000;
@@ -25,7 +25,7 @@ export function invalidateCommentCache(planId: number) {
   commentCountCache.delete(planId);
 }
 
-export async function fetchReaction(planId: number): Promise<PlanReaction> {
+export const fetchReaction = async (planId: number): Promise<PlanReaction> => {
   const cached = reactionCache.get(planId);
   if (isFresh(cached)) return cached.data;
 
@@ -44,9 +44,9 @@ export async function fetchReaction(planId: number): Promise<PlanReaction> {
 
   inFlightReactions.set(planId, promise);
   return promise;
-}
+};
 
-export async function fetchCommentCount(planId: number): Promise<number> {
+export const fetchCommentCount = async (planId: number): Promise<number> => {
   const cached = commentCountCache.get(planId);
   if (isFresh(cached)) return cached.data;
 
@@ -65,37 +65,37 @@ export async function fetchCommentCount(planId: number): Promise<number> {
 
   inFlightComments.set(planId, promise);
   return promise;
-}
+};
 
-export async function toggleLike(planId: number, _userId: string, segment?: string): Promise<void> {
+export const toggleLike = async (planId: number, _userId: string, segment?: string): Promise<void> => {
   invalidateReactionCache(planId);
   await apiFetch(`/api/plan-interactions/${planId}/reactions/like`, {
-    method: 'POST',
-    headers: segment ? { 'x-persona-segment': segment } : undefined,
+    method: "POST",
+    headers: segment ? { "x-persona-segment": segment } : undefined,
   });
-}
+};
 
-export async function toggleDislike(planId: number, _userId: string, segment?: string): Promise<void> {
+export const toggleDislike = async (planId: number, _userId: string, segment?: string): Promise<void> => {
   invalidateReactionCache(planId);
   await apiFetch(`/api/plan-interactions/${planId}/reactions/dislike`, {
-    method: 'POST',
-    headers: segment ? { 'x-persona-segment': segment } : undefined,
+    method: "POST",
+    headers: segment ? { "x-persona-segment": segment } : undefined,
   });
-}
+};
 
-export async function fetchComments(planId: number): Promise<PlanComment[]> {
+export const fetchComments = async (planId: number): Promise<PlanComment[]> => {
   return apiFetch<PlanComment[]>(`/api/plan-interactions/${planId}/comments`);
-}
+};
 
-export async function addComment(planId: number, _user: SimbaUser, text: string): Promise<PlanComment> {
+export const addComment = async (planId: number, _user: SimbaUser, text: string): Promise<PlanComment> => {
   invalidateCommentCache(planId);
   return apiFetch<PlanComment>(`/api/plan-interactions/${planId}/comments`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({ text }),
   });
-}
+};
 
-export async function deleteComment(planId: number, commentId: string): Promise<void> {
+export const deleteComment = async (planId: number, commentId: string): Promise<void> => {
   invalidateCommentCache(planId);
-  await apiFetch(`/api/plan-interactions/${planId}/comments/${commentId}`, { method: 'DELETE' });
-}
+  await apiFetch(`/api/plan-interactions/${planId}/comments/${commentId}`, { method: "DELETE" });
+};

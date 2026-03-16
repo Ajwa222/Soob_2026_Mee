@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
-import { apiFetch } from '@/lib/api';
+import { getPersona, updatePersona, deletePersona, flushSignals } from '@/services/persona.service';
 import { createEmptySignals, inferSegmentFromSignals } from '@/lib/persona';
 import type { PersonaProfile, PersonaSegment, PersonaSignals } from '@/types';
 
@@ -87,7 +87,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     setLoading(true);
 
-    apiFetch<{ persona: PersonaProfile | null }>('/api/persona')
+    getPersona()
       .then(({ persona: remote }) => {
         if (cancelled) return;
         const local = loadFromStorage();
@@ -98,19 +98,13 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
           setPersonaState(merged);
           saveToStorage(merged);
           // Sync merged back to backend
-          apiFetch('/api/persona', {
-            method: 'PUT',
-            body: JSON.stringify({ persona: merged }),
-          }).catch(() => { /* non-critical */ });
+          updatePersona(merged).catch(() => { /* non-critical */ });
         } else if (remote) {
           setPersonaState(remote);
           saveToStorage(remote);
         } else if (local) {
           // Push local to backend
-          apiFetch('/api/persona', {
-            method: 'PUT',
-            body: JSON.stringify({ persona: local }),
-          }).catch(() => { /* non-critical */ });
+          updatePersona(local).catch(() => { /* non-critical */ });
         }
       })
       .catch(() => { /* keep local */ })
@@ -145,10 +139,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
     saveToStorage(finalProfile);
 
     if (isLoggedIn) {
-      apiFetch('/api/persona', {
-        method: 'PUT',
-        body: JSON.stringify({ persona: finalProfile }),
-      }).catch(() => { /* non-critical */ });
+      updatePersona(finalProfile).catch(() => { /* non-critical */ });
     }
   }, [isLoggedIn]);
 
@@ -161,9 +152,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
     lastInferredSegment.current = null;
 
     if (isLoggedIn) {
-      apiFetch('/api/persona', {
-        method: 'DELETE',
-      }).catch(() => { /* non-critical */ });
+      deletePersona().catch(() => { /* non-critical */ });
     }
   }, [isLoggedIn]);
 
@@ -303,10 +292,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
 
       // Send to backend if logged in
       if (isLoggedIn) {
-        apiFetch('/api/persona/signals', {
-          method: 'POST',
-          body: JSON.stringify({ signals: buf }),
-        }).catch(() => { /* non-critical */ });
+        flushSignals(buf).catch(() => { /* non-critical */ });
       }
 
       // Reset buffer

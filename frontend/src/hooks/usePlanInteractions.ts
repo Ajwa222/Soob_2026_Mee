@@ -4,7 +4,7 @@ import { usePersona } from '../context/PersonaContext';
 import {
   fetchReaction, toggleLike as fbToggleLike, toggleDislike as fbToggleDislike,
   fetchComments, addComment as fbAddComment, deleteComment as fbDeleteComment,
-} from '../lib/planInteractions';
+} from '../services/interactions.service';
 import type { PlanReaction, PlanComment } from '../types';
 import { trackEvent } from '../lib/analytics';
 
