@@ -1,10 +1,7 @@
-import { Router } from "express";
 import OpenAI from "openai";
 import { PLANS_DATA } from "../data/plans.js";
 import type { Plan, ChatMessage, PersonaSegment } from "../types.js";
 import { isValidSegment } from "../lib/persona-scoring.js";
-
-const router = Router();
 
 const VALID_LANGS: Set<string> = new Set(["en", "ar"]);
 
@@ -121,71 +118,38 @@ function extractPlanIds(text: string): number[] {
   return [...new Set(ids)].filter((id) => validIds.includes(id));
 }
 
-/** POST /api/advisor/message — send a message to the advisor */
-router.post("/message", async (req, res) => {
-  try {
-    const { lang, history, userMessage, segment } = req.body as {
-      lang: "en" | "ar";
-      history: ChatMessage[];
-      userMessage: string;
-      segment?: string;
-    };
+export function isValidLang(lang: string): boolean {
+  return VALID_LANGS.has(lang);
+}
 
-    if (!userMessage) {
-      res.status(400).json({ error: "userMessage is required" });
-      return;
-    }
+export async function getAdvisorReply(
+  lang: "en" | "ar",
+  history: ChatMessage[],
+  userMessage: string,
+  segment?: string,
+): Promise<{ reply: string; planIds: number[] }> {
+  const client = getClient();
+  const validSegment = isValidSegment(segment) ? segment : undefined;
+  const systemPrompt = buildSystemPrompt(lang ?? "en", validSegment);
 
-    if (lang && !VALID_LANGS.has(lang)) {
-      res.status(400).json({ error: "lang must be 'en' or 'ar'" });
-      return;
-    }
+  const trimmedHistory = (history ?? []).slice(-20);
 
-    if (typeof userMessage !== "string" || userMessage.length > 1000) {
-      res
-        .status(400)
-        .json({ error: "userMessage must be a string under 1000 characters" });
-      return;
-    }
+  const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+    { role: "system", content: systemPrompt },
+    ...trimmedHistory.map((msg) => ({
+      role: msg.role === "assistant" ? ("assistant" as const) : ("user" as const),
+      content: msg.text,
+    })),
+    { role: "user", content: userMessage },
+  ];
 
-    let client: OpenAI;
-    try {
-      client = getClient();
-    } catch {
-      res.status(500).json({ error: "AI service is not configured" });
-      return;
-    }
-    const validSegment = isValidSegment(segment) ? segment : undefined;
-    const systemPrompt = buildSystemPrompt(lang ?? "en", validSegment);
+  const response = await client.chat.completions.create({
+    model: "gpt-5.2",
+    messages,
+  });
 
-    // Cap history to last 20 messages to limit token usage
-    const trimmedHistory = (history ?? []).slice(-20);
+  const reply = response.choices[0]?.message?.content ?? "";
+  const planIds = extractPlanIds(reply);
 
-    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      { role: "system", content: systemPrompt },
-      ...trimmedHistory.map((msg) => ({
-        role:
-          msg.role === "assistant"
-            ? ("assistant" as const)
-            : ("user" as const),
-        content: msg.text,
-      })),
-      { role: "user", content: userMessage },
-    ];
-
-    const response = await client.chat.completions.create({
-      model: "gpt-5.2",
-      messages,
-    });
-
-    const reply = response.choices[0]?.message?.content ?? "";
-    const planIds = extractPlanIds(reply);
-
-    res.json({ reply, planIds });
-  } catch (err) {
-    console.error("Advisor message error:", err);
-    res.status(500).json({ error: "Failed to send advisor message" });
-  }
-});
-
-export default router;
+  return { reply, planIds };
+}

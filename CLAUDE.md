@@ -44,8 +44,13 @@ No test framework is configured yet.
 - Styling: Tailwind 4 with `@theme` in `index.css`, carrier colors defined there. Use `cn()` utility for conditional classes
 
 ### Backend
-- Routes in `src/routes/` (plans, advisor, interactions)
+- Layered architecture: `routes/` → `controllers/` → `services/` → `models/`
+  - **Routes** (`src/routes/`): Pure path mappings — only define HTTP method + path + middleware + controller
+  - **Controllers** (`src/controllers/`): Handle req/res — extract params, call services, send responses
+  - **Services** (`src/services/`): Business logic — caching, validation, OpenAI integration, signal merging
+  - **Models** (`src/models/`): Firestore operations — CRUD for planReactions, planComments, users, userSegments
 - Auth middleware: `requireAuth` from `middleware/auth.ts` — verifies Firebase ID token
+- Shared utilities in `src/utils/` (e.g. `validatePlanId`)
 - Rate limiting: 10/min on advisor, 30/min on interactions
 - Plan data is in-memory (`src/data/plans.ts`), not in Firestore
 - Engagement data cached in-memory with 60s TTL
