@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import type { Plan } from '../types';
+import { getPlansCards, getEngagement } from '../services/plans.service';
 
 export interface PlanEngagement {
   likes: number;
@@ -22,12 +23,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
   const [engagement, setEngagement] = useState<Record<string, PlanEngagement>>({});
 
   const refreshEngagement = useCallback(() => {
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    fetch(`${API_BASE}/api/plans/engagement`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`API error ${res.status}`);
-        return res.json() as Promise<Record<string, PlanEngagement>>;
-      })
+    getEngagement()
       .then(setEngagement)
       .catch((err) => {
         if (import.meta.env.DEV) console.warn('Failed to fetch engagement:', err);
@@ -38,12 +34,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     // Fetch slim card data — no auth needed, smaller payload
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    fetch(`${API_BASE}/api/plans/cards`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`API error ${res.status}`);
-        return res.json() as Promise<Plan[]>;
-      })
+    getPlansCards()
       .then((data) => {
         if (!cancelled) {
           setPlans(data);

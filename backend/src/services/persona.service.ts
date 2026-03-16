@@ -12,7 +12,8 @@ const EMPTY_SIGNALS: PersonaSignals = {
   compareCount: 0,
 };
 
-function mergePendingSignals(base: PersonaSignals, pending: PersonaSignals): PersonaSignals {
+/** Additively merge `source` signals into a copy of `base` and return the result. */
+function mergeSignals(base: PersonaSignals, source: Partial<PersonaSignals>): PersonaSignals {
   const merged: PersonaSignals = {
     categoriesViewed: { ...base.categoriesViewed },
     priceRangeClicks: { ...base.priceRangeClicks },
@@ -21,20 +22,28 @@ function mergePendingSignals(base: PersonaSignals, pending: PersonaSignals): Per
     totalPlanViews: base.totalPlanViews,
     compareCount: base.compareCount,
   };
-  for (const [k, v] of Object.entries(pending.categoriesViewed)) {
-    merged.categoriesViewed[k] = (merged.categoriesViewed[k] || 0) + v;
+  if (source.categoriesViewed) {
+    for (const [k, v] of Object.entries(source.categoriesViewed)) {
+      merged.categoriesViewed[k] = (merged.categoriesViewed[k] || 0) + v;
+    }
   }
-  merged.priceRangeClicks.low += pending.priceRangeClicks.low;
-  merged.priceRangeClicks.mid += pending.priceRangeClicks.mid;
-  merged.priceRangeClicks.high += pending.priceRangeClicks.high;
-  for (const [k, v] of Object.entries(pending.filtersUsed)) {
-    merged.filtersUsed[k] = (merged.filtersUsed[k] || 0) + v;
+  if (source.priceRangeClicks) {
+    merged.priceRangeClicks.low += source.priceRangeClicks.low || 0;
+    merged.priceRangeClicks.mid += source.priceRangeClicks.mid || 0;
+    merged.priceRangeClicks.high += source.priceRangeClicks.high || 0;
   }
-  for (const [k, v] of Object.entries(pending.planTypesViewed)) {
-    merged.planTypesViewed[k] = (merged.planTypesViewed[k] || 0) + v;
+  if (source.filtersUsed) {
+    for (const [k, v] of Object.entries(source.filtersUsed)) {
+      merged.filtersUsed[k] = (merged.filtersUsed[k] || 0) + v;
+    }
   }
-  merged.totalPlanViews += pending.totalPlanViews;
-  merged.compareCount += pending.compareCount;
+  if (source.planTypesViewed) {
+    for (const [k, v] of Object.entries(source.planTypesViewed)) {
+      merged.planTypesViewed[k] = (merged.planTypesViewed[k] || 0) + v;
+    }
+  }
+  merged.totalPlanViews += source.totalPlanViews || 0;
+  merged.compareCount += source.compareCount || 0;
   return merged;
 }
 
@@ -64,7 +73,7 @@ export async function savePersona(
 
   const baseSignals = persona.signals || EMPTY_SIGNALS;
   const finalSignals = pendingSignals
-    ? mergePendingSignals(baseSignals, pendingSignals)
+    ? mergeSignals(baseSignals, pendingSignals)
     : baseSignals;
 
   const profile: PersonaProfile = {
@@ -82,7 +91,7 @@ export async function savePersona(
   return { persona: profile };
 }
 
-export async function mergeSignals(
+export async function mergeUserSignals(
   uid: string,
   signals: Partial<PersonaSignals>,
 ): Promise<void> {
@@ -90,30 +99,7 @@ export async function mergeSignals(
   const current = doc?.persona;
 
   const baseSignals = current?.signals ?? EMPTY_SIGNALS;
-  const merged: PersonaSignals = { ...baseSignals };
-
-  if (signals.categoriesViewed) {
-    for (const [k, v] of Object.entries(signals.categoriesViewed)) {
-      merged.categoriesViewed[k] = (merged.categoriesViewed[k] || 0) + v;
-    }
-  }
-  if (signals.priceRangeClicks) {
-    merged.priceRangeClicks.low += signals.priceRangeClicks.low || 0;
-    merged.priceRangeClicks.mid += signals.priceRangeClicks.mid || 0;
-    merged.priceRangeClicks.high += signals.priceRangeClicks.high || 0;
-  }
-  if (signals.filtersUsed) {
-    for (const [k, v] of Object.entries(signals.filtersUsed)) {
-      merged.filtersUsed[k] = (merged.filtersUsed[k] || 0) + v;
-    }
-  }
-  if (signals.planTypesViewed) {
-    for (const [k, v] of Object.entries(signals.planTypesViewed)) {
-      merged.planTypesViewed[k] = (merged.planTypesViewed[k] || 0) + v;
-    }
-  }
-  merged.totalPlanViews += signals.totalPlanViews || 0;
-  merged.compareCount += signals.compareCount || 0;
+  const merged = mergeSignals(baseSignals, signals);
 
   if (current) {
     await PersonaModel.updatePersonaSignals(uid, merged);

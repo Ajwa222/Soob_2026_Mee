@@ -26,6 +26,32 @@ export function getSegmentLabel(segment: PersonaSegment, lang: 'en' | 'ar'): str
   return SEGMENT_LABELS[segment]?.[lang] ?? segment;
 }
 
+/** Additively merge `source` signals into `target` (mutates target). */
+export function mergeSignalsInto(target: PersonaSignals, source: Partial<PersonaSignals>): void {
+  if (source.categoriesViewed) {
+    for (const [k, v] of Object.entries(source.categoriesViewed)) {
+      target.categoriesViewed[k] = (target.categoriesViewed[k] || 0) + v;
+    }
+  }
+  if (source.priceRangeClicks) {
+    target.priceRangeClicks.low += source.priceRangeClicks.low || 0;
+    target.priceRangeClicks.mid += source.priceRangeClicks.mid || 0;
+    target.priceRangeClicks.high += source.priceRangeClicks.high || 0;
+  }
+  if (source.filtersUsed) {
+    for (const [k, v] of Object.entries(source.filtersUsed)) {
+      target.filtersUsed[k] = (target.filtersUsed[k] || 0) + v;
+    }
+  }
+  if (source.planTypesViewed) {
+    for (const [k, v] of Object.entries(source.planTypesViewed)) {
+      target.planTypesViewed[k] = (target.planTypesViewed[k] || 0) + v;
+    }
+  }
+  target.totalPlanViews += source.totalPlanViews || 0;
+  target.compareCount += source.compareCount || 0;
+}
+
 export function createEmptySignals(): PersonaSignals {
   return {
     categoriesViewed: {},

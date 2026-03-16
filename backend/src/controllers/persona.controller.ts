@@ -52,7 +52,7 @@ export const mergeSignals = async (req: Request, res: Response) => {
       return;
     }
 
-    await PersonaService.mergeSignals(uid, signals);
+    await PersonaService.mergeUserSignals(uid, signals);
     res.json({ merged: true });
   } catch (err) {
     console.error("Merge signals error:", err);
@@ -67,7 +67,6 @@ export const getSegmentStats = async (req: Request, res: Response) => {
       res.status(400).json({ error: "Invalid segment" });
       return;
     }
-    res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
     res.json(stats);
   } catch (err) {
     console.error("Segment stats error:", err);

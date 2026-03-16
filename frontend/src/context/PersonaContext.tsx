@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
-import { apiFetch } from '@/lib/api';
-import { createEmptySignals, inferSegmentFromSignals } from '@/lib/persona';
+import { getPersona, updatePersona, deletePersona, flushSignals } from '@/services/persona.service';
+import { createEmptySignals, inferSegmentFromSignals, mergeSignalsInto } from '@/lib/persona';
 import type { PersonaProfile, PersonaSegment, PersonaSignals } from '@/types';
 
 const STORAGE_KEY = 'simba-persona';
@@ -41,25 +41,7 @@ function mergePersonas(local: PersonaProfile, remote: PersonaProfile): PersonaPr
   const other = base === local ? remote : local;
 
   const mergedSignals: PersonaSignals = { ...base.signals };
-
-  // Merge categoriesViewed
-  for (const [k, v] of Object.entries(other.signals.categoriesViewed)) {
-    mergedSignals.categoriesViewed[k] = (mergedSignals.categoriesViewed[k] || 0) + v;
-  }
-  // Merge priceRangeClicks
-  mergedSignals.priceRangeClicks.low += other.signals.priceRangeClicks.low;
-  mergedSignals.priceRangeClicks.mid += other.signals.priceRangeClicks.mid;
-  mergedSignals.priceRangeClicks.high += other.signals.priceRangeClicks.high;
-  // Merge filtersUsed
-  for (const [k, v] of Object.entries(other.signals.filtersUsed)) {
-    mergedSignals.filtersUsed[k] = (mergedSignals.filtersUsed[k] || 0) + v;
-  }
-  // Merge planTypesViewed
-  for (const [k, v] of Object.entries(other.signals.planTypesViewed)) {
-    mergedSignals.planTypesViewed[k] = (mergedSignals.planTypesViewed[k] || 0) + v;
-  }
-  mergedSignals.totalPlanViews += other.signals.totalPlanViews;
-  mergedSignals.compareCount += other.signals.compareCount;
+  mergeSignalsInto(mergedSignals, other.signals);
 
   return {
     ...base,
@@ -87,7 +69,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     setLoading(true);
 
-    apiFetch<{ persona: PersonaProfile | null }>('/api/persona')
+    getPersona()
       .then(({ persona: remote }) => {
         if (cancelled) return;
         const local = loadFromStorage();
@@ -98,19 +80,13 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
           setPersonaState(merged);
           saveToStorage(merged);
           // Sync merged back to backend
-          apiFetch('/api/persona', {
-            method: 'PUT',
-            body: JSON.stringify({ persona: merged }),
-          }).catch(() => { /* non-critical */ });
+          updatePersona(merged).catch(() => { /* non-critical */ });
         } else if (remote) {
           setPersonaState(remote);
           saveToStorage(remote);
         } else if (local) {
           // Push local to backend
-          apiFetch('/api/persona', {
-            method: 'PUT',
-            body: JSON.stringify({ persona: local }),
-          }).catch(() => { /* non-critical */ });
+          updatePersona(local).catch(() => { /* non-critical */ });
         }
       })
       .catch(() => { /* keep local */ })
@@ -122,22 +98,8 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
   // Set persona (from advisor inference or re-inference)
   const setPersona = useCallback((profile: PersonaProfile) => {
     // Merge any pending signals accumulated before persona existed
-    const pending = pendingSignals.current;
     const mergedSignals = { ...profile.signals };
-    for (const [k, v] of Object.entries(pending.categoriesViewed)) {
-      mergedSignals.categoriesViewed[k] = (mergedSignals.categoriesViewed[k] || 0) + v;
-    }
-    mergedSignals.priceRangeClicks.low += pending.priceRangeClicks.low;
-    mergedSignals.priceRangeClicks.mid += pending.priceRangeClicks.mid;
-    mergedSignals.priceRangeClicks.high += pending.priceRangeClicks.high;
-    for (const [k, v] of Object.entries(pending.filtersUsed)) {
-      mergedSignals.filtersUsed[k] = (mergedSignals.filtersUsed[k] || 0) + v;
-    }
-    for (const [k, v] of Object.entries(pending.planTypesViewed)) {
-      mergedSignals.planTypesViewed[k] = (mergedSignals.planTypesViewed[k] || 0) + v;
-    }
-    mergedSignals.totalPlanViews += pending.totalPlanViews;
-    mergedSignals.compareCount += pending.compareCount;
+    mergeSignalsInto(mergedSignals, pendingSignals.current);
     pendingSignals.current = createEmptySignals();
 
     const finalProfile = { ...profile, signals: mergedSignals };
@@ -145,10 +107,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
     saveToStorage(finalProfile);
 
     if (isLoggedIn) {
-      apiFetch('/api/persona', {
-        method: 'PUT',
-        body: JSON.stringify({ persona: finalProfile }),
-      }).catch(() => { /* non-critical */ });
+      updatePersona(finalProfile).catch(() => { /* non-critical */ });
     }
   }, [isLoggedIn]);
 
@@ -161,9 +120,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
     lastInferredSegment.current = null;
 
     if (isLoggedIn) {
-      apiFetch('/api/persona', {
-        method: 'DELETE',
-      }).catch(() => { /* non-critical */ });
+      deletePersona().catch(() => { /* non-critical */ });
     }
   }, [isLoggedIn]);
 
@@ -221,28 +178,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
       setPersonaState((prev) => {
         const baseSignals = prev?.signals ?? pendingSignals.current;
         const merged = { ...baseSignals };
-        if (buf.categoriesViewed) {
-          for (const [k, v] of Object.entries(buf.categoriesViewed)) {
-            merged.categoriesViewed[k] = (merged.categoriesViewed[k] || 0) + v;
-          }
-        }
-        if (buf.priceRangeClicks) {
-          merged.priceRangeClicks.low += buf.priceRangeClicks.low || 0;
-          merged.priceRangeClicks.mid += buf.priceRangeClicks.mid || 0;
-          merged.priceRangeClicks.high += buf.priceRangeClicks.high || 0;
-        }
-        if (buf.filtersUsed) {
-          for (const [k, v] of Object.entries(buf.filtersUsed)) {
-            merged.filtersUsed[k] = (merged.filtersUsed[k] || 0) + v;
-          }
-        }
-        if (buf.planTypesViewed) {
-          for (const [k, v] of Object.entries(buf.planTypesViewed)) {
-            merged.planTypesViewed[k] = (merged.planTypesViewed[k] || 0) + v;
-          }
-        }
-        merged.totalPlanViews += buf.totalPlanViews || 0;
-        merged.compareCount += buf.compareCount || 0;
+        mergeSignalsInto(merged, buf);
 
         // Re-inference check
         const inferred = inferSegmentFromSignals(merged);
@@ -303,10 +239,7 @@ export function PersonaProvider({ children }: { children: ReactNode }) {
 
       // Send to backend if logged in
       if (isLoggedIn) {
-        apiFetch('/api/persona/signals', {
-          method: 'POST',
-          body: JSON.stringify({ signals: buf }),
-        }).catch(() => { /* non-critical */ });
+        flushSignals(buf).catch(() => { /* non-critical */ });
       }
 
       // Reset buffer

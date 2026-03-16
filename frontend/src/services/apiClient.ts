@@ -1,4 +1,4 @@
-import { getAuthSync } from "./firebase";
+import { getAuthSync } from "../lib/firebase";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -28,6 +28,18 @@ export async function apiFetch<T>(
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || `API error ${res.status}`);
   }
+
+  return res.json() as Promise<T>;
+}
+
+/**
+ * Lightweight fetch without auth — for public, high-traffic endpoints
+ * where skipping the token fetch improves performance.
+ */
+export async function publicFetch<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`);
+
+  if (!res.ok) throw new Error(`API error ${res.status}`);
 
   return res.json() as Promise<T>;
 }

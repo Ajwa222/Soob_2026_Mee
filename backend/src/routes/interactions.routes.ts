@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
+import { cacheJson } from "../middleware/cache.js";
 import * as InteractionsController from "../controllers/interactions.controller.js";
 
 const router = Router();
 
 // Public routes
-router.get("/engagement", InteractionsController.getEngagement);
+router.get("/engagement", cacheJson(60), InteractionsController.getEngagement);
 router.get("/:id/reactions", InteractionsController.getReaction);
 router.get("/:id/comments", InteractionsController.getComments);
 router.get("/:id/comments/count", InteractionsController.getCommentCount);

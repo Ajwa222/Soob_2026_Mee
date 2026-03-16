@@ -50,88 +50,77 @@ export async function getReaction(planId: string): Promise<PlanReaction> {
   return ReactionModel.getReaction(planId);
 }
 
-export async function toggleLike(
+async function toggleReaction(
   planId: string,
   userId: string,
+  type: "like" | "dislike",
   segment?: string,
 ): Promise<{ toggled: string }> {
   const current = await ReactionModel.getReaction(planId);
 
+  const isLike = type === "like";
+  const primaryField = isLike ? "likes" : "dislikes";
+  const primaryArray = isLike ? "likedBy" : "dislikedBy";
+  const oppositeField = isLike ? "dislikes" : "likes";
+  const oppositeArray = isLike ? "dislikedBy" : "likedBy";
+
+  const isEmpty = current.likes === 0 && current.dislikes === 0
+    && current.likedBy.length === 0 && current.dislikedBy.length === 0;
+
   // First reaction on this plan
-  if (current.likes === 0 && current.dislikes === 0 && current.likedBy.length === 0 && current.dislikedBy.length === 0) {
+  if (isEmpty) {
     await ReactionModel.setReaction(planId, {
-      likes: 1,
-      dislikes: 0,
-      likedBy: [userId],
-      dislikedBy: [],
+      likes: isLike ? 1 : 0,
+      dislikes: isLike ? 0 : 1,
+      likedBy: isLike ? [userId] : [],
+      dislikedBy: isLike ? [] : [userId],
     });
-    fireSegmentUpdate(userId, segment, planId, "add");
+    if (isLike) fireSegmentUpdate(userId, segment, planId, "add");
     invalidateEngagementCache();
-    return { toggled: "liked" };
+    return { toggled: isLike ? "liked" : "disliked" };
   }
 
-  const alreadyLiked = current.likedBy.includes(userId);
-  const alreadyDisliked = current.dislikedBy.includes(userId);
+  const alreadyActive = current[primaryArray].includes(userId);
+  const hasOpposite = current[oppositeArray].includes(userId);
 
   const updates: Record<string, unknown> = {};
 
-  if (alreadyLiked) {
-    updates.likedBy = ReactionModel.FieldValue.arrayRemove(userId);
-    updates.likes = ReactionModel.FieldValue.increment(-1);
+  if (alreadyActive) {
+    updates[primaryArray] = ReactionModel.FieldValue.arrayRemove(userId);
+    updates[primaryField] = ReactionModel.FieldValue.increment(-1);
   } else {
-    updates.likedBy = ReactionModel.FieldValue.arrayUnion(userId);
-    updates.likes = ReactionModel.FieldValue.increment(1);
-    if (alreadyDisliked) {
-      updates.dislikedBy = ReactionModel.FieldValue.arrayRemove(userId);
-      updates.dislikes = ReactionModel.FieldValue.increment(-1);
+    updates[primaryArray] = ReactionModel.FieldValue.arrayUnion(userId);
+    updates[primaryField] = ReactionModel.FieldValue.increment(1);
+    if (hasOpposite) {
+      updates[oppositeArray] = ReactionModel.FieldValue.arrayRemove(userId);
+      updates[oppositeField] = ReactionModel.FieldValue.increment(-1);
     }
   }
 
   await ReactionModel.updateReaction(planId, updates);
   invalidateEngagementCache();
 
-  fireSegmentUpdate(userId, segment, planId, alreadyLiked ? "remove" : "add");
+  if (isLike) fireSegmentUpdate(userId, segment, planId, alreadyActive ? "remove" : "add");
 
-  return { toggled: alreadyLiked ? "unliked" : "liked" };
+  const toggledLabel = isLike
+    ? (alreadyActive ? "unliked" : "liked")
+    : (alreadyActive ? "undisliked" : "disliked");
+  return { toggled: toggledLabel };
+}
+
+export async function toggleLike(
+  planId: string,
+  userId: string,
+  segment?: string,
+): Promise<{ toggled: string }> {
+  return toggleReaction(planId, userId, "like", segment);
 }
 
 export async function toggleDislike(
   planId: string,
   userId: string,
 ): Promise<{ toggled: string }> {
-  const current = await ReactionModel.getReaction(planId);
-
-  if (current.likes === 0 && current.dislikes === 0 && current.likedBy.length === 0 && current.dislikedBy.length === 0) {
-    await ReactionModel.setReaction(planId, {
-      likes: 0,
-      dislikes: 1,
-      likedBy: [],
-      dislikedBy: [userId],
-    });
-    invalidateEngagementCache();
-    return { toggled: "disliked" };
-  }
-
-  const alreadyDisliked = current.dislikedBy.includes(userId);
-  const alreadyLiked = current.likedBy.includes(userId);
-
-  const updates: Record<string, unknown> = {};
-
-  if (alreadyDisliked) {
-    updates.dislikedBy = ReactionModel.FieldValue.arrayRemove(userId);
-    updates.dislikes = ReactionModel.FieldValue.increment(-1);
-  } else {
-    updates.dislikedBy = ReactionModel.FieldValue.arrayUnion(userId);
-    updates.dislikes = ReactionModel.FieldValue.increment(1);
-    if (alreadyLiked) {
-      updates.likedBy = ReactionModel.FieldValue.arrayRemove(userId);
-      updates.likes = ReactionModel.FieldValue.increment(-1);
-    }
-  }
-
-  await ReactionModel.updateReaction(planId, updates);
-  invalidateEngagementCache();
-  return { toggled: alreadyDisliked ? "undisliked" : "disliked" };
+  return toggleReaction(planId, userId, "dislike");
 }
 
 export async function getComments(planId: string): Promise<PlanComment[]> {

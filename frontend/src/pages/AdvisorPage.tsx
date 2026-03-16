@@ -17,7 +17,7 @@ import { trackEvent } from '../lib/analytics';
 import {
   sendAdvisorMessage, getPlansById,
   type ChatMessage,
-} from '../lib/advisorAI';
+} from '../services/advisor.service';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
