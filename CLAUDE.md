@@ -79,11 +79,11 @@ GET  /api/health
 GET  /api/plans/cards          # Lightweight plan data for cards
 GET  /api/plans                # Full plan data
 GET  /api/plans/:id
-GET  /api/plans/engagement     # Batch reactions + comment counts
-POST /api/plans/:id/reactions/like     # Auth required
-POST /api/plans/:id/reactions/dislike  # Auth required
-GET  /api/plans/:id/comments
-POST /api/plans/:id/comments           # Auth required, max 500 chars
-DELETE /api/plans/:id/comments/:cid    # Auth required, author only
+GET  /api/plan-interactions/engagement     # Batch reactions + comment counts
+POST /api/plan-interactions/:id/reactions/like     # Auth required
+POST /api/plan-interactions/:id/reactions/dislike  # Auth required
+GET  /api/plan-interactions/:id/comments
+POST /api/plan-interactions/:id/comments           # Auth required, max 500 chars
+DELETE /api/plan-interactions/:id/comments/:cid    # Auth required, author only
 POST /api/advisor/message              # AI advisor chat
 ```

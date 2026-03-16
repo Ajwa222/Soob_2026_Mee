@@ -41,25 +41,16 @@ const advisorLimiter = rateLimit({
   message: { error: "Too many requests, please try again later" },
 });
 
-// Rate limiting for interaction endpoints (reactions/comments)
-const interactionLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Too many requests, please try again later" },
-});
-
 // Health check
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-// Routes — interactions before plans so /:id/reactions matches before /:id
-app.use("/api/plans", interactionLimiter, interactionsRouter);
+// Routes
+app.use("/api/plan-interactions", interactionsRouter);
 app.use("/api/plans", plansRouter);
 app.use("/api/advisor", advisorLimiter, advisorRouter);
-app.use("/api/persona", interactionLimiter, personaRouter);
+app.use("/api/persona", personaRouter);
 
 // Global error-handling middleware (must be after all routes)
 app.use(

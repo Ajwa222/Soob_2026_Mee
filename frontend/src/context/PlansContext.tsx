@@ -23,7 +23,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
 
   const refreshEngagement = useCallback(() => {
     const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    fetch(`${API_BASE}/api/plans/engagement`)
+    fetch(`${API_BASE}/api/plan-interactions/engagement`)
       .then((res) => {
         if (!res.ok) throw new Error(`API error ${res.status}`);
         return res.json() as Promise<Record<string, PlanEngagement>>;
