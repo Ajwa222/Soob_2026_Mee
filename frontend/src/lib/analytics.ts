@@ -107,7 +107,7 @@ export function trackEvent(eventName: string, params: Record<string, unknown> = 
 
     const trackMixpanel = (mp: typeof import('mixpanel-browser')) => {
       mp.default.track(eventName, params, {
-        transport: options?.useBeacon ? 'sendBeacon' : 'XHR',
+        transport: options?.useBeacon ? 'sendBeacon' : 'xhr',
       });
     };
 
