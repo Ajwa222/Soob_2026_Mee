@@ -221,7 +221,7 @@ export default function PlanDetailPage() {
               href={plan.url}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => trackEvent('get_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, url: plan.url })}
+              onClick={() => trackEvent('get_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, url: plan.url }, { useBeacon: true })}
             >
               {t('detail.getThisPlan')}
               <ExternalLink size={16} />
