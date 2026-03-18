@@ -10,6 +10,7 @@ declare global {
 
 // Lazy-loaded analytics modules
 let mixpanelLoaded: typeof import('mixpanel-browser') | null = null;
+let mixpanelPromise: Promise<typeof import('mixpanel-browser') | null> | null = null;
 let analyticsReady = false;
 
 const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
@@ -37,25 +38,6 @@ function initAnalytics() {
     }
   } catch { /* non-critical */ }
 
-  // Mixpanel — lazy import
-  if (MP_TOKEN) {
-    import('mixpanel-browser').then((mp) => {
-      mixpanelLoaded = mp;
-      try {
-        mp.default.init(MP_TOKEN, {
-          debug: import.meta.env.DEV,
-          track_pageview: false,
-          persistence: 'localStorage',
-          autocapture: true,
-          record_sessions_percent: 100,
-          api_host: 'https://api-eu.mixpanel.com',
-          ignore_dnt: true,
-          stop_utm_persistence: true,
-        });
-      } catch { /* non-critical */ }
-    }).catch(() => {});
-  }
-
   // Clarity — lazy import
   if (CLARITY_ID) {
     import('@microsoft/clarity').then((Clarity) => {
@@ -64,7 +46,27 @@ function initAnalytics() {
   }
 }
 
-// Kick off analytics after first paint
+// Start Mixpanel import immediately so it's ready for early events
+if (typeof window !== 'undefined' && MP_TOKEN) {
+  mixpanelPromise = import('mixpanel-browser').then((mp) => {
+    mixpanelLoaded = mp;
+    try {
+      mp.default.init(MP_TOKEN, {
+        debug: import.meta.env.DEV,
+        track_pageview: false,
+        persistence: 'localStorage',
+        autocapture: true,
+        record_sessions_percent: 100,
+        api_host: 'https://api-eu.mixpanel.com',
+        ignore_dnt: true,
+        stop_utm_persistence: true,
+      });
+    } catch { /* non-critical */ }
+    return mp;
+  }).catch(() => null);
+}
+
+// Kick off remaining analytics (GA, Clarity) after first paint
 if (typeof window !== 'undefined') {
   if ('requestIdleCallback' in window) {
     requestIdleCallback(() => initAnalytics(), { timeout: 2000 });
@@ -84,20 +86,38 @@ export function trackPageView(path: string): void {
         page_location: window.location.href,
       });
     }
+
+    const trackMp = (mp: typeof import('mixpanel-browser')) => {
+      mp.default.track_pageview({ page: path, page_title: document.title });
+    };
+
     if (mixpanelLoaded) {
-      mixpanelLoaded.default.track_pageview({ page: path, page_title: document.title });
+      trackMp(mixpanelLoaded);
+    } else if (mixpanelPromise) {
+      mixpanelPromise.then((mp) => { if (mp) trackMp(mp); });
     }
   } catch { /* non-critical */ }
 }
 
-export function trackEvent(eventName: string, params: Record<string, unknown> = {}): void {
+export function trackEvent(eventName: string, params: Record<string, unknown> = {}, options?: { useBeacon?: boolean }): void {
   try {
     if (typeof window.gtag === 'function') {
       window.gtag('event', eventName, params);
     }
+
+    const trackMixpanel = (mp: typeof import('mixpanel-browser')) => {
+      mp.default.track(eventName, params, {
+        transport: options?.useBeacon ? 'sendBeacon' : 'XHR',
+      });
+    };
+
     if (mixpanelLoaded) {
-      mixpanelLoaded.default.track(eventName, params);
+      trackMixpanel(mixpanelLoaded);
+    } else if (mixpanelPromise) {
+      // Mixpanel is still loading — wait for it then fire
+      mixpanelPromise.then((mp) => { if (mp) trackMixpanel(mp); });
     }
+
     if (CLARITY_ID && typeof window.clarity === 'function') {
       window.clarity('event', eventName);
     }
@@ -107,18 +127,26 @@ export function trackEvent(eventName: string, params: Record<string, unknown> = 
 export function identifyUser(user: SimbaUser): void {
   try {
     if (!user) return;
-    if (mixpanelLoaded) {
-      mixpanelLoaded.default.identify(user.uid);
-      mixpanelLoaded.default.people.set({
+
+    const identifyMp = (mp: typeof import('mixpanel-browser')) => {
+      mp.default.identify(user.uid);
+      mp.default.people.set({
         $name: user.name || user.email,
         $email: user.email,
         $avatar: user.photoURL,
         auth_provider: user.provider,
       });
-      mixpanelLoaded.default.people.set_once({
+      mp.default.people.set_once({
         first_seen: new Date().toISOString(),
       });
+    };
+
+    if (mixpanelLoaded) {
+      identifyMp(mixpanelLoaded);
+    } else if (mixpanelPromise) {
+      mixpanelPromise.then((mp) => { if (mp) identifyMp(mp); });
     }
+
     if (CLARITY_ID && typeof window.clarity === 'function') {
       window.clarity('identify', user.uid, undefined, undefined, user.name || user.email);
     }
@@ -129,6 +157,8 @@ export function resetUser(): void {
   try {
     if (mixpanelLoaded) {
       mixpanelLoaded.default.reset();
+    } else if (mixpanelPromise) {
+      mixpanelPromise.then((mp) => { if (mp) mp.default.reset(); });
     }
   } catch { /* non-critical */ }
 }
