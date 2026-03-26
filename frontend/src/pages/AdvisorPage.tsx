@@ -9,9 +9,7 @@ import { getFirebaseDb } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
-import { usePersona } from '../context/PersonaContext';
 import { CARRIERS } from '../data/plans';
-import { inferSegmentFromAdvisorChat, createEmptySignals } from '../lib/persona';
 import type { Plan } from '../types';
 import { trackEvent } from '../lib/analytics';
 import {
@@ -193,12 +191,10 @@ export default function AdvisorPage() {
   const [, setSearchParams] = useSearchParams();
   const { plans } = usePlans();
   const { user } = useAuth();
-  const { segment, persona, setPersona } = usePersona();
-
   // Flow state: 'intent' = first layer, 'choice' = describe/guide picker, number = quiz step, null = quiz done / free chat
   const [quizStep, setQuizStep] = useState<number | 'intent' | 'choice' | null>('intent');
   const [quizAnswers, setQuizAnswers] = useState<string[]>([]);
-  const [quizLabels, setQuizLabels] = useState<string[]>([]); // English labels for persona inference
+  const [quizLabels, setQuizLabels] = useState<string[]>([]);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -366,7 +362,7 @@ export default function AdvisorPage() {
       }
 
       try {
-        const { reply, planIds } = await sendAdvisorMessage(lang, fullHistory, summary, segment ?? undefined);
+        const { reply, planIds } = await sendAdvisorMessage(lang, fullHistory, summary);
         setMessages(prev => [...prev, { role: 'assistant', text: reply, planIds }]);
       } catch (e) {
         console.error('Advisor error:', e);
@@ -402,25 +398,6 @@ export default function AdvisorPage() {
         setQuizStep(nextStep);
       }, 800 + Math.random() * 400);
     } else {
-      // Infer persona from advisor quiz answers
-      if (!persona || persona.confidence < 0.7) {
-        const inferred = inferSegmentFromAdvisorChat({
-          internet: quizLabels[0] || '',
-          calls: quizLabels[1] || '',
-          social: quizLabels[2] || '',
-          budget: budgetValue,
-        });
-        if (inferred.confidence > 0.3) {
-          setPersona({
-            segment: inferred.segment,
-            confidence: inferred.confidence,
-            signals: persona?.signals ?? createEmptySignals(),
-            updatedAt: Date.now(),
-            createdAt: persona?.createdAt ?? Date.now(),
-          });
-        }
-      }
-
       setQuizStep(null);
       setSearchParams({ chat: '1' }, { replace: true });
       setLoading(true);
@@ -435,7 +412,7 @@ export default function AdvisorPage() {
       }
 
       try {
-        const { reply, planIds } = await sendAdvisorMessage(lang, fullHistory, summary, segment ?? undefined);
+        const { reply, planIds } = await sendAdvisorMessage(lang, fullHistory, summary);
         setMessages(prev => [...prev, { role: 'assistant', text: reply, planIds }]);
       } catch (e) {
         console.error('Advisor error:', e);
@@ -444,7 +421,7 @@ export default function AdvisorPage() {
         setLoading(false);
       }
     }
-  }, [quizStep, loading, lang, quizAnswers, quizLabels, budgetValue, setSearchParams, persona, setPersona]);
+  }, [quizStep, loading, lang, quizAnswers, quizLabels, budgetValue, setSearchParams]);
 
   // Free-chat send (after quiz is done)
   const sendText = useCallback(async (text: string) => {
@@ -462,7 +439,6 @@ export default function AdvisorPage() {
         lang,
         [...messages, userMsg],
         text,
-        segment ?? undefined,
       );
       setMessages(prev => [...prev, { role: 'assistant', text: reply, planIds }]);
     } catch (e) {

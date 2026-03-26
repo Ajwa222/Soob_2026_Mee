@@ -4,9 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLang } from '../context/LanguageContext';
 import { useCompare } from '../context/CompareContext';
-import { usePersona } from '../context/PersonaContext';
 import { usePlans } from '../context/PlansContext';
-import { getPersonalizedScore } from '../lib/persona';
 import { getCarrierColor, getCarrierLogo } from '../data/plans';
 import { trackEvent } from '../lib/analytics';
 import CompareOverlay from './CompareOverlay';
@@ -14,23 +12,18 @@ import CompareOverlay from './CompareOverlay';
 export default function CompareBar() {
   const { t, lang } = useLang();
   const { selectedPlans, removePlan, addPlan, showOverlay, setShowOverlay, toast, setToast } = useCompare();
-  const { segment } = usePersona();
   const { plans } = usePlans();
 
-  // Auto-suggest 2 plans when only 1 is selected and persona exists
+  // Auto-suggest 2 plans when only 1 is selected — similar price range
   const suggestedPlans = useMemo(() => {
-    if (selectedPlans.length !== 1 || !segment || plans.length === 0) return [];
+    if (selectedPlans.length !== 1 || plans.length === 0) return [];
     const current = selectedPlans[0];
     return plans
       .filter((p) => p.id !== current.id)
-      .sort((a, b) => getPersonalizedScore(b, segment) - getPersonalizedScore(a, segment))
-      .filter((p) => {
-        // Find plans that differ interestingly — same-ish price range OR same data tier
-        const priceDiff = Math.abs(p.priceSAR - current.priceSAR);
-        return priceDiff < current.priceSAR * 0.5;
-      })
+      .filter((p) => Math.abs(p.priceSAR - current.priceSAR) < current.priceSAR * 0.5)
+      .sort((a, b) => Math.abs(a.priceSAR - current.priceSAR) - Math.abs(b.priceSAR - current.priceSAR))
       .slice(0, 2);
-  }, [selectedPlans, segment, plans]);
+  }, [selectedPlans, plans]);
 
   if (selectedPlans.length === 0 && !toast && !showOverlay) return null;
 

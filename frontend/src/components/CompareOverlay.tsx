@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { ChevronRight, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,12 +5,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useLang } from '../context/LanguageContext';
 import SarSymbol from './SarSymbol';
 import { useCompare } from '../context/CompareContext';
-import { usePersona } from '../context/PersonaContext';
-import { SEGMENT_WEIGHTS } from '../lib/persona';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
 import { trackEvent } from '../lib/analytics';
 import { Link } from 'react-router-dom';
-import type { Plan, PersonaSegment } from '../types';
+import type { Plan } from '../types';
 
 function shortVal(val: string): string {
   if (!val || val === '-' || val === '') return '—';
@@ -26,31 +23,19 @@ interface Attr {
   unit: string;
   unitClass?: string;
   compare: string;
-  weightKey?: keyof typeof SEGMENT_WEIGHTS.gamer;
 }
 
-const BASE_ATTRS: Attr[] = [
-  { en: 'Price', ar: 'السعر', get: (p: Plan) => `${p.priceSAR}`, unit: '\xEA', unitClass: 'saudi-riyal', compare: 'lowest', weightKey: 'price' },
-  { en: 'Data', ar: 'البيانات', get: (p: Plan) => isValidValue(p.dataGB) ? shortVal(p.dataGB) : '—', unit: 'GB', compare: 'highest', weightKey: 'data' },
-  { en: 'Calls', ar: 'مكالمات', get: (p: Plan) => isValidValue(p.localCallMinutes) ? shortVal(p.localCallMinutes) : '—', unit: 'min', compare: 'highest', weightKey: 'calls' },
+const ATTRS: Attr[] = [
+  { en: 'Price', ar: 'السعر', get: (p: Plan) => `${p.priceSAR}`, unit: '\xEA', unitClass: 'saudi-riyal', compare: 'lowest' },
+  { en: 'Data', ar: 'البيانات', get: (p: Plan) => isValidValue(p.dataGB) ? shortVal(p.dataGB) : '—', unit: 'GB', compare: 'highest' },
+  { en: 'Calls', ar: 'مكالمات', get: (p: Plan) => isValidValue(p.localCallMinutes) ? shortVal(p.localCallMinutes) : '—', unit: 'min', compare: 'highest' },
   { en: 'SMS', ar: 'رسائل', get: (p: Plan) => isValidValue(p.sms) ? shortVal(p.sms) : '—', unit: '', compare: 'highest' },
-  { en: 'Social', ar: 'تواصل', get: (p: Plan) => isValidValue(p.socialMediaData) ? shortVal(p.socialMediaData) : '—', unit: '', compare: 'highest', weightKey: 'social' },
-  { en: 'Int\'l', ar: 'دولية', get: (p: Plan) => isValidValue(p.internationalCallMinutes) ? shortVal(p.internationalCallMinutes) : '—', unit: 'min', compare: 'highest', weightKey: 'international' },
-  { en: 'Roaming', ar: 'تجوال', get: (p: Plan) => isValidValue(p.roamingDataGB) ? shortVal(p.roamingDataGB) : '—', unit: 'GB', compare: 'highest', weightKey: 'roaming' },
+  { en: 'Social', ar: 'تواصل', get: (p: Plan) => isValidValue(p.socialMediaData) ? shortVal(p.socialMediaData) : '—', unit: '', compare: 'highest' },
+  { en: 'Int\'l', ar: 'دولية', get: (p: Plan) => isValidValue(p.internationalCallMinutes) ? shortVal(p.internationalCallMinutes) : '—', unit: 'min', compare: 'highest' },
+  { en: 'Roaming', ar: 'تجوال', get: (p: Plan) => isValidValue(p.roamingDataGB) ? shortVal(p.roamingDataGB) : '—', unit: 'GB', compare: 'highest' },
   { en: 'Contract', ar: 'العقد', get: (p: Plan) => isValidValue(p.contractTerms) ? p.contractTerms : '—', unit: '', compare: 'none' },
   { en: 'Extras', ar: 'إضافات', get: (p: Plan) => isValidValue(p.specialFeatures) ? p.specialFeatures : '—', unit: '', compare: 'none' },
 ];
-
-/** Sort attrs by persona weights — most important metrics first */
-function getOrderedAttrs(segment: PersonaSegment | null): Attr[] {
-  if (!segment) return BASE_ATTRS;
-  const weights = SEGMENT_WEIGHTS[segment];
-  return [...BASE_ATTRS].sort((a, b) => {
-    const wa = a.weightKey ? weights[a.weightKey] : 0;
-    const wb = b.weightKey ? weights[b.weightKey] : 0;
-    return wb - wa;
-  });
-}
 
 function getBest(plans: Plan[], attr: Attr): number[] {
   if (attr.compare === 'none') return [];
@@ -70,8 +55,7 @@ function getBest(plans: Plan[], attr: Attr): number[] {
 export default function CompareOverlay() {
   const { lang, t } = useLang();
   const { selectedPlans, setShowOverlay, removePlan } = useCompare();
-  const { segment } = usePersona();
-  const attrs = useMemo(() => getOrderedAttrs(segment), [segment]);
+  const attrs = ATTRS;
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) setShowOverlay(false); }}>

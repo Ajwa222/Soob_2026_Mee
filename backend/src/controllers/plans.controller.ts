@@ -13,17 +13,6 @@ export const getCards = (_req: Request, res: Response) => {
   res.send(PlanService.getPlansCardsJson());
 };
 
-/** GET /api/plans/personalized?segment=gamer — Returns top 20 plans scored for the given segment */
-export const getPersonalized = (req: Request, res: Response) => {
-  const segment = req.query.segment as string;
-  const json = PlanService.getPersonalizedPlans(segment);
-  if (!json) {
-    res.status(400).json({ error: "Invalid or missing segment parameter" });
-    return;
-  }
-  res.send(json);
-};
-
 /** GET /api/plans — Returns all 154 plans with full details */
 export const getAll = (_req: Request, res: Response) => {
   res.send(PlanService.getAllPlansJson());

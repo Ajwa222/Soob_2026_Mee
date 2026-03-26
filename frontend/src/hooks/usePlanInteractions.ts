@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { usePersona } from '../context/PersonaContext';
 import {
   fetchReaction, toggleLike as fbToggleLike, toggleDislike as fbToggleDislike,
   fetchComments, addComment as fbAddComment, deleteComment as fbDeleteComment,
@@ -12,7 +11,6 @@ const defaultReaction: PlanReaction = { likes: 0, dislikes: 0, likedBy: [], disl
 
 export function usePlanInteractions(planId: number | undefined) {
   const { user } = useAuth();
-  const { segment } = usePersona();
   const [reaction, setReaction] = useState<PlanReaction>(defaultReaction);
   const [comments, setComments] = useState<PlanComment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,13 +50,13 @@ export function usePlanInteractions(planId: number | undefined) {
     }));
 
     try {
-      await fbToggleLike(planId, uid, segment ?? undefined);
+      await fbToggleLike(planId, uid);
     } catch {
       // Revert on error
       const fresh = await fetchReaction(planId);
       setReaction(fresh);
     }
-  }, [user, planId, reaction, segment]);
+  }, [user, planId, reaction]);
 
   const toggleDislike = useCallback(async () => {
     if (!user || !planId) return;
@@ -77,12 +75,12 @@ export function usePlanInteractions(planId: number | undefined) {
     }));
 
     try {
-      await fbToggleDislike(planId, uid, segment ?? undefined);
+      await fbToggleDislike(planId, uid);
     } catch {
       const fresh = await fetchReaction(planId);
       setReaction(fresh);
     }
-  }, [user, planId, reaction, segment]);
+  }, [user, planId, reaction]);
 
   const addComment = useCallback(async (text: string) => {
     if (!user || !planId || !text.trim()) return;

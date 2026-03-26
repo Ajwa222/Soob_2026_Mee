@@ -19,6 +19,33 @@ export interface AuthenticatedRequest extends Request {
 }
 
 /**
+ * Express middleware that optionally verifies Firebase ID tokens.
+ * If a valid token is present, populates req.uid. Otherwise, continues without auth.
+ * Used for endpoints that work for both anonymous and logged-in users.
+ */
+export async function optionalAuth(
+  req: AuthenticatedRequest,
+  _res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const header = req.headers.authorization;
+  if (!header?.startsWith("Bearer ")) {
+    next();
+    return;
+  }
+  const idToken = header.slice(7);
+  try {
+    const decoded = await auth.verifyIdToken(idToken);
+    req.uid = decoded.uid;
+    req.userName = decoded.name ?? "Anonymous";
+    req.userPhoto = decoded.picture ?? null;
+  } catch {
+    // Invalid token — proceed without auth
+  }
+  next();
+}
+
+/**
  * Express middleware that verifies Firebase ID tokens.
  * Rejects with 401 if the token is missing, malformed, or expired.
  * On success, populates req.uid, req.userName, and req.userPhoto.

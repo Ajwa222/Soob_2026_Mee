@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,11 +7,11 @@ import WaveLines from '../components/WaveLines';
 import { useLang } from '../context/LanguageContext';
 import { CARRIERS, getValueScore } from '../data/plans';
 import { usePlans } from '../context/PlansContext';
-import { usePersona } from '../context/PersonaContext';
-import { getPersonalizedScore } from '../lib/persona';
+import { useAuth } from '../context/AuthContext';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import FinderModal, { useFinderModal } from '../components/FinderModal';
 import { trackEvent } from '../lib/analytics';
+import { getRecommendations, type RecommendationResult } from '../services/recommendations.service';
 
 const CARD_FULL_HEIGHT: React.CSSProperties = { height: '100%' };
 
@@ -19,20 +19,31 @@ export default function HomePage() {
   const { t, lang } = useLang();
   const { show: showFinderModal, dismiss: dismissFinderModal } = useFinderModal();
   const { plans } = usePlans();
-  const { segment } = usePersona();
+  const { isLoggedIn } = useAuth();
+
+  const [recs, setRecs] = useState<RecommendationResult | null>(null);
+  const [recsLoading, setRecsLoading] = useState(true);
+
+  useEffect(() => {
+    setRecsLoading(true);
+    getRecommendations(isLoggedIn, 8)
+      .then(setRecs)
+      .catch(() => { /* fall back to value score */ })
+      .finally(() => setRecsLoading(false));
+  }, [isLoggedIn]);
 
   const trendingPlans = useMemo(() => {
-    if (segment) {
-      return [...plans]
-        .sort((a, b) => getPersonalizedScore(b, segment) - getPersonalizedScore(a, segment))
-        .slice(0, 8);
+    if (recs && recs.planIds.length > 0 && plans.length > 0) {
+      const planMap = new Map(plans.map(p => [p.id, p]));
+      const resolved = recs.planIds.map(id => planMap.get(id)).filter(Boolean) as typeof plans;
+      if (resolved.length > 0) return resolved;
     }
     return [...plans]
       .sort((a, b) => getValueScore(b) - getValueScore(a))
       .slice(0, 8);
-  }, [plans, segment]);
+  }, [plans, recs]);
 
-  const isPersonalized = !!segment;
+  const isPersonalized = recs?.strategy === 'collaborative' || recs?.strategy === 'content-based';
 
   return (
     <div className="safe-pb">
@@ -103,17 +114,26 @@ export default function HomePage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-12 md:pt-20 pb-10 md:pb-14">
         <div className="flex items-end justify-between mb-6 md:mb-8">
           <div>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-primary">
-              <Sparkles size={12} />
-              {isPersonalized
-                ? (lang === 'ar' ? 'مقترحة لك' : 'For You')
-                : t('home.popularNow')}
-            </span>
-            <h2 className="font-heading font-bold text-2xl md:text-[32px] text-foreground mt-1.5 tracking-tight">
-              {isPersonalized
-                ? (lang === 'ar' ? 'باقات تناسبك' : 'Recommended for You')
-                : t('trending.title')}
-            </h2>
+            {recsLoading ? (
+              <>
+                <span className="inline-block h-3 w-20 rounded bg-muted/50 animate-pulse" />
+                <div className="h-8 w-48 rounded bg-muted/50 animate-pulse mt-1.5" />
+              </>
+            ) : (
+              <>
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-primary">
+                  <Sparkles size={12} />
+                  {isPersonalized
+                    ? (lang === 'ar' ? 'مقترحة لك' : 'For You')
+                    : t('home.popularNow')}
+                </span>
+                <h2 className="font-heading font-bold text-2xl md:text-[32px] text-foreground mt-1.5 tracking-tight">
+                  {isPersonalized
+                    ? (lang === 'ar' ? 'باقات تناسبك' : 'Recommended for You')
+                    : t('trending.title')}
+                </h2>
+              </>
+            )}
           </div>
           <Button variant="link" asChild className="text-primary font-semibold">
             <Link to="/plans">
@@ -123,6 +143,13 @@ export default function HomePage() {
           </Button>
         </div>
 
+        {recsLoading ? (
+          <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px] h-[280px] rounded-xl bg-muted/50 animate-pulse" />
+            ))}
+          </div>
+        ) : (
         <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {trendingPlans.map((plan) => (
             <div key={plan.id} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px]">
@@ -130,6 +157,7 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* Switch & Save CTA */}

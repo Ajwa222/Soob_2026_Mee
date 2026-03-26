@@ -6,14 +6,12 @@
  *    in-memory with a 60-second TTL. This is the most frequently called endpoint
  *    (loaded on every page with plan cards), so avoiding Firestore hits is critical.
  *  - The cache is invalidated whenever a like/dislike/comment is added or removed.
- *  - Like/dislike toggling also updates segment stats (fire-and-forget) so that
- *    "popular with gamers" type recommendations stay up to date.
+ *  - Like/dislike data is also used by the recommendation service for
+ *    collaborative filtering.
  */
 
 import * as ReactionModel from "../models/reaction.model.js";
 import * as CommentModel from "../models/comment.model.js";
-import { isValidSegment } from "../lib/persona-scoring.js";
-import { updateUserSegment } from "../lib/segment-stats.js";
 import type { PlanReaction, PlanComment } from "../types.js";
 
 // ── Engagement Cache ──
@@ -88,7 +86,6 @@ async function toggleReaction(
   planId: string,
   userId: string,
   type: "like" | "dislike",
-  segment?: string,
 ): Promise<{ toggled: string }> {
   const current = await ReactionModel.getReaction(planId);
 
@@ -109,7 +106,6 @@ async function toggleReaction(
       likedBy: isLike ? [userId] : [],
       dislikedBy: isLike ? [] : [userId],
     });
-    if (isLike) fireSegmentUpdate(userId, segment, planId, "add");
     invalidateEngagementCache();
     return { toggled: isLike ? "liked" : "disliked" };
   }
@@ -138,9 +134,6 @@ async function toggleReaction(
   await ReactionModel.updateReaction(planId, updates);
   invalidateEngagementCache();
 
-  // Update segment stats (fire-and-forget) when likes change
-  if (isLike) fireSegmentUpdate(userId, segment, planId, alreadyActive ? "remove" : "add");
-
   const toggledLabel = isLike
     ? (alreadyActive ? "unliked" : "liked")
     : (alreadyActive ? "undisliked" : "disliked");
@@ -151,9 +144,8 @@ async function toggleReaction(
 export async function toggleLike(
   planId: string,
   userId: string,
-  segment?: string,
 ): Promise<{ toggled: string }> {
-  return toggleReaction(planId, userId, "like", segment);
+  return toggleReaction(planId, userId, "like");
 }
 
 /** Toggle dislike on a plan — delegates to the shared toggleReaction logic */
@@ -220,13 +212,3 @@ export async function deleteComment(
   return { deleted: true };
 }
 
-/**
- * Fire-and-forget: update the user's segment stats when they like/unlike a plan.
- * This keeps the "popular with [segment]" recommendations accurate.
- * Errors are silently caught since this is non-critical.
- */
-function fireSegmentUpdate(userId: string, segment: string | undefined, planId: string, action: "add" | "remove") {
-  if (segment && isValidSegment(segment)) {
-    updateUserSegment(userId, segment, Number(planId), action).catch(() => {});
-  }
-}

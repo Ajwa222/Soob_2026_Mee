@@ -14,9 +14,6 @@ const router = Router();
 // GET /api/plans/cards — Slim plan payload for card rendering (lighter than full data)
 router.get("/cards", cacheJson(), PlansController.getCards);
 
-// GET /api/plans/personalized?segment=gamer — Top 20 plans scored for a persona segment
-router.get("/personalized", cacheJson(), PlansController.getPersonalized);
-
 // GET /api/plans — Full plan data (all 154 plans with all fields)
 router.get("/", cacheJson(), PlansController.getAll);
 

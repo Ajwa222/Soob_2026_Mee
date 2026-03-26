@@ -9,7 +9,6 @@ import SarSymbol from './SarSymbol';
 import { useNavigate } from 'react-router-dom';
 import { useCompare } from '../context/CompareContext';
 import { useBookmarks } from '../context/BookmarkContext';
-import { usePersona } from '../context/PersonaContext';
 import { getCarrierColor, getCarrierLogo, isValidValue } from '../data/plans';
 import { usePlans } from '../context/PlansContext';
 import { trackEvent } from '../lib/analytics';
@@ -170,11 +169,10 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
 /** Thin wrapper that subscribes to CompareContext.
  *  Only this component re-renders on context changes —
  *  the memoized PlanCard underneath skips if `selected` didn't change. */
-export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, style, compact, segmentBadge }: { plan: Plan; style?: React.CSSProperties; compact?: boolean; segmentBadge?: string | null }) {
+export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
   const { togglePlan, isSelected } = useCompare();
   const { requestBookmark, isBookmarked } = useBookmarks();
   const { engagement } = usePlans();
-  const { trackSignal } = usePersona();
   const navigate = useNavigate();
   const e = engagement[String(plan.id)];
   const handleToggleBookmark = React.useCallback((id: number) => {
@@ -182,12 +180,7 @@ export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, s
   }, [requestBookmark, navigate]);
   const handleToggleCompare = React.useCallback((p: Plan) => {
     togglePlan(p);
-    trackSignal('compareCount');
-  }, [togglePlan, trackSignal]);
-  const handleViewPlan = React.useCallback(() => {
-    trackSignal('totalPlanViews');
-    trackSignal('planTypesViewed', plan.planType);
-  }, [trackSignal, plan.planType]);
+  }, [togglePlan]);
   return (
     <PlanCard
       plan={plan}
@@ -198,10 +191,8 @@ export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, s
       likes={e?.likes ?? 0}
       dislikes={e?.dislikes ?? 0}
       commentCount={e?.comments ?? 0}
-      segmentBadge={segmentBadge}
       onToggleCompare={handleToggleCompare}
       onToggleBookmark={handleToggleBookmark}
-      onViewPlan={handleViewPlan}
     />
   );
 });

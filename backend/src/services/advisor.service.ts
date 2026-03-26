@@ -3,10 +3,8 @@
  *
  * How it works:
  *  1. Builds a system prompt containing the full plan catalog (154 plans as pipe-delimited rows)
- *  2. If the user has a persona segment, injects a segment-specific persona block into the prompt
- *     that adjusts the AI's tone and focus (e.g., casual for gamers, professional for business)
- *  3. Sends the conversation history + new message to OpenAI GPT
- *  4. Extracts plan IDs from [#ID] tags in the response so the frontend can render plan cards
+ *  2. Sends the conversation history + new message to OpenAI GPT
+ *  3. Extracts plan IDs from [#ID] tags in the response so the frontend can render plan cards
  *
  * The AI is instructed to always include [#ID] tags when mentioning plans — this is how
  * the frontend knows which plan cards to show inline in the chat.
@@ -14,8 +12,7 @@
 
 import OpenAI from "openai";
 import { PLANS_DATA } from "../data/plans.js";
-import type { Plan, ChatMessage, PersonaSegment } from "../types.js";
-import { isValidSegment } from "../lib/persona-scoring.js";
+import type { Plan, ChatMessage } from "../types.js";
 
 const VALID_LANGS: Set<string> = new Set(["en", "ar"]);
 
@@ -64,49 +61,8 @@ function buildPlansContext(): string {
   return _plansContext;
 }
 
-// Per-segment prompt blocks (English + Arabic) that customize the AI's personality and focus.
-// Injected into the system prompt when the user has a known persona segment.
-const SEGMENT_PROMPTS: Record<PersonaSegment, { en: string; ar: string }> = {
-  gamer: {
-    en: `USER PERSONA: This user is a GAMER. They care most about: high-speed 5G, massive data (50GB+), and low latency. Use a casual, enthusiastic tone. Prioritize plans with unlimited/high data and 5G support. Ask about their gaming habits (mobile gaming, cloud gaming, streaming on Twitch). Focus on data-heavy plans.`,
-    ar: `شخصية المستخدم: هذا المستخدم قيمر. يهتم بـ: سرعة 5G عالية، بيانات ضخمة (50+ قيقا)، واتصال سريع. استخدم لهجة حماسية وودية. ركز على الباقات اللي فيها بيانات عالية/غير محدودة و5G.`,
-  },
-  student: {
-    en: `USER PERSONA: This user is a STUDENT on a budget. They need affordable plans with decent social media data. Use a friendly, relatable tone. Prioritize plans under 120 SAR with good social media bundles. Ask about which social platforms they use most (TikTok, Snapchat, Instagram).`,
-    ar: `شخصية المستخدم: هذا المستخدم طالب بميزانية محدودة. يحتاج باقات اقتصادية مع بيانات سوشل ميديا كويسة. استخدم لهجة ودية. ركز على باقات أقل من 120 ريال مع سوشل ميديا.`,
-  },
-  family: {
-    en: `USER PERSONA: This user is looking for a FAMILY plan. They need shared data, good call minutes, and value for money. Use a patient, reassuring tone. Ask about family size, kids' usage, and whether they need multiple SIMs. Focus on shared/family plans with good call minutes.`,
-    ar: `شخصية المستخدم: هذا المستخدم يبحث عن باقة عائلية. يحتاج بيانات مشتركة ودقائق مكالمات كافية. استخدم لهجة صبورة ومطمئنة. اسأل عن حجم العائلة واحتياجات الأطفال.`,
-  },
-  business: {
-    en: `USER PERSONA: This user is a BUSINESS professional. They need reliable coverage, international calls, and roaming. Use a professional, efficient tone. Don't waste their time with basic questions. Focus on business-tier plans with international minutes, roaming, and reliability.`,
-    ar: `شخصية المستخدم: هذا المستخدم رجل أعمال. يحتاج تغطية موثوقة ومكالمات دولية وتجوال. استخدم لهجة مهنية ومباشرة. ركز على باقات الأعمال مع دقائق دولية وتجوال.`,
-  },
-  expat: {
-    en: `USER PERSONA: This user is an EXPAT living in Saudi Arabia. They make frequent international calls to their home country. Use a helpful, practical tone. Ask about which countries they call most and how often. Prioritize plans with international minutes and roaming.`,
-    ar: `شخصية المستخدم: هذا المستخدم مقيم بالسعودية. يحتاج مكالمات دولية لبلده. استخدم لهجة مساعدة وعملية. اسأل عن الدول اللي يتصل عليها وكم مرة. ركز على باقات المكالمات الدولية والتجوال.`,
-  },
-  budget: {
-    en: `USER PERSONA: This user is BUDGET-CONSCIOUS. Price is the #1 factor. Use an understanding, value-focused tone. Don't suggest expensive plans. Focus on cheapest options, prepaid deals, and best value per SAR. Ask about must-haves vs nice-to-haves to trim costs.`,
-    ar: `شخصية المستخدم: هذا المستخدم يهتم بالميزانية. السعر هو العامل الأول. استخدم لهجة متفهمة. لا تقترح باقات غالية. ركز على أرخص الخيارات والعروض المسبقة الدفع.`,
-  },
-  streamer: {
-    en: `USER PERSONA: This user is a CONTENT STREAMER/consumer. They watch lots of YouTube, Netflix, TikTok. Use an enthusiastic, media-savvy tone. Ask about streaming quality preferences (HD vs 4K) and platforms used. Prioritize plans with unlimited social media data and high data caps.`,
-    ar: `شخصية المستخدم: هذا المستخدم يشاهد محتوى كثير (يوتيوب، نتفلكس، تيك توك). استخدم لهجة حماسية. اسأل عن جودة المشاهدة والمنصات. ركز على باقات السوشل ميديا غير المحدودة والبيانات العالية.`,
-  },
-  power_user: {
-    en: `USER PERSONA: This user is a POWER USER who wants the best of everything. Use a technical, direct tone. They know what they want — don't over-explain basics. Focus on premium unlimited plans with 5G, maximum data, and all features included. Price is secondary to quality.`,
-    ar: `شخصية المستخدم: هذا المستخدم متقدم يبي أفضل شي بكل شي. استخدم لهجة تقنية ومباشرة. ركز على الباقات المميزة غير المحدودة مع 5G وأقصى بيانات. السعر ثانوي مقابل الجودة.`,
-  },
-};
-
-/** Builds the full system prompt: role instructions + optional persona block + entire plan catalog */
-function buildSystemPrompt(lang: "en" | "ar", segment?: PersonaSegment): string {
-  const personaBlock = segment
-    ? `\n${lang === "ar" ? SEGMENT_PROMPTS[segment].ar : SEGMENT_PROMPTS[segment].en}\n`
-    : "";
-
+/** Builds the full system prompt: role instructions + entire plan catalog */
+function buildSystemPrompt(lang: "en" | "ar"): string {
   return `You are Simba, a friendly Saudi telecom plan advisor.
 
 ROLE:
@@ -120,7 +76,7 @@ ROLE:
 - Once you understand their needs, recommend your top 3 plans. Briefly explain why each plan fits.
 - Keep asking follow-up questions to refine recommendations if the user isn't satisfied.
 - Keep answers concise (under 200 words). Use bullet points for plan comparisons.
-${personaBlock}
+
 RULES:
 - ONLY recommend plans from the catalog below. Never invent plans.
 - CRITICAL: Every time you mention a plan, you MUST include its ID like [#ID] (e.g. [#5]) in the text. The app uses these IDs to show interactive plan cards. Never mention a plan without its [#ID] tag.
@@ -157,18 +113,15 @@ export function isValidLang(lang: string): boolean {
  * @param lang - Response language ("en" or "ar")
  * @param history - Previous conversation messages (trimmed to last 20 to stay within token limits)
  * @param userMessage - The user's new message
- * @param segment - Optional persona segment to customize the advisor's tone
  * @returns { reply: string, planIds: number[] } — the AI's text reply and any plan IDs it referenced
  */
 export async function getAdvisorReply(
   lang: "en" | "ar",
   history: ChatMessage[],
   userMessage: string,
-  segment?: string,
 ): Promise<{ reply: string; planIds: number[] }> {
   const client = getClient();
-  const validSegment = isValidSegment(segment) ? segment : undefined;
-  const systemPrompt = buildSystemPrompt(lang ?? "en", validSegment);
+  const systemPrompt = buildSystemPrompt(lang ?? "en");
 
   // Keep only the last 20 messages to avoid exceeding OpenAI's context window
   const trimmedHistory = (history ?? []).slice(-20);

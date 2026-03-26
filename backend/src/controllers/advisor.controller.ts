@@ -17,7 +17,6 @@ import type { ChatMessage } from "../types.js";
  *   - lang: "en" | "ar" — response language (defaults to "en")
  *   - history: ChatMessage[] — previous conversation messages for context
  *   - userMessage: string — the user's new message (max 1000 chars)
- *   - segment?: string — optional persona segment to customize advisor tone
  *
  * Response: { reply: string, planIds: number[] }
  *   - reply: the AI advisor's response text
@@ -25,11 +24,10 @@ import type { ChatMessage } from "../types.js";
  */
 export const sendMessage = async (req: Request, res: Response) => {
   try {
-    const { lang, history, userMessage, segment } = req.body as {
+    const { lang, history, userMessage } = req.body as {
       lang: "en" | "ar";
       history: ChatMessage[];
       userMessage: string;
-      segment?: string;
     };
 
     // Input validation
@@ -46,7 +44,7 @@ export const sendMessage = async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await AdvisorService.getAdvisorReply(lang ?? "en", history, userMessage, segment);
+    const result = await AdvisorService.getAdvisorReply(lang ?? "en", history, userMessage);
     res.json(result);
   } catch (err: unknown) {
     // Special handling: surface a clear error if OpenAI API key isn't configured

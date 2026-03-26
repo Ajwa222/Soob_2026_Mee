@@ -37,15 +37,13 @@ export const getReaction = async (req: Request, res: Response) => {
   }
 };
 
-/** POST /:id/reactions/like — Toggle like (like ↔ unlike). Also updates segment stats if segment header is present. */
+/** POST /:id/reactions/like — Toggle like (like ↔ unlike) */
 export const toggleLike = async (req: Request, res: Response) => {
   try {
     const planId = validatePlanId(req.params.id, res);
     if (!planId) return;
     const userId = (req as AuthenticatedRequest).uid!;
-    // Frontend sends the user's persona segment via a custom header for segment stats tracking
-    const segment = req.headers["x-persona-segment"] as string | undefined;
-    const result = await InteractionService.toggleLike(planId, userId, segment);
+    const result = await InteractionService.toggleLike(planId, userId);
     res.json(result);
   } catch (err) {
     console.error("Toggle like error:", err);

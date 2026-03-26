@@ -8,7 +8,6 @@ import {
 import { useLang } from '../context/LanguageContext';
 import { CARRIERS } from '../data/plans';
 import { usePlans } from '../context/PlansContext';
-import { usePersona } from '../context/PersonaContext';
 import { trackEvent } from '../lib/analytics';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
@@ -191,22 +190,9 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
   );
 }
 
-// Map persona segments to category keys
-const SEGMENT_TO_CATEGORY: Record<string, string> = {
-  gamer: 'gamers',
-  student: 'students',
-  budget: 'budget',
-  expat: 'expats',
-  family: 'balanced',
-  streamer: 'unlimited',
-  power_user: 'unlimited',
-  business: 'expats',
-};
-
 export default function ExplorePage() {
   const { t } = useLang();
   const { plans: PLANS_DATA } = usePlans();
-  const { segment, trackSignal } = usePersona();
 
   /* ---- filter state ---- */
   const [search, setSearch] = useState('');
@@ -220,16 +206,6 @@ export default function ExplorePage() {
   const [fiveGFilter, setFiveGFilter] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-
-  // Reorder categories so the persona's category appears first
-  const orderedCategories = useMemo(() => {
-    if (!segment) return CATEGORIES;
-    const catKey = SEGMENT_TO_CATEGORY[segment];
-    if (!catKey) return CATEGORIES;
-    const idx = CATEGORIES.findIndex(c => c.key === catKey);
-    if (idx <= 0) return CATEGORIES;
-    return [CATEGORIES[idx], ...CATEGORIES.slice(0, idx), ...CATEGORIES.slice(idx + 1)];
-  }, [segment]);
 
   const toggleCarrier = useCallback((name: string) => {
     setSelectedCarriers(prev => prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]);
@@ -336,11 +312,11 @@ export default function ExplorePage() {
     // Sort all by cheapest first
     base.sort((a, b) => a.priceSAR - b.priceSAR);
 
-    return orderedCategories.map((cat) => {
+    return CATEGORIES.map((cat) => {
       const plans = base.filter(cat.filter).slice(0, MAX_PLANS_PER_CATEGORY);
       return { ...cat, plans };
     });
-  }, [PLANS_DATA, search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, fiveGFilter, orderedCategories]);
+  }, [PLANS_DATA, search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, fiveGFilter, CATEGORIES]);
 
   const visibleCategories = activeCategory
     ? categoryData.filter(c => c.key === activeCategory)
@@ -440,7 +416,6 @@ export default function ExplorePage() {
             onValueChange={setPriceRange}
             onValueCommit={(v) => {
               const bucket = v[1] <= 100 ? 'low' : v[1] <= 300 ? 'mid' : 'high';
-              trackSignal('priceRangeClicks', bucket);
             }}
             className="w-full"
           />
@@ -462,7 +437,7 @@ export default function ExplorePage() {
               key={opt.key}
               variant="ghost"
               size="sm"
-              onClick={() => { if (opt.key === 'unlimited') trackSignal('filtersUsed', 'unlimited'); setDataFilter(opt.key); }}
+              onClick={() => { setDataFilter(opt.key); }}
               className={`rounded-lg text-xs font-semibold
                 ${dataFilter === opt.key
                   ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
@@ -510,7 +485,7 @@ export default function ExplorePage() {
               key={opt.key}
               variant="ghost"
               size="sm"
-              onClick={() => { const next = intlCallsFilter === opt.key ? null : opt.key; if (next === 'yes') trackSignal('filtersUsed', 'international'); setIntlCallsFilter(next); }}
+              onClick={() => { const next = intlCallsFilter === opt.key ? null : opt.key; setIntlCallsFilter(next); }}
               className={`rounded-lg text-xs font-semibold
                 ${intlCallsFilter === opt.key
                   ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
@@ -534,7 +509,7 @@ export default function ExplorePage() {
               key={opt.key}
               variant="ghost"
               size="sm"
-              onClick={() => { const next = socialFilter === opt.key ? null : opt.key; if (next === 'yes') trackSignal('filtersUsed', 'social'); setSocialFilter(next); }}
+              onClick={() => { const next = socialFilter === opt.key ? null : opt.key; setSocialFilter(next); }}
               className={`rounded-lg text-xs font-semibold
                 ${socialFilter === opt.key
                   ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
@@ -555,7 +530,7 @@ export default function ExplorePage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => { setFiveGFilter(prev => { trackEvent('filter_applied', { filter: '5g', active: !prev }); if (!prev) trackSignal('filtersUsed', '5g'); return !prev; }); }}
+          onClick={() => { setFiveGFilter(prev => { trackEvent('filter_applied', { filter: '5g', active: !prev }); return !prev; }); }}
           className={`rounded-lg text-xs font-semibold
             ${fiveGFilter
               ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
@@ -619,7 +594,7 @@ export default function ExplorePage() {
           </div>
           {/* Category chips — full width under search row */}
           <div className="flex gap-1 overflow-x-auto mt-2 pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {orderedCategories.map((cat) => {
+            {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               const isActive = activeCategory === cat.key;
               return (
@@ -629,7 +604,6 @@ export default function ExplorePage() {
                     const next = activeCategory === cat.key ? null : cat.key;
                     if (next) {
                       trackEvent('category_selected', { category: next });
-                      trackSignal('categoriesViewed', next);
                     }
                     setActiveCategory(next);
                   }}

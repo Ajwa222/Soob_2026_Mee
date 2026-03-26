@@ -5,7 +5,7 @@
  *  - Browsing & searching Saudi telecom plans (150+ plans, 8 carriers)
  *  - User interactions (likes, dislikes, comments) stored in Firestore
  *  - AI-powered plan advisor (OpenAI GPT integration)
- *  - User persona/segment system for personalized recommendations
+ *  - Personalized plan recommendations (popularity + collaborative filtering)
  */
 
 import express from "express";
@@ -21,7 +21,7 @@ dotenv.config();
 import plansRouter from "./routes/plans.routes.js";
 import advisorRouter from "./routes/advisor.routes.js";
 import interactionsRouter from "./routes/interactions.routes.js";
-import personaRouter from "./routes/persona.routes.js";
+import recommendationsRouter from "./routes/recommendations.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -71,8 +71,8 @@ app.use("/api/plan-interactions", interactionsRouter);
 // AI advisor chat — rate-limited because each request calls OpenAI
 app.use("/api/advisor", advisorLimiter, advisorRouter);
 
-// User persona & segment system — personalized plan recommendations
-app.use("/api/persona", personaRouter);
+// Personalized plan recommendations (global popularity + collaborative filtering)
+app.use("/api/recommendations", recommendationsRouter);
 
 // ── Error Handling ──
 
