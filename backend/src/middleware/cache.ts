@@ -1,9 +1,20 @@
+/**
+ * HTTP caching middleware for JSON responses.
+ *
+ * Sets Cache-Control headers so browsers and CDNs (e.g., CloudFront) can cache
+ * responses without the client hitting the server on every request.
+ *
+ * Uses "stale-while-revalidate" (SWR) so users see cached data instantly while
+ * the CDN fetches a fresh copy in the background.
+ */
+
 import type { Request, Response, NextFunction } from "express";
 
 /**
- * Sets Cache-Control and Content-Type: application/json headers.
- * @param maxAge  max-age in seconds (default 300)
- * @param swr     stale-while-revalidate in seconds (default 2× maxAge)
+ * Middleware factory that sets Cache-Control and Content-Type headers.
+ * @param maxAge  How long (in seconds) the response is considered fresh. Default: 300s (5 min).
+ * @param swr     How long (in seconds) a stale response can be served while revalidating.
+ *                Default: 2× maxAge.
  */
 export function cacheJson(maxAge = 300, swr?: number) {
   const swrVal = swr ?? maxAge * 2;
