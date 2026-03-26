@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Send, Loader2,
-  Bot, X, MessageSquareText, HelpCircle, History,
-  ArrowLeftRight, Sparkles, ArrowLeft, Lock,
+  Bot, ArrowLeft,
+  HelpCircle, MessageSquareText,
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { getFirebaseDb } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
@@ -19,54 +19,73 @@ import {
 import { ConnectedPlanCard } from '../components/PlanCard';
 import WaveLines from '../components/WaveLines';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 
-// ─── Guided questionnaire config ───
-interface QuizStep {
-  questionEn: string;
-  questionAr: string;
-  type?: 'slider';
-  sliderConfig?: { min: number; max: number; step: number; unitEn: string; unitAr: string };
-  options: { labelEn: string; labelAr: string; valueEn: string; valueAr: string }[];
+// ─── Simple markdown renderer (bold, italic, bullet lists) ───
+function renderMarkdown(text: string) {
+  // Split into lines for list handling
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  let listItems: string[] = [];
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="list-disc list-inside space-y-1 my-1">
+          {listItems.map((item, i) => (
+            <li key={i}>{renderInline(item)}</li>
+          ))}
+        </ul>
+      );
+      listItems = [];
+    }
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const bulletMatch = line.match(/^[\s]*[-•*]\s+(.*)/);
+    const numberedMatch = line.match(/^[\s]*\d+[.)]\s+(.*)/);
+
+    if (bulletMatch || numberedMatch) {
+      listItems.push((bulletMatch || numberedMatch)![1]);
+    } else {
+      flushList();
+      if (line.trim() === '') {
+        if (i > 0 && i < lines.length - 1) {
+          elements.push(<br key={`br-${i}`} />);
+        }
+      } else {
+        if (elements.length > 0) elements.push(<br key={`br-${i}`} />);
+        elements.push(<span key={`line-${i}`}>{renderInline(line)}</span>);
+      }
+    }
+  }
+  flushList();
+  return <>{elements}</>;
 }
 
-const QUIZ_STEPS: QuizStep[] = [
-  {
-    questionEn: 'Do you need internet in the plan?',
-    questionAr: 'تبي الباقة يكون فيها انترنت ؟',
-    options: [
-      { labelEn: 'Yes', labelAr: 'ايه', valueEn: 'Yes, I need internet/data in my plan.', valueAr: 'ايه، أبي انترنت بالباقة.' },
-      { labelEn: "I don't know", labelAr: 'مدري', valueEn: "I'm not sure if I need data.", valueAr: 'مدري إذا أحتاج انترنت.' },
-      { labelEn: 'No', labelAr: 'لا', valueEn: "No, I don't need internet/data.", valueAr: 'لا، ما أحتاج انترنت.' },
-    ],
-  },
-  {
-    questionEn: 'Do you make a lot of calls?',
-    questionAr: 'تكلم كثير ؟',
-    options: [
-      { labelEn: 'Local calls', labelAr: 'مكالمات محلية', valueEn: 'I mostly make local calls.', valueAr: 'أغلب مكالماتي محلية.' },
-      { labelEn: 'International calls', labelAr: 'مكالمات دولية', valueEn: 'I need international calling minutes.', valueAr: 'أحتاج دقائق مكالمات دولية.' },
-      { labelEn: 'Both', labelAr: 'الاثنين', valueEn: 'I need both local and international calls.', valueAr: 'أحتاج مكالمات محلية ودولية.' },
-      { labelEn: 'No', labelAr: 'لا', valueEn: "I don't make many calls.", valueAr: 'لا، ما أكلم كثير.' },
-    ],
-  },
-  {
-    questionEn: 'Need dedicated social media data?',
-    questionAr: 'تحتاج بيانات مخصصة للسوشل ميديا؟',
-    options: [
-      { labelEn: 'Yes, a must!', labelAr: 'أكيد، لازم!', valueEn: 'Yes, I need dedicated social media data.', valueAr: 'أي، أحتاج بيانات مخصصة للسوشل.' },
-      { labelEn: 'Nice to have', labelAr: 'حلو لو فيه', valueEn: 'Social media data would be nice but not essential.', valueAr: 'حلو لو فيه بيانات سوشل بس مو ضروري.' },
-      { labelEn: 'No', labelAr: 'لا', valueEn: "No, I don't need separate social media data.", valueAr: 'لا، ما أحتاج بيانات سوشل منفصلة.' },
-    ],
-  },
-  {
-    questionEn: "What's your monthly budget?",
-    questionAr: 'كم ميزانيتك الشهرية؟',
-    type: 'slider',
-    sliderConfig: { min: 30, max: 1000, step: 10, unitEn: 'SAR', unitAr: 'ريال' },
-    options: [],
-  },
-];
+function renderInline(text: string): React.ReactNode {
+  // Parse **bold** and *italic*
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    if (match[2]) {
+      parts.push(<strong key={match.index}>{match[2]}</strong>);
+    } else if (match[3]) {
+      parts.push(<em key={match.index}>{match[3]}</em>);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts.length === 1 ? parts[0] : <>{parts}</>;
+}
 
 // Rotating search status messages
 function useSearchStatus(loading: boolean, t: (k: string) => string) {
@@ -84,7 +103,7 @@ function useSearchStatus(loading: boolean, t: (k: string) => string) {
   return statusMessages[statusIdx];
 }
 
-function InlineScanningWidget({ plans, lang, quizDone, searchStatus }: { plans: Plan[]; lang: string; quizDone: boolean; searchStatus: string }) {
+function InlineScanningWidget({ plans, lang, searchStatus }: { plans: Plan[]; lang: string; searchStatus: string }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [litCarriers, setLitCarriers] = useState<Set<string>>(new Set());
 
@@ -112,19 +131,6 @@ function InlineScanningWidget({ plans, lang, quizDone, searchStatus }: { plans: 
   const current = shuffled[currentIndex];
   const carrierLogo = CARRIERS.find(c => c.name === current?.provider);
 
-  // Short loading between quiz questions — just show simple bubble
-  if (!quizDone) {
-    return (
-      <div className="flex justify-start">
-        <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-2.5">
-          <Loader2 size={16} className="animate-spin text-primary" />
-          <span className="text-sm text-muted-foreground animate-pulse">{searchStatus}</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Full scanning widget for AI search
   return (
     <div className="flex justify-start">
       <div className="w-full max-w-[85%] md:max-w-[75%] bg-muted rounded-2xl rounded-bl-md p-4 space-y-3">
@@ -187,48 +193,88 @@ function InlineScanningWidget({ plans, lang, quizDone, searchStatus }: { plans: 
 
 export default function AdvisorPage() {
   const { t, lang } = useLang();
-  const navigate = useNavigate();
   const [, setSearchParams] = useSearchParams();
   const { plans } = usePlans();
   const { user } = useAuth();
-  // Flow state: 'intent' = first layer, 'choice' = describe/guide picker, number = quiz step, null = quiz done / free chat
-  const [quizStep, setQuizStep] = useState<number | 'intent' | 'choice' | null>('intent');
-  const [quizAnswers, setQuizAnswers] = useState<string[]>([]);
-  const [quizLabels, setQuizLabels] = useState<string[]>([]);
-
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
-  const [budgetValue, setBudgetValue] = useState(150);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasSavedConvo, setHasSavedConvo] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const searchStatus = useSearchStatus(loading, t);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasInitialized = useRef(false);
 
-  const quizDone = quizStep === null;
-  const inIntent = quizStep === 'intent';
-  const inChoice = quizStep === 'choice';
-  const inQuiz = typeof quizStep === 'number';
+  // Whether the user has picked a quick-action card (hides the cards once chosen)
+  const [started, setStarted] = useState(false);
 
-  // Check for saved conversation on mount (logged-in users only)
+  // Try to resume saved conversation on mount (logged-in users)
   useEffect(() => {
-    if (!user?.uid || (quizStep !== 'intent' && quizStep !== 'choice')) return;
-    getFirebaseDb().then(async (db) => {
-      const { doc, getDoc } = await import('firebase/firestore');
-      const snap = await getDoc(doc(db, 'users', user.uid, 'advisor', 'lastConversation'));
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data?.messages?.length > 0) setHasSavedConvo(true);
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
+    if (!user?.uid) return;
+    const init = async () => {
+      try {
+        const db = await getFirebaseDb();
+        const { doc, getDoc } = await import('firebase/firestore');
+        const snap = await getDoc(doc(db, 'users', user.uid, 'advisor', 'lastConversation'));
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data?.messages?.length > 0) {
+            setMessages(data.messages as ChatMessage[]);
+            setStarted(true);
+            setSearchParams({ chat: '1' }, { replace: true });
+            trackEvent('advisor_conversation_resumed');
+          }
+        }
+      } catch {
+        // Silently fail — show welcome + cards
       }
-    }).catch(() => {});
-  }, [user?.uid, quizStep]);
+    };
+    init();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Save conversation to Firestore (debounced, only when quiz is done)
+  // Handle quick-action card click — send a tailored prompt to the AI
+  const handleQuickAction = useCallback(async (mode: 'guide' | 'direct') => {
+    if (loading) return;
+    setStarted(true);
+    setSearchParams({ chat: '1' }, { replace: true });
+    setLoading(true);
+    setError(null);
+    trackEvent('advisor_started', { mode });
+
+    const prompts = {
+      guide: {
+        en: 'Hi, I need help finding a plan but I\'m not sure what I need. Guide me through it.',
+        ar: 'مرحبا، أبي باقة بس ما أدري وش أحتاج بالضبط. ساعدوني أختار.',
+      },
+      direct: {
+        en: 'Hi, I know what I want in a plan. Let me describe my needs.',
+        ar: 'مرحبا، أعرف وش أبي بالباقة. خلني أوصف لكم احتياجي.',
+      },
+    };
+
+    const userText = prompts[mode][lang];
+    const userMsg: ChatMessage = { role: 'user', text: userText };
+    setMessages([userMsg]);
+
+    try {
+      const { reply, planIds } = await sendAdvisorMessage(lang, [], userText);
+      setMessages([userMsg, { role: 'assistant', text: reply, planIds }]);
+    } catch (e) {
+      console.error('Advisor error:', e);
+      setError(lang === 'ar' ? 'حصل خطأ، جرب مرة ثانية.' : 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, lang, t, setSearchParams]);
+
+  // Save conversation to Firestore (debounced)
   useEffect(() => {
-    if (!user?.uid || !quizDone || messages.length === 0) return;
+    if (!user?.uid || messages.length === 0) return;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       getFirebaseDb().then(async (db) => {
@@ -241,29 +287,7 @@ export default function AdvisorPage() {
       }).catch(() => {});
     }, 2000);
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
-  }, [messages, user?.uid, quizDone, lang]);
-
-  // Resume a saved conversation
-  const resumeConversation = useCallback(async () => {
-    if (!user?.uid) return;
-    try {
-      const db = await getFirebaseDb();
-      const { doc, getDoc } = await import('firebase/firestore');
-      const snap = await getDoc(doc(db, 'users', user.uid, 'advisor', 'lastConversation'));
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data?.messages?.length > 0) {
-          setMessages(data.messages as ChatMessage[]);
-          setQuizStep(null);
-          setSearchParams({ chat: '1' }, { replace: true });
-          trackEvent('advisor_conversation_resumed');
-        }
-      }
-    } catch {
-      // Silently fail — just show the choice screen
-    }
-    setHasSavedConvo(false);
-  }, [user?.uid, setSearchParams]);
+  }, [messages, user?.uid, lang]);
 
   // Auto-scroll chat after every change
   const scrollChat = useCallback(() => {
@@ -276,154 +300,18 @@ export default function AdvisorPage() {
     return () => clearTimeout(t);
   }, [messages, loading, scrollChat]);
 
-  // Focus input once when quiz first completes (desktop only — on mobile it opens the keyboard and blocks results)
+  // Focus input once first message arrives (desktop only)
   const hasAutoFocused = useRef(false);
   useEffect(() => {
-    if (quizDone && !hasAutoFocused.current) {
+    if (messages.length > 0 && !loading && !hasAutoFocused.current) {
       hasAutoFocused.current = true;
       if (window.matchMedia('(min-width: 768px)').matches) {
         inputRef.current?.focus();
       }
     }
-  }, [quizDone]);
+  }, [messages.length, loading]);
 
-  // Reset when language changes
-  useEffect(() => {
-    setQuizStep('intent');
-    setQuizAnswers([]);
-    setQuizLabels([]);
-    setMessages([]);
-  }, [lang]);
-
-  // Handle initial choice card tap
-  const handleChoice = useCallback((mode: 'describe' | 'guide') => {
-    if (quizStep !== 'choice') return;
-
-    if (mode === 'describe') {
-      setMessages([
-        { role: 'assistant', text: t('advisor.describePrompt'), planIds: [] },
-      ]);
-      setQuizStep(null);
-      setSearchParams({ chat: '1' }, { replace: true });
-      trackEvent('advisor_choice_selected', { choice: 'describe' });
-    } else {
-      const firstQ = lang === 'ar' ? QUIZ_STEPS[0].questionAr : QUIZ_STEPS[0].questionEn;
-      setMessages([
-        { role: 'assistant', text: t('advisor.welcomeMessage'), planIds: [] },
-        { role: 'assistant', text: firstQ, planIds: [] },
-      ]);
-      setQuizStep(0);
-      trackEvent('advisor_choice_selected', { choice: 'guide' });
-    }
-  }, [quizStep, lang, t, setSearchParams]);
-
-  // Handle quiz option tap
-  const handleQuizOption = useCallback(async (option: QuizStep['options'][number]) => {
-    if (typeof quizStep !== 'number' || loading) return;
-
-    const userText = lang === 'ar' ? option.valueAr : option.valueEn;
-    const userLabel = lang === 'ar' ? option.labelAr : option.labelEn;
-    const newAnswers = [...quizAnswers, userText];
-
-    // Add user's answer as a chat bubble (show the short label)
-    setMessages(prev => [...prev, { role: 'user', text: userLabel }]);
-    setQuizAnswers(newAnswers);
-    setQuizLabels(prev => [...prev, option.labelEn]);
-
-    trackEvent('advisor_quiz_answered', { step: quizStep, step_name: QUIZ_STEPS[quizStep].questionEn, answer: option.labelEn });
-
-    const nextStep = quizStep + 1;
-
-    if (nextStep < QUIZ_STEPS.length) {
-      // Show thinking indicator, then reveal next question
-      setLoading(true);
-      const nextQ = lang === 'ar' ? QUIZ_STEPS[nextStep].questionAr : QUIZ_STEPS[nextStep].questionEn;
-      setTimeout(() => {
-        setLoading(false);
-        setMessages(prev => [...prev, { role: 'assistant', text: nextQ, planIds: [] }]);
-        setQuizStep(nextStep);
-      }, 800 + Math.random() * 400);
-    } else {
-      // Quiz complete — send all answers to AI
-      setQuizStep(null);
-      setSearchParams({ chat: '1' }, { replace: true });
-      setLoading(true);
-      setError(null);
-      trackEvent('advisor_started');
-
-      // Build a summary message from all answers
-      const summary = newAnswers.join(' ');
-
-      // Build the full history: welcome + Q&A pairs + summary
-      const fullHistory: ChatMessage[] = [];
-      for (let i = 0; i < QUIZ_STEPS.length; i++) {
-        fullHistory.push({ role: 'assistant', text: lang === 'ar' ? QUIZ_STEPS[i].questionAr : QUIZ_STEPS[i].questionEn });
-        fullHistory.push({ role: 'user', text: newAnswers[i] });
-      }
-
-      try {
-        const { reply, planIds } = await sendAdvisorMessage(lang, fullHistory, summary);
-        setMessages(prev => [...prev, { role: 'assistant', text: reply, planIds }]);
-      } catch (e) {
-        console.error('Advisor error:', e);
-        setError(lang === 'ar' ? 'حصل خطأ، جرب مرة ثانية.' : 'Something went wrong. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    }
-  }, [quizStep, loading, lang, quizAnswers]);
-
-  // Handle budget slider submit
-  const handleBudgetSubmit = useCallback(async () => {
-    if (typeof quizStep !== 'number' || loading) return;
-
-    const userTextEn = `My budget is ${budgetValue} SAR per month.`;
-    const userTextAr = `ميزانيتي ${budgetValue} ريال بالشهر.`;
-    const userText = lang === 'ar' ? userTextAr : userTextEn;
-    const userLabel = `${budgetValue} ${lang === 'ar' ? 'ريال' : 'SAR'}`;
-    const newAnswers = [...quizAnswers, userText];
-
-    setMessages(prev => [...prev, { role: 'user', text: userLabel }]);
-    setQuizAnswers(newAnswers);
-    trackEvent('advisor_quiz_answered', { step: quizStep, step_name: 'budget', answer: `${budgetValue} SAR` });
-
-    const nextStep = quizStep + 1;
-
-    if (nextStep < QUIZ_STEPS.length) {
-      setLoading(true);
-      const nextQ = lang === 'ar' ? QUIZ_STEPS[nextStep].questionAr : QUIZ_STEPS[nextStep].questionEn;
-      setTimeout(() => {
-        setLoading(false);
-        setMessages(prev => [...prev, { role: 'assistant', text: nextQ, planIds: [] }]);
-        setQuizStep(nextStep);
-      }, 800 + Math.random() * 400);
-    } else {
-      setQuizStep(null);
-      setSearchParams({ chat: '1' }, { replace: true });
-      setLoading(true);
-      setError(null);
-      trackEvent('advisor_started');
-
-      const summary = newAnswers.join(' ');
-      const fullHistory: ChatMessage[] = [];
-      for (let i = 0; i < QUIZ_STEPS.length; i++) {
-        fullHistory.push({ role: 'assistant', text: lang === 'ar' ? QUIZ_STEPS[i].questionAr : QUIZ_STEPS[i].questionEn });
-        fullHistory.push({ role: 'user', text: newAnswers[i] });
-      }
-
-      try {
-        const { reply, planIds } = await sendAdvisorMessage(lang, fullHistory, summary);
-        setMessages(prev => [...prev, { role: 'assistant', text: reply, planIds }]);
-      } catch (e) {
-        console.error('Advisor error:', e);
-        setError(lang === 'ar' ? 'حصل خطأ، جرب مرة ثانية.' : 'Something went wrong. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    }
-  }, [quizStep, loading, lang, quizAnswers, quizLabels, budgetValue, setSearchParams]);
-
-  // Free-chat send (after quiz is done)
+  // Free-chat send
   const sendText = useCallback(async (text: string) => {
     if (!text || loading) return;
 
@@ -455,183 +343,15 @@ export default function AdvisorPage() {
 
   const restart = () => {
     trackEvent('advisor_restarted');
-    setQuizStep('intent');
-    setQuizAnswers([]);
-    setQuizLabels([]);
+    hasInitialized.current = true; // prevent resume check from re-firing
+    setStarted(false);
     setMessages([]);
     setInput('');
     setError(null);
     setLoading(false);
-    setHasSavedConvo(false);
     setSearchParams({}, { replace: true });
   };
 
-  // Determine which message index is the current quiz question (last assistant message)
-  const lastAssistantIdx = (() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role === 'assistant') return i;
-    }
-    return -1;
-  })();
-
-  // ─── Intent screen (first layer) ───
-  if (inIntent) {
-    return (
-      <div className="relative z-10 h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] md:h-auto flex flex-col">
-        <section className="shrink-0 relative overflow-hidden hero-gradient grain">
-          <WaveLines />
-          <div className="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-3 md:pt-6 md:pb-4 relative z-[2]">
-            <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-black/60 text-xs font-medium mb-2 hover:text-black transition-colors">
-              <ArrowLeft size={14} className="rtl:rotate-180" />
-              {lang === 'ar' ? 'رجوع' : 'Back'}
-            </button>
-            <div className="flex items-center gap-2.5 animate-fade-up">
-              <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-                <Bot size={18} className="text-black" />
-              </div>
-              <div>
-                <h1 className="font-heading font-normal text-lg md:text-xl text-black tracking-tight">
-                  {t('advisor.chatTitle')}
-                </h1>
-                <p className="text-black/50 text-[11px] md:text-xs">
-                  {t('advisor.chatSubtitle')}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div className="flex-1 flex items-center justify-center bg-background px-4">
-          <div className="max-w-md w-full space-y-6 animate-fade-up">
-            <div className="text-center space-y-2">
-              <h2 className="font-heading text-xl md:text-2xl font-medium text-foreground">
-                {t('advisor.intentQuestion')}
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {/* Card: I want a new plan */}
-              <button
-                onClick={() => {
-                  trackEvent('advisor_intent_selected', { intent: 'new_plan' });
-                  setQuizStep('choice');
-                }}
-                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
-                  <Sparkles size={24} className="text-primary" />
-                </div>
-                <span className="font-medium text-sm text-foreground">{t('advisor.intentNew')}</span>
-                <span className="text-xs text-muted-foreground leading-relaxed">
-                  {t('advisor.intentNewDesc')}
-                </span>
-              </button>
-
-              {/* Card: Compare current plan */}
-              <button
-                onClick={() => {
-                  trackEvent('advisor_intent_selected', { intent: 'compare' });
-                  navigate('/switch');
-                }}
-                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
-                  <ArrowLeftRight size={24} className="text-primary" />
-                </div>
-                <span className="font-medium text-sm text-foreground">{t('advisor.intentCompare')}</span>
-                <span className="text-xs text-muted-foreground leading-relaxed">
-                  {t('advisor.intentCompareDesc')}
-                </span>
-              </button>
-            </div>
-
-            {/* Resume previous conversation */}
-            {hasSavedConvo && (
-              <button
-                onClick={resumeConversation}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border bg-muted/50 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
-              >
-                <History size={16} />
-                {lang === 'ar' ? 'متابعة المحادثة السابقة' : 'Continue previous conversation'}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Choice screen (before chat) ───
-  if (inChoice) {
-    return (
-      <div className="relative z-10 h-[calc(100dvh-56px)] md:min-h-[calc(100dvh-64px)] md:h-auto flex flex-col">
-        <section className="shrink-0 relative overflow-hidden hero-gradient grain">
-          <WaveLines />
-          <div className="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-3 md:pt-6 md:pb-4 relative z-[2]">
-            <button onClick={() => setQuizStep('intent')} className="flex items-center gap-1 text-black/60 text-xs font-medium mb-2 hover:text-black transition-colors">
-              <ArrowLeft size={14} className="rtl:rotate-180" />
-              {lang === 'ar' ? 'رجوع' : 'Back'}
-            </button>
-            <div className="flex items-center gap-2.5 animate-fade-up">
-              <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-                <Bot size={18} className="text-black" />
-              </div>
-              <div>
-                <h1 className="font-heading font-normal text-lg md:text-xl text-black tracking-tight">
-                  {t('advisor.chatTitle')}
-                </h1>
-                <p className="text-black/50 text-[11px] md:text-xs">
-                  {t('advisor.chatSubtitle')}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div className="flex-1 flex items-center justify-center bg-background px-4">
-          <div className="max-w-md w-full space-y-6 animate-fade-up">
-            <div className="text-center space-y-2">
-              <h2 className="font-heading text-xl md:text-2xl font-medium text-foreground">
-                {t('advisor.choiceQuestion')}
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {/* Card: Guide me */}
-              <button
-                onClick={() => handleChoice('guide')}
-                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
-                  <HelpCircle size={24} className="text-primary" />
-                </div>
-                <span className="font-medium text-sm text-foreground">{t('advisor.choiceGuide')}</span>
-                <span className="text-xs text-muted-foreground leading-relaxed">
-                  {t('advisor.choiceGuideDesc')}
-                </span>
-              </button>
-
-              {/* Card: I know what I want */}
-              <button
-                onClick={() => handleChoice('describe')}
-                className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-background p-6 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
-                  <MessageSquareText size={24} className="text-primary" />
-                </div>
-                <span className="font-medium text-sm text-foreground">{t('advisor.choiceDescribe')}</span>
-                <span className="text-xs text-muted-foreground leading-relaxed">
-                  {t('advisor.choiceDescribeDesc')}
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Chat screen (quiz + free chat) ───
   return (
     <div className="relative z-10 h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)] flex flex-col">
       {/* Header */}
@@ -663,18 +383,56 @@ export default function AdvisorPage() {
       {/* Chat messages */}
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 pb-24 md:pb-4 space-y-4">
+          {/* Fixed welcome message — always visible */}
+          <div className="flex justify-start">
+            <div className="max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed bg-muted text-foreground rounded-bl-md">
+              {t('advisor.welcomeMessage')}
+            </div>
+          </div>
+
+          {/* Quick-action cards — shown until user picks one */}
+          {!started && !loading && (
+            <div className="grid grid-cols-2 gap-3 max-w-[85%] md:max-w-[75%]">
+              <button
+                onClick={() => handleQuickAction('guide')}
+                className="group flex flex-col items-center gap-2.5 rounded-2xl border-2 border-border bg-background p-5 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
+                  <HelpCircle size={20} className="text-primary" />
+                </div>
+                <span className="font-medium text-sm text-foreground">{t('advisor.quickGuide')}</span>
+                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                  {t('advisor.quickGuideDesc')}
+                </span>
+              </button>
+
+              <button
+                onClick={() => handleQuickAction('direct')}
+                className="group flex flex-col items-center gap-2.5 rounded-2xl border-2 border-border bg-background p-5 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
+                  <MessageSquareText size={20} className="text-primary" />
+                </div>
+                <span className="font-medium text-sm text-foreground">{t('advisor.quickDirect')}</span>
+                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                  {t('advisor.quickDirectDesc')}
+                </span>
+              </button>
+            </div>
+          )}
+
           {messages.map((msg, i) => (
             <div key={i}>
               {/* Message bubble */}
               <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className={`max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap
+                  className={`max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed
                     ${msg.role === 'user'
-                      ? 'bg-primary text-white rounded-br-md'
+                      ? 'bg-primary text-white rounded-br-md whitespace-pre-wrap'
                       : 'bg-muted text-foreground rounded-bl-md'
                     }`}
                 >
-                  {msg.text}
+                  {msg.role === 'assistant' ? renderMarkdown(msg.text) : msg.text}
                 </div>
               </div>
 
@@ -688,50 +446,21 @@ export default function AdvisorPage() {
                   ))}
                 </div>
               )}
-
-              {/* Quiz option chips or slider — show on the last assistant message during quiz */}
-              {inQuiz && i === lastAssistantIdx && !loading && (
-                QUIZ_STEPS[quizStep as number].type === 'slider' ? (
-                  <div className="mt-3 w-full max-w-[85%] md:max-w-[75%] bg-muted rounded-2xl rounded-bl-md p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-foreground">
-                        {lang === 'ar' ? QUIZ_STEPS[quizStep as number].sliderConfig!.unitAr : QUIZ_STEPS[quizStep as number].sliderConfig!.unitEn}
-                      </span>
-                      <span className="text-sm font-bold text-primary">{budgetValue} {lang === 'ar' ? 'ريال' : 'SAR'}</span>
-                    </div>
-                    <div dir="ltr">
-                      <Slider
-                        min={QUIZ_STEPS[quizStep as number].sliderConfig!.min}
-                        max={QUIZ_STEPS[quizStep as number].sliderConfig!.max}
-                        step={QUIZ_STEPS[quizStep as number].sliderConfig!.step}
-                        value={[budgetValue]}
-                        onValueChange={([v]) => setBudgetValue(v)}
-                      />
-                    </div>
-                    <Button onClick={handleBudgetSubmit} size="sm" className="w-full rounded-xl text-xs font-bold">
-                      {lang === 'ar' ? 'التالي' : 'Next'}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {QUIZ_STEPS[quizStep as number].options.map((option: QuizStep['options'][number]) => (
-                      <button
-                        key={option.labelEn}
-                        onClick={() => handleQuizOption(option)}
-                        className="inline-flex items-center px-3.5 py-2 rounded-full border border-[#FFE4B0] bg-[#FFF0D0] text-xs font-medium text-foreground hover:bg-[#FFE4B0] transition-colors cursor-pointer"
-                      >
-                        {lang === 'ar' ? option.labelAr : option.labelEn}
-                      </button>
-                    ))}
-                  </div>
-                )
-              )}
             </div>
           ))}
 
-          {/* Loading indicator — inline scanning animation */}
+          {/* Loading indicator */}
           {loading && (
-            <InlineScanningWidget plans={plans} lang={lang} quizDone={quizDone} searchStatus={searchStatus} />
+            messages.length === 0
+              ? (
+                <div className="flex justify-start">
+                  <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-2.5">
+                    <Loader2 size={16} className="animate-spin text-primary" />
+                    <span className="text-sm text-muted-foreground animate-pulse">{searchStatus}</span>
+                  </div>
+                </div>
+              )
+              : <InlineScanningWidget plans={plans} lang={lang} searchStatus={searchStatus} />
           )}
 
           {/* Error */}
@@ -747,44 +476,42 @@ export default function AdvisorPage() {
         </div>
       </div>
 
-      {/* Input bar — only shown after quiz is complete */}
-      {quizDone && (
-        <div className="shrink-0 border-t border-border bg-background z-50 mb-16 md:mb-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-          <div className="max-w-3xl mx-auto px-4 md:px-8 py-3">
-            <form
-              onSubmit={e => { e.preventDefault(); send(); }}
-              className="flex items-center gap-2"
+      {/* Input bar */}
+      <div className="shrink-0 border-t border-border bg-background z-50 mb-16 md:mb-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="max-w-3xl mx-auto px-4 md:px-8 py-3">
+          <form
+            onSubmit={e => { e.preventDefault(); send(); }}
+            className="flex items-center gap-2"
+          >
+            <Button
+              type="button"
+              onClick={restart}
+              variant="ghost"
+              size="sm"
+              className="rounded-xl h-10 w-10 p-0 shrink-0 text-muted-foreground hover:text-foreground"
             >
-              <Button
-                type="button"
-                onClick={restart}
-                variant="ghost"
-                size="sm"
-                className="rounded-xl h-10 w-10 p-0 shrink-0 text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft size={16} className="rtl:rotate-180" />
-              </Button>
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder={t('advisor.inputPlaceholder')}
-                disabled={loading}
-                className="flex-1 bg-muted rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
-              />
-              <Button
-                type="submit"
-                disabled={!input.trim() || loading}
-                size="sm"
-                className="rounded-xl h-10 w-10 p-0 shrink-0"
-              >
-                <Send size={16} />
-              </Button>
-            </form>
-          </div>
+              <ArrowLeft size={16} className="rtl:rotate-180" />
+            </Button>
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder={t('advisor.inputPlaceholder')}
+              disabled={loading}
+              className="flex-1 bg-muted rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+            />
+            <Button
+              type="submit"
+              disabled={!input.trim() || loading}
+              size="sm"
+              className="rounded-xl h-10 w-10 p-0 shrink-0"
+            >
+              <Send size={16} />
+            </Button>
+          </form>
         </div>
-      )}
+      </div>
     </div>
   );
 }
