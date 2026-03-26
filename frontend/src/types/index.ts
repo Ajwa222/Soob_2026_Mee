@@ -52,13 +52,13 @@ export type PersonaSegment =
   | 'streamer'
   | 'power_user';
 
-export interface PersonaQuizAnswers {
-  usage: 'gaming' | 'streaming' | 'social' | 'work' | 'calls' | 'basic';
-  budget: 'low' | 'mid' | 'high' | 'unlimited';
-  priority: 'data' | 'calls' | 'international' | 'price' | 'speed';
-  household: 'solo' | 'family' | 'shared';
-  location: 'local' | 'expat' | 'traveler';
-}
+// export interface PersonaQuizAnswers {
+//   usage: 'gaming' | 'streaming' | 'social' | 'work' | 'calls' | 'basic';
+//   budget: 'low' | 'mid' | 'high' | 'unlimited';
+//   priority: 'data' | 'calls' | 'international' | 'price' | 'speed';
+//   household: 'solo' | 'family' | 'shared';
+//   location: 'local' | 'expat' | 'traveler';
+// }
 
 export interface PersonaSignals {
   categoriesViewed: Record<string, number>;
@@ -72,7 +72,7 @@ export interface PersonaSignals {
 export interface PersonaProfile {
   segment: PersonaSegment;
   confidence: number;
-  quizAnswers?: PersonaQuizAnswers;
+  // quizAnswers?: PersonaQuizAnswers;
   signals: PersonaSignals;
   updatedAt: number;
   createdAt: number;
