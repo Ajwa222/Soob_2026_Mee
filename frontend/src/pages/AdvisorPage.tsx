@@ -674,7 +674,7 @@ export default function AdvisorPage() {
                       : 'bg-muted text-foreground rounded-bl-md'
                     }`}
                 >
-                  {formatReply(msg.text)}
+                  {msg.text}
                 </div>
               </div>
 
@@ -787,9 +787,4 @@ export default function AdvisorPage() {
       )}
     </div>
   );
-}
-
-/** Strip [#ID] tags from display text. */
-function formatReply(text: string): string {
-  return text.replace(/\[#\d+\]/g, '').trim();
 }

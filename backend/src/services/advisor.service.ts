@@ -4,10 +4,10 @@
  * How it works:
  *  1. Builds a system prompt containing the full plan catalog (154 plans as pipe-delimited rows)
  *  2. Sends the conversation history + new message to OpenAI GPT
- *  3. Extracts plan IDs from [#ID] tags in the response so the frontend can render plan cards
+ *  3. Extracts plan IDs from function tool calls so the frontend can render plan cards
  *
- * The AI is instructed to always include [#ID] tags when mentioning plans — this is how
- * the frontend knows which plan cards to show inline in the chat.
+ * The AI calls a `recommend_plans` tool with plan IDs whenever it mentions plans —
+ * this is how the frontend knows which plan cards to show inline in the chat.
  */
 
 import OpenAI from "openai";
@@ -79,7 +79,7 @@ ROLE:
 
 RULES:
 - ONLY recommend plans from the catalog below. Never invent plans.
-- CRITICAL: Every time you mention a plan, you MUST include its ID like [#ID] (e.g. [#5]) in the text. The app uses these IDs to show interactive plan cards. Never mention a plan without its [#ID] tag.
+- When you mention or recommend plans, call the recommend_plans tool with their IDs. The app uses those IDs to show interactive plan cards.
 - If the user asks about something outside telecom plans, politely redirect.
 - Respond in ${lang === "ar" ? "Arabic (Saudi dialect preferred)" : "English"}.
 - Never mention that you are an AI or LLM. You are "Simba, your plan advisor".
@@ -90,16 +90,53 @@ PLAN CATALOG:
 ${buildPlansContext()}`;
 }
 
+/** Valid plan IDs from the catalog, used to filter hallucinated IDs */
+const VALID_PLAN_IDS = new Set(PLANS_DATA.map((p) => p.id));
+
+/** OpenAI tool definition — the model calls this to report which plans it's recommending */
+const RECOMMEND_PLANS_TOOL: OpenAI.Chat.Completions.ChatCompletionTool = {
+  type: "function",
+  function: {
+    name: "recommend_plans",
+    description:
+      "Call this whenever you mention or recommend plans. Provide the plan IDs so the app can display interactive plan cards.",
+    parameters: {
+      type: "object",
+      properties: {
+        plan_ids: {
+          type: "array",
+          items: { type: "number" },
+          description: "Array of plan IDs being recommended (e.g. [5, 42, 103])",
+        },
+      },
+      required: ["plan_ids"],
+    },
+  },
+};
+
 /**
- * Extracts plan IDs from [#ID] tags in the AI's response text.
- * Example: "Check out [#5] and [#42]" → [5, 42]
+ * Extracts plan IDs from the model's tool calls.
  * Only returns IDs that exist in the plan catalog (filters out hallucinated IDs).
  */
-function extractPlanIds(text: string): number[] {
-  const matches = text.matchAll(/\[#(\d+)\]/g);
-  const ids = [...matches].map((m) => parseInt(m[1], 10));
-  const validIds = PLANS_DATA.map((p) => p.id);
-  return [...new Set(ids)].filter((id) => validIds.includes(id));
+function extractPlanIds(
+  toolCalls: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[] | undefined,
+): number[] {
+  if (!toolCalls) return [];
+  const ids: number[] = [];
+  for (const call of toolCalls) {
+    if (call.type !== "function") continue;
+    if (call.function.name === "recommend_plans") {
+      try {
+        const args = JSON.parse(call.function.arguments);
+        if (Array.isArray(args.plan_ids)) {
+          ids.push(...args.plan_ids.map(Number).filter((id: number) => !isNaN(id)));
+        }
+      } catch {
+        // Malformed JSON — skip this tool call
+      }
+    }
+  }
+  return [...new Set(ids)].filter((id) => VALID_PLAN_IDS.has(id));
 }
 
 /** Validates that a language code is supported (English or Arabic) */
@@ -139,11 +176,14 @@ export async function getAdvisorReply(
   const response = await client.chat.completions.create({
     model: "gpt-5.2",
     messages,
+    tools: [RECOMMEND_PLANS_TOOL],
+    tool_choice: "auto",
   });
 
-  const reply = response.choices[0]?.message?.content ?? "";
-  // Extract [#ID] tags from the reply so the frontend can render interactive plan cards
-  const planIds = extractPlanIds(reply);
+  const message = response.choices[0]?.message;
+  const reply = message?.content ?? "";
+  // Extract plan IDs from tool calls so the frontend can render interactive plan cards
+  const planIds = extractPlanIds(message?.tool_calls);
 
   return { reply, planIds };
 }
