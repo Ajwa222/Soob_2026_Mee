@@ -1,9 +1,12 @@
-import { getAuthSync } from "../lib/firebase";
+import { getAuthSync, getFirebaseAuth } from "../lib/firebase";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 async function getAuthHeader(): Promise<Record<string, string>> {
-  const auth = getAuthSync();
+  // Try sync first (fast path when Firebase is already initialized)
+  let auth = getAuthSync();
+  // If Firebase hasn't initialized yet, await it
+  if (!auth) auth = await getFirebaseAuth();
   const user = auth?.currentUser;
   if (!user) return {};
   const token = await user.getIdToken();
