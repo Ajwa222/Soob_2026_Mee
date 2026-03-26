@@ -1,13 +1,31 @@
-import { getAuthSync, getFirebaseAuth } from "../lib/firebase";
+import { getFirebaseAuth } from "../lib/firebase";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+// Wait for Firebase Auth to resolve the current user.
+// On page load, AuthContext restores the user from localStorage (sync), but
+// Firebase Auth hasn't initialized yet — so auth.currentUser is null.
+// This promise waits for onAuthStateChanged to fire once, ensuring currentUser is set.
+let _authReady: Promise<void> | null = null;
+function waitForAuthReady(): Promise<void> {
+  if (_authReady) return _authReady;
+  _authReady = getFirebaseAuth().then(async (auth) => {
+    if (auth.currentUser) return;
+    const { onAuthStateChanged } = await import("firebase/auth");
+    return new Promise<void>((resolve) => {
+      const unsubscribe = onAuthStateChanged(auth, () => {
+        unsubscribe();
+        resolve();
+      });
+    });
+  });
+  return _authReady;
+}
+
 async function getAuthHeader(): Promise<Record<string, string>> {
-  // Try sync first (fast path when Firebase is already initialized)
-  let auth = getAuthSync();
-  // If Firebase hasn't initialized yet, await it
-  if (!auth) auth = await getFirebaseAuth();
-  const user = auth?.currentUser;
+  await waitForAuthReady();
+  const auth = await getFirebaseAuth();
+  const user = auth.currentUser;
   if (!user) return {};
   const token = await user.getIdToken();
   return { Authorization: `Bearer ${token}` };
