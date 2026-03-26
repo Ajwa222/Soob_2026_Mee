@@ -1,8 +1,19 @@
+/**
+ * Interactions controller — handles likes, dislikes, and comments on plans.
+ *
+ * Each handler validates the plan ID, delegates to the service layer, and
+ * wraps everything in try/catch for consistent error responses.
+ *
+ * Authenticated endpoints cast `req` to AuthenticatedRequest to access uid/userName/userPhoto
+ * populated by the requireAuth middleware.
+ */
+
 import type { Request, Response } from "express";
 import type { AuthenticatedRequest } from "../middleware/auth.js";
 import { validatePlanId } from "../utils/validate.js";
 import * as InteractionService from "../services/interaction.service.js";
 
+/** GET /engagement — Batch fetch all plans' like/dislike/comment counts (pre-serialized JSON) */
 export const getEngagement = async (_req: Request, res: Response) => {
   try {
     const json = await InteractionService.getEngagement();
@@ -13,10 +24,11 @@ export const getEngagement = async (_req: Request, res: Response) => {
   }
 };
 
+/** GET /:id/reactions — Get like/dislike data for a single plan */
 export const getReaction = async (req: Request, res: Response) => {
   try {
     const planId = validatePlanId(req.params.id, res);
-    if (!planId) return;
+    if (!planId) return; // validatePlanId already sent 400
     const reaction = await InteractionService.getReaction(planId);
     res.json(reaction);
   } catch (err) {
@@ -25,11 +37,13 @@ export const getReaction = async (req: Request, res: Response) => {
   }
 };
 
+/** POST /:id/reactions/like — Toggle like (like ↔ unlike). Also updates segment stats if segment header is present. */
 export const toggleLike = async (req: Request, res: Response) => {
   try {
     const planId = validatePlanId(req.params.id, res);
     if (!planId) return;
     const userId = (req as AuthenticatedRequest).uid!;
+    // Frontend sends the user's persona segment via a custom header for segment stats tracking
     const segment = req.headers["x-persona-segment"] as string | undefined;
     const result = await InteractionService.toggleLike(planId, userId, segment);
     res.json(result);
@@ -39,6 +53,7 @@ export const toggleLike = async (req: Request, res: Response) => {
   }
 };
 
+/** POST /:id/reactions/dislike — Toggle dislike (dislike ↔ undislike) */
 export const toggleDislike = async (req: Request, res: Response) => {
   try {
     const planId = validatePlanId(req.params.id, res);
@@ -52,6 +67,7 @@ export const toggleDislike = async (req: Request, res: Response) => {
   }
 };
 
+/** GET /:id/comments — Get all comments for a plan, newest first */
 export const getComments = async (req: Request, res: Response) => {
   try {
     const planId = validatePlanId(req.params.id, res);
@@ -64,6 +80,7 @@ export const getComments = async (req: Request, res: Response) => {
   }
 };
 
+/** GET /:id/comments/count — Get the comment count for a plan */
 export const getCommentCount = async (req: Request, res: Response) => {
   try {
     const planId = validatePlanId(req.params.id, res);
@@ -76,6 +93,7 @@ export const getCommentCount = async (req: Request, res: Response) => {
   }
 };
 
+/** POST /:id/comments — Add a new comment to a plan. Validates text is non-empty and ≤500 chars. */
 export const addComment = async (req: Request, res: Response) => {
   try {
     const planId = validatePlanId(req.params.id, res);
@@ -83,6 +101,7 @@ export const addComment = async (req: Request, res: Response) => {
     const { uid, userName, userPhoto } = req as AuthenticatedRequest;
     const { text } = req.body as { text: string };
 
+    // Input validation — text must be a non-empty string under 500 characters
     if (!text?.trim()) {
       res.status(400).json({ error: "Comment text is required" });
       return;
@@ -102,6 +121,7 @@ export const addComment = async (req: Request, res: Response) => {
   }
 };
 
+/** DELETE /:id/comments/:commentId — Delete a comment. Only the author can delete their own comment. */
 export const deleteComment = async (req: Request, res: Response) => {
   try {
     const planId = validatePlanId(req.params.id, res);

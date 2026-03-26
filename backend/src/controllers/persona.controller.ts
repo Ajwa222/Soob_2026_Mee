@@ -1,8 +1,16 @@
+/**
+ * Persona controller — manages user personas (segments) and behavioral signals.
+ *
+ * Personas allow the platform to personalize plan recommendations and
+ * adjust the AI advisor's tone/focus based on user type (gamer, student, etc.).
+ */
+
 import type { Request, Response } from "express";
 import type { AuthenticatedRequest } from "../middleware/auth.js";
 import * as PersonaService from "../services/persona.service.js";
 import type { PersonaProfile, PersonaSignals } from "../types.js";
 
+/** GET /api/persona — Fetch the authenticated user's persona profile (or null if none exists) */
 export const getPersona = async (req: Request, res: Response) => {
   try {
     const uid = (req as AuthenticatedRequest).uid!;
@@ -14,6 +22,7 @@ export const getPersona = async (req: Request, res: Response) => {
   }
 };
 
+/** DELETE /api/persona — Clear the user's persona and remove them from segment stats */
 export const deletePersona = async (req: Request, res: Response) => {
   try {
     const uid = (req as AuthenticatedRequest).uid!;
@@ -25,6 +34,7 @@ export const deletePersona = async (req: Request, res: Response) => {
   }
 };
 
+/** PUT /api/persona — Save or update the user's persona profile (typically after completing the quiz) */
 export const savePersona = async (req: Request, res: Response) => {
   try {
     const uid = (req as AuthenticatedRequest).uid!;
@@ -42,6 +52,13 @@ export const savePersona = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * POST /api/persona/signals — Merge behavioral signals from the frontend.
+ *
+ * The frontend periodically sends browsing signals (categories viewed, filters used, etc.).
+ * If the user already has a persona, signals are merged into it.
+ * If not, they're stored as "pending signals" and merged when the persona is created.
+ */
 export const mergeSignals = async (req: Request, res: Response) => {
   try {
     const uid = (req as AuthenticatedRequest).uid!;
@@ -60,6 +77,7 @@ export const mergeSignals = async (req: Request, res: Response) => {
   }
 };
 
+/** GET /api/persona/segment-stats/:segment — Get aggregated stats (top plans, like rates) for a segment */
 export const getSegmentStats = async (req: Request, res: Response) => {
   try {
     const stats = await PersonaService.getSegmentStatsForSegment(req.params.segment as string);
