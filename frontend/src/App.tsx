@@ -1,3 +1,13 @@
+/**
+ * Root application component for SimbaApp.
+ *
+ * Responsibilities:
+ *  - Sets up client-side routing (React Router) with 13 routes
+ *  - Wraps the app in nested context providers (Language → Auth → Plans → Bookmarks → Compare)
+ *  - Lazy-loads all page components via React.lazy() for code-splitting
+ *  - Renders global UI: Navigation bar, Footer, CompareBar (sticky bottom), Onboarding modal, PhoneGate
+ *  - Includes utility components: ScrollToTop (resets scroll on navigation) and AnalyticsTracker (page views + titles)
+ */
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { trackPageView } from './lib/analytics';
@@ -12,8 +22,9 @@ import Footer from './components/Footer';
 import CompareBar from './components/CompareBar';
 import Onboarding from './components/Onboarding';
 import PhoneGate from './components/PhoneGate';
-const HomePage = lazy(() => import('./pages/HomePage'));
 
+// ── Lazy-loaded page components (each becomes a separate JS chunk) ──
+const HomePage = lazy(() => import('./pages/HomePage'));
 const PlansPage = lazy(() => import('./pages/PlansPage'));
 const PlanDetailPage = lazy(() => import('./pages/PlanDetailPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
@@ -24,6 +35,10 @@ const ComparePage = lazy(() => import('./pages/ComparePage'));
 const SwitchSavePage = lazy(() => import('./pages/SwitchSavePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
+/**
+ * Scrolls the window to the top whenever the route changes.
+ * Renders nothing — purely a side-effect component.
+ */
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -32,6 +47,11 @@ function ScrollToTop() {
   return null;
 }
 
+/**
+ * Sets the document title and fires a page-view analytics event on every navigation.
+ * Maps each route to a localized title string (via useLang), then calls trackPageView().
+ * Renders nothing — purely a side-effect component.
+ */
 function AnalyticsTracker() {
   const { pathname, search } = useLocation();
   const { t } = useLang();
@@ -55,6 +75,17 @@ function AnalyticsTracker() {
   return null;
 }
 
+/**
+ * Root component — assembles providers, layout shell, and routes.
+ *
+ * Provider nesting order (outermost → innermost):
+ *   ErrorBoundary → BrowserRouter → Language → Auth → Plans → Bookmarks → Compare
+ *
+ * Layout:
+ *   Navigation (top) → <main> with lazy-loaded routes → Footer (bottom)
+ *   CompareBar (sticky bottom bar, visible when plans are selected)
+ *   Onboarding + PhoneGate (overlay modals for first-time users)
+ */
 function App() {
   return (
     <ErrorBoundary>
@@ -70,20 +101,26 @@ function App() {
             <Navigation />
             <main className="flex-1">
               <Suspense fallback={<div className="flex-1 flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>}>
+              {/* ── Routes ── */}
               <Routes>
+                {/* Main pages */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/home" element={<HomePage />} />
                 <Route path="/plans" element={<ExplorePage />} />
                 <Route path="/browse" element={<PlansPage />} />
-                <Route path="/explore" element={<Navigate to="/plans" replace />} />
                 <Route path="/plan/:id" element={<PlanDetailPage />} />
-                <Route path="/finder" element={<Navigate to="/advisor" replace />} />
                 <Route path="/advisor" element={<AdvisorPage />} />
                 <Route path="/compare" element={<ComparePage />} />
                 <Route path="/switch" element={<SwitchSavePage />} />
-                <Route path="/help" element={<Navigate to="/" replace />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/about" element={<AboutPage />} />
+
+                {/* Legacy redirects — old URLs that now point elsewhere */}
+                <Route path="/explore" element={<Navigate to="/plans" replace />} />
+                <Route path="/finder" element={<Navigate to="/advisor" replace />} />
+                <Route path="/help" element={<Navigate to="/" replace />} />
+
+                {/* Catch-all — renders 404 page for unknown routes */}
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
               </Suspense>

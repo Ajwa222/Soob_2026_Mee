@@ -1,3 +1,14 @@
+/**
+ * Onboarding overlay — full-screen welcome flow for first-time visitors.
+ *
+ * Steps:
+ *  1. Language selection (English / Arabic)
+ *  2. Animated carrier logos reveal
+ *  3. CTA to start browsing or try the Smart Advisor
+ *
+ * Only shown once — sets localStorage 'simba-onboarded' and 'simba-has-account' on completion.
+ * Fires analytics events for each step and final CTA choice.
+ */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';

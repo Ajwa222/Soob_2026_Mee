@@ -1,3 +1,13 @@
+/**
+ * Switch & Save page ("/switch") — helps users find cheaper alternatives to their current plan.
+ *
+ * Flow:
+ *  1. User enters their current monthly spend (or selects their carrier)
+ *  2. Simba shows plans that cost less while offering equal or better value
+ *  3. Plans are ranked by savings potential (value score / price ratio)
+ *
+ * Uses the getValueScore() utility to rank alternatives objectively.
+ */
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, TrendingDown, BadgeCheck, Search, X } from 'lucide-react';

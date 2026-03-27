@@ -1,3 +1,16 @@
+/**
+ * Home page — the main landing page at "/".
+ *
+ * Sections:
+ *  1. Hero banner with gradient background, wave lines, and CTA buttons
+ *  2. "How Simba Works" — 3-step explainer
+ *  3. Trending/recommended plans (personalized for logged-in users via collaborative filtering)
+ *  4. Carrier logos strip
+ *  5. "Why Simba?" value propositions
+ *  6. Stats counter (plans, carriers, free, support)
+ *  7. Community banner (WhatsApp/Telegram invite)
+ *  8. FinderModal (one-time popup encouraging Smart Advisor use)
+ */
 import React, { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, ChevronRight } from 'lucide-react';

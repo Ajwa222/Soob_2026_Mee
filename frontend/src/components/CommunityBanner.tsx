@@ -1,9 +1,16 @@
+/**
+ * Community banner — invites users to join the Simba community chat.
+ *
+ * Arabic users are directed to WhatsApp, English users see a modal with
+ * both Telegram and WhatsApp options. Displayed on the HomePage.
+ */
 import { useState } from 'react';
 import { Users, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useLang } from '../context/LanguageContext';
 
+// Community links — different platforms per language
 const ENGLISH_LINK = 'https://t.me/+savcYu7Ja41kODQ0';
 const ARABIC_LINK = 'https://chat.whatsapp.com/IuixL2fLPFgD5aAraoFz6D';
 

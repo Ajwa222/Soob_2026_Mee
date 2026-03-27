@@ -1,3 +1,15 @@
+/**
+ * Finder page — guided 5-question quiz to find the user's ideal plan.
+ *
+ * Flow:
+ *  1. Intro screen explaining the quiz (5 quick yes/no questions)
+ *  2. Step-by-step questions: internet, local calls, intl calls, social media, budget
+ *  3. Scoring engine: weights each answer and ranks all 150+ plans by match score
+ *  4. Results: top 3 picks with "Best Pick", "Runner Up", "Great Value" labels
+ *
+ * Currently not directly routed (/finder redirects to /advisor) but the component
+ * is still available for direct use.
+ */
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {

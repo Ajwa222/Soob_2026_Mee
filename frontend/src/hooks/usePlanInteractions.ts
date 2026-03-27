@@ -1,3 +1,15 @@
+/**
+ * Hook for managing plan interactions (likes, dislikes, comments) on a single plan.
+ *
+ * Features:
+ *  - Fetches reactions and comments on mount
+ *  - Optimistic UI updates for like/dislike toggles (reverts on API error)
+ *  - Optimistic comment removal (reverts on API error)
+ *  - Fires analytics events for all interactions
+ *
+ * Usage: const { reaction, comments, loading, toggleLike, toggleDislike, addComment, removeComment }
+ *          = usePlanInteractions(planId);
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -9,6 +21,10 @@ import { trackEvent } from '../lib/analytics';
 
 const defaultReaction: PlanReaction = { likes: 0, dislikes: 0, likedBy: [], dislikedBy: [] };
 
+/**
+ * @param planId - The plan to load interactions for (undefined = no-op)
+ * @returns Reaction state, comments array, loading flag, and mutation callbacks
+ */
 export function usePlanInteractions(planId: number | undefined) {
   const { user } = useAuth();
   const [reaction, setReaction] = useState<PlanReaction>(defaultReaction);

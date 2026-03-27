@@ -1,3 +1,11 @@
+/**
+ * Phone gate modal — prompts Google Sign-In users to optionally provide a phone number.
+ *
+ * Shown when AuthContext.needsPhone is true (user signed in via Google but hasn't entered a phone).
+ * The phone number is saved to Firestore via updatePhone().
+ * Users can skip this step — it's optional.
+ * Validates input with a basic regex: 7–15 digits, optional leading '+'.
+ */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Phone } from 'lucide-react';
@@ -7,6 +15,7 @@ import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { trackEvent } from '../lib/analytics';
 
+// Basic phone number validation: 7–15 digits, optional leading '+'
 const PHONE_REGEX = /^\+?\d{7,15}$/;
 
 export default function PhoneGate() {

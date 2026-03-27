@@ -1,19 +1,31 @@
+/**
+ * Language and theme context — provides bilingual (EN/AR) translations and light/dark theme.
+ *
+ * Responsibilities:
+ *  - Stores current language ('en' | 'ar') and theme ('light' | 'dark') in localStorage
+ *  - Provides t() function for dot-path translation lookups with optional {param} interpolation
+ *  - Sets <html dir="rtl/ltr" lang="en/ar"> on language change for proper RTL layout
+ *  - Toggles .dark class on <html> for dark mode (Tailwind dark variant)
+ *
+ * Usage: const { lang, t, toggleLang, theme, toggleTheme } = useLang();
+ */
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 
 type Lang = 'en' | 'ar';
 type Theme = 'light' | 'dark';
 
 interface LangContextValue {
-  lang: Lang;
-  toggleLang: () => void;
-  t: (path: string, params?: Record<string, string>) => string;
-  theme: Theme;
-  setTheme: (t: Theme) => void;
-  toggleTheme: () => void;
+  lang: Lang;                      // Current language
+  toggleLang: () => void;          // Switch between en ↔ ar
+  t: (path: string, params?: Record<string, string>) => string;  // Translation lookup
+  theme: Theme;                    // Current theme
+  setTheme: (t: Theme) => void;   // Set theme explicitly
+  toggleTheme: () => void;        // Switch between light ↔ dark
 }
 
 const LanguageContext = createContext<LangContextValue | null>(null);
 
+// ── Translation dictionaries (en + ar) ──
 const translations: Record<string, Record<string, unknown>> = {
   en: {
     nav: { home: "Home", plans: "Browse Plans", finder: "Plan Finder", help: "Help", speedTest: "Speed Test", profile: "Profile", signIn: "Sign In", signUp: "Sign Up", game: "Game", chat: "Meet People", support: "Support" },
@@ -1100,8 +1112,8 @@ const translations: Record<string, Record<string, unknown>> = {
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
+  // Hydrate language and theme from localStorage, default to 'en' and 'light'
   const [lang, setLang] = useState<Lang>(() => (localStorage.getItem('simba-lang') as Lang) || 'en');
-
   const [theme, setThemeState] = useState<Theme>(() => (localStorage.getItem('simba-theme') as Theme) || 'light');
 
   const setTheme = useCallback((t: Theme) => {
@@ -1125,6 +1137,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  /**
+   * Translates a dot-path key (e.g. "nav.home") into the current language's string.
+   * Supports {param} interpolation: t('interactions.minutesAgo', { n: '5' }) → "5m ago"
+   * Returns the raw path if the key is not found (useful for debugging missing translations).
+   */
   const t = useCallback((path: string, params?: Record<string, string>): string => {
     const keys = path.split('.');
     let result: unknown = translations[lang];
@@ -1141,12 +1158,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return result as string;
   }, [lang]);
 
+  // Set HTML dir and lang attributes for RTL support
   useEffect(() => {
     const html = document.documentElement;
     html.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
     html.setAttribute('lang', lang);
   }, [lang]);
 
+  // Toggle Tailwind dark class on <html> for dark mode
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
@@ -1162,6 +1181,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Hook to access language/theme state and the t() translation function.
+ * Must be used within a LanguageProvider — throws if not.
+ */
 export const useLang = () => {
   const ctx = useContext(LanguageContext);
   if (!ctx) throw new Error('useLang must be used within LanguageProvider');

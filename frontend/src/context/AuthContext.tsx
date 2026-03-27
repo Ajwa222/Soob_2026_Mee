@@ -1,23 +1,36 @@
+/**
+ * Authentication context — manages Google Sign-In state for the entire app.
+ *
+ * Responsibilities:
+ *  - Provides the current SimbaUser (or null) to all descendants via useAuth()
+ *  - Handles Google Sign-In (popup with redirect fallback for popup-blocked)
+ *  - Listens to Firebase onAuthStateChanged to keep state in sync
+ *  - Fetches the user's phone number from Firestore after sign-in
+ *  - Persists user data in localStorage for instant hydration on reload
+ *  - Identifies the user in analytics (Mixpanel / Clarity) on sign-in and resets on sign-out
+ */
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { getFirebaseAuth, getFirebaseDb, getGoogleProvider } from '../lib/firebase';
 import { identifyUser, resetUser } from '../lib/analytics';
 import type { SimbaUser } from '../types';
 
+/** Shape of the value exposed by AuthContext.Provider */
 interface AuthContextValue {
-  user: SimbaUser | null;
-  isLoggedIn: boolean;
-  hasAccount: boolean;
-  loading: boolean;
-  needsPhone: boolean;
+  user: SimbaUser | null;          // Current user, or null if not signed in
+  isLoggedIn: boolean;             // Convenience boolean derived from user
+  hasAccount: boolean;             // True if user has ever signed in (persisted across sessions)
+  loading: boolean;                // True while Firebase auth state is being resolved
+  needsPhone: boolean;             // True if Google user hasn't provided a phone number yet
   loginWithGoogle: () => Promise<void>;
   updatePhone: (phone: string) => Promise<void>;
   logout: () => Promise<void>;
-  markOnboarded: () => void;
+  markOnboarded: () => void;       // Marks the user as onboarded (skips onboarding modal)
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  // Hydrate user from localStorage for instant rendering before Firebase resolves
   const [user, setUser] = useState<SimbaUser | null>(() => {
     try {
       const stored = localStorage.getItem('simba-user');
@@ -170,6 +183,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Hook to access auth state and actions.
+ * Must be used within an AuthProvider — throws if not.
+ */
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');

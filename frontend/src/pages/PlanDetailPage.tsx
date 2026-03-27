@@ -1,3 +1,15 @@
+/**
+ * Plan detail page ("/plan/:id") — full breakdown of a single telecom plan.
+ *
+ * Displays:
+ *  - Carrier logo, plan name, price, and "Get This Plan" CTA (links to carrier site)
+ *  - Detailed specs table: data, calls, SMS, social media, roaming, contract, features
+ *  - Interaction section: like/dislike buttons, comment thread (via usePlanInteractions hook)
+ *  - "Similar Plans" carousel at the bottom (same carrier or similar price range)
+ *  - Add to Compare / Bookmark actions
+ *
+ * Reads plan ID from URL params, looks it up in the PlansContext catalog.
+ */
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {

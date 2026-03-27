@@ -1,16 +1,26 @@
+/**
+ * Bookmark context — lets users save/unsave plans to their Firestore profile.
+ *
+ * Bookmarks are stored in the Firestore `users/{uid}.bookmarks` array.
+ * For logged-out users, requestBookmark() queues the plan ID in localStorage
+ * and applies it automatically after the next sign-in.
+ *
+ * Optimistic updates: UI toggles immediately, Firestore write is fire-and-forget.
+ */
 import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo, type ReactNode } from 'react';
 import { getFirebaseDb } from '../lib/firebase';
 import { useAuth } from './AuthContext';
 
+// localStorage key for bookmarks queued before login
 const PENDING_KEY = 'simba-pending-bookmark';
 
 interface BookmarkContextValue {
-  bookmarkedIds: number[];
-  toggleBookmark: (planId: number) => void;
-  isBookmarked: (planId: number) => boolean;
+  bookmarkedIds: number[];                         // Plan IDs the user has bookmarked
+  toggleBookmark: (planId: number) => void;        // Add or remove a bookmark (auth required)
+  isBookmarked: (planId: number) => boolean;       // Check if a plan is bookmarked
   /** Queue a bookmark that will be saved after login. Returns false if user is not logged in. */
   requestBookmark: (planId: number) => boolean;
-  loading: boolean;
+  loading: boolean;                                // True while fetching bookmarks from Firestore
 }
 
 const BookmarkContext = createContext<BookmarkContextValue | null>(null);
@@ -116,6 +126,10 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Hook to access bookmark state and actions.
+ * Must be used within a BookmarkProvider — throws if not.
+ */
 export function useBookmarks() {
   const ctx = useContext(BookmarkContext);
   if (!ctx) throw new Error('useBookmarks must be used within BookmarkProvider');

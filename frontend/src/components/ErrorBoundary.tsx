@@ -1,3 +1,10 @@
+/**
+ * Top-level error boundary — catches unhandled React errors and shows a fallback UI.
+ *
+ * Wraps the entire app in App.tsx. If any child component throws during rendering,
+ * this catches it, logs the error, and displays a "Something went wrong" message
+ * instead of a blank white screen.
+ */
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {

@@ -1,3 +1,13 @@
+/**
+ * Interactions service — handles plan reactions (like/dislike) and comments.
+ *
+ * Features:
+ *  - In-memory cache with 5-minute TTL for reactions and comment counts
+ *  - In-flight deduplication: concurrent fetches for the same planId share one promise
+ *  - Cache invalidation on mutations (like, dislike, add/delete comment)
+ *
+ * All mutating endpoints require authentication (handled by apiFetch).
+ */
 import { apiFetch } from "./apiClient";
 import type { PlanReaction, PlanComment, SimbaUser } from "../types";
 
@@ -13,18 +23,22 @@ const commentCountCache = new Map<number, CacheEntry<number>>();
 const inFlightReactions = new Map<number, Promise<PlanReaction>>();
 const inFlightComments = new Map<number, Promise<number>>();
 
+/** Returns true if the cache entry exists and hasn't expired. */
 function isFresh<T>(entry: CacheEntry<T> | undefined): entry is CacheEntry<T> {
   return !!entry && Date.now() - entry.ts < CACHE_TTL;
 }
 
+/** Clear cached reaction data for a plan (called before mutation). */
 export function invalidateReactionCache(planId: number) {
   reactionCache.delete(planId);
 }
 
+/** Clear cached comment count for a plan (called before mutation). */
 export function invalidateCommentCache(planId: number) {
   commentCountCache.delete(planId);
 }
 
+/** Fetch reaction counts for a plan (cached, deduplicated). */
 export const fetchReaction = async (planId: number): Promise<PlanReaction> => {
   const cached = reactionCache.get(planId);
   if (isFresh(cached)) return cached.data;
@@ -46,6 +60,7 @@ export const fetchReaction = async (planId: number): Promise<PlanReaction> => {
   return promise;
 };
 
+/** Fetch comment count for a plan (cached, deduplicated). */
 export const fetchCommentCount = async (planId: number): Promise<number> => {
   const cached = commentCountCache.get(planId);
   if (isFresh(cached)) return cached.data;
@@ -67,20 +82,24 @@ export const fetchCommentCount = async (planId: number): Promise<number> => {
   return promise;
 };
 
+/** POST /api/plan-interactions/:id/reactions/like — toggle like for the authenticated user. */
 export const toggleLike = async (planId: number, _userId: string): Promise<void> => {
   invalidateReactionCache(planId);
   await apiFetch(`/api/plan-interactions/${planId}/reactions/like`, { method: "POST" });
 };
 
+/** POST /api/plan-interactions/:id/reactions/dislike — toggle dislike for the authenticated user. */
 export const toggleDislike = async (planId: number, _userId: string): Promise<void> => {
   invalidateReactionCache(planId);
   await apiFetch(`/api/plan-interactions/${planId}/reactions/dislike`, { method: "POST" });
 };
 
+/** GET /api/plan-interactions/:id/comments — fetch all comments for a plan. */
 export const fetchComments = async (planId: number): Promise<PlanComment[]> => {
   return apiFetch<PlanComment[]>(`/api/plan-interactions/${planId}/comments`);
 };
 
+/** POST /api/plan-interactions/:id/comments — add a new comment (max 500 chars, enforced server-side). */
 export const addComment = async (planId: number, _user: SimbaUser, text: string): Promise<PlanComment> => {
   invalidateCommentCache(planId);
   return apiFetch<PlanComment>(`/api/plan-interactions/${planId}/comments`, {
@@ -89,6 +108,7 @@ export const addComment = async (planId: number, _user: SimbaUser, text: string)
   });
 };
 
+/** DELETE /api/plan-interactions/:id/comments/:cid — delete own comment (author-only, enforced server-side). */
 export const deleteComment = async (planId: number, commentId: string): Promise<void> => {
   invalidateCommentCache(planId);
   await apiFetch(`/api/plan-interactions/${planId}/comments/${commentId}`, { method: "DELETE" });

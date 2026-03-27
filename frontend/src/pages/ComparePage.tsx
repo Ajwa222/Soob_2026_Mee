@@ -1,3 +1,10 @@
+/**
+ * Compare page ("/compare") — renders the side-by-side plan comparison overlay.
+ *
+ * Reads plan IDs from the ?plans=1,2,3 query string, loads the corresponding Plan objects
+ * from PlansContext, and passes them to CompareOverlay for a full-screen comparison table.
+ * Also accessible by clicking "Compare Now" from the CompareBar.
+ */
 import { useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';

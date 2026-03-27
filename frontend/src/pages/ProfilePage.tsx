@@ -1,3 +1,17 @@
+/**
+ * Profile page ("/profile") — user account management and bookmarked plans.
+ *
+ * Logged-in view:
+ *  - User info (name, email, avatar from Google)
+ *  - Bookmarked plans grid (fetched from BookmarkContext)
+ *  - Sign out button
+ *
+ * Logged-out view:
+ *  - Sign in / sign up prompt with Google OAuth button
+ *  - "Why create an account?" feature highlights
+ *
+ * Supports ?action=login query param to auto-trigger the sign-in flow.
+ */
 import { useState, useEffect, useMemo } from 'react';
 import { User, LogOut, Bookmark } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';

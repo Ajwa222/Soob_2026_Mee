@@ -1,3 +1,12 @@
+/**
+ * About page ("/about") — Simba's mission, vision, values, and carrier list.
+ *
+ * Static marketing page with:
+ *  - Mission, vision, and values sections
+ *  - "How Simba Works" explainer (same as homepage)
+ *  - Grid of all 8 carrier logos
+ *  - CTA to start browsing plans
+ */
 import { Link } from 'react-router-dom';
 import { ArrowRight, Users, Target, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -1,12 +1,23 @@
+/**
+ * Compare context — manages the "compare plans" feature (up to 3 plans side by side).
+ *
+ * State:
+ *  - selectedPlans (max 3) — the plans currently in the compare tray
+ *  - showOverlay — whether the full-screen compare overlay is visible
+ *  - toast — shown when user tries to add a 4th plan ("max" toast)
+ *
+ * Actions: addPlan, removePlan, togglePlan, clearAll, loadPlans (from URL query), getShareUrl
+ * All add/remove actions fire analytics events for tracking comparison behavior.
+ */
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import type { Plan } from '../types';
 import { trackEvent } from '../lib/analytics';
 
-type ToastType = 'max' | null;
+type ToastType = 'max' | null;    // 'max' = "you can only compare 3 plans" toast
 
 interface CompareContextValue {
-  selectedPlans: Plan[];
-  showOverlay: boolean;
+  selectedPlans: Plan[];           // Currently selected plans (0–3)
+  showOverlay: boolean;            // Full-screen compare overlay visibility
   setShowOverlay: (show: boolean) => void;
   toast: ToastType;
   setToast: (t: ToastType) => void;
@@ -15,8 +26,8 @@ interface CompareContextValue {
   togglePlan: (plan: Plan) => void;
   isSelected: (planId: number) => boolean;
   clearAll: () => void;
-  loadPlans: (plans: Plan[]) => void;
-  getShareUrl: () => string;
+  loadPlans: (plans: Plan[]) => void;   // Bulk-load plans (e.g. from ?plans=1,2,3 URL)
+  getShareUrl: () => string;            // Generates a shareable compare URL
 }
 
 const CompareContext = createContext<CompareContextValue | null>(null);
@@ -111,6 +122,10 @@ export function CompareProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Hook to access compare state and actions.
+ * Must be used within a CompareProvider — throws if not.
+ */
 export const useCompare = () => {
   const ctx = useContext(CompareContext);
   if (!ctx) throw new Error('useCompare must be used within CompareProvider');

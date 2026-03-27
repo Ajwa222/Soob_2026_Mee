@@ -1,3 +1,10 @@
+/**
+ * Floating chat bubble widget — a mini help/FAQ chat in the bottom corner.
+ *
+ * Currently disabled (commented out in App.tsx). Contains embedded FAQ data
+ * and a simple keyword-matching chatbot that answers common questions about Simba.
+ * Falls back to suggesting contact options (WhatsApp, email, phone) for unmatched queries.
+ */
 // @ts-nocheck — This component is disabled (commented out in App.tsx)
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Send, Sparkles, ChevronDown, Phone, Mail, ArrowRight, Globe } from 'lucide-react';

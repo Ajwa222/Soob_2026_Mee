@@ -1,10 +1,31 @@
+/**
+ * Shared utility functions for the frontend.
+ *
+ *  - cn()             — merges Tailwind class names with conflict resolution
+ *  - getBillingLabel() — converts a plan's contract term string into a localized billing label
+ */
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+/**
+ * Combines class names using clsx, then resolves Tailwind conflicts via twMerge.
+ * Used throughout the UI wherever conditional or merged class strings are needed.
+ *
+ * @example cn("px-4 py-2", isActive && "bg-primary text-white")
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Maps a plan's contractTerms string (e.g. "1 month", "90 days", "1 year")
+ * to a localized billing cycle label (e.g. "/mo", "/3 mo", "/yr").
+ * Defaults to per-month if the term is empty or unrecognized.
+ *
+ * @param term - The raw contract term string from the plan data
+ * @param t    - Translation function from useLang()
+ * @returns Localized billing label string
+ */
 export function getBillingLabel(term: string, t: (k: string) => string): string {
   if (!term) return t('planCard.perMonth');
   const l = term.toLowerCase();

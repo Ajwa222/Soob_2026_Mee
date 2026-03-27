@@ -1,3 +1,9 @@
+/**
+ * Site footer — quick links, language toggle, and branding.
+ *
+ * Hidden on the /advisor page (mobile) since the chat UI takes full height.
+ * Includes decorative background circles and a "Made with love in Saudi Arabia" tagline.
+ */
 import { Link, useLocation } from 'react-router-dom';
 import { Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';

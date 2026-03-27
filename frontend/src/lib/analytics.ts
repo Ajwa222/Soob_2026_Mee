@@ -1,18 +1,38 @@
+/**
+ * Unified analytics layer for SimbaApp.
+ *
+ * Integrates three providers, all lazy-loaded to avoid blocking first paint:
+ *  - Google Analytics 4 (GA4) — page views and custom events via gtag.js
+ *  - Mixpanel              — page views, events, user identification, session recording
+ *  - Microsoft Clarity     — session recording and heatmaps
+ *
+ * Initialization strategy:
+ *  - Mixpanel starts importing immediately (needed for early events)
+ *  - GA4 and Clarity are deferred via requestIdleCallback (non-critical for first paint)
+ *
+ * Exported functions:
+ *  - trackPageView(path)   — fires on every route change (called by AnalyticsTracker in App.tsx)
+ *  - trackEvent(name, params) — fires custom events to all providers
+ *  - identifyUser(user)    — links analytics data to a logged-in SimbaUser
+ *  - resetUser()           — clears user identity on logout
+ */
 import type { SimbaUser } from '../types';
 
+// Extend Window to include analytics globals injected by script tags
 declare global {
   interface Window {
-    dataLayer?: unknown[];
-    gtag?: (...args: unknown[]) => void;
-    clarity?: (...args: unknown[]) => void;
+    dataLayer?: unknown[];          // GA4 data layer
+    gtag?: (...args: unknown[]) => void;      // GA4 command function
+    clarity?: (...args: unknown[]) => void;   // Clarity API
   }
 }
 
-// Lazy-loaded analytics modules
+// Lazy-loaded Mixpanel module — starts importing immediately, resolves before first event
 let mixpanelLoaded: typeof import('mixpanel-browser') | null = null;
 let mixpanelPromise: Promise<typeof import('mixpanel-browser') | null> | null = null;
 let analyticsReady = false;
 
+// Provider IDs — injected by Vite from .env
 const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 const MP_TOKEN = import.meta.env.VITE_MIXPANEL_TOKEN;
 const CLARITY_ID = import.meta.env.VITE_CLARITY_PROJECT_ID;
@@ -77,6 +97,12 @@ if (typeof window !== 'undefined') {
 
 // ── Unified tracking functions ──
 
+/**
+ * Tracks a page view across GA4 and Mixpanel.
+ * Called by AnalyticsTracker on every route change.
+ *
+ * @param path - The full path including query params (e.g. "/plans?carrier=STC")
+ */
 export function trackPageView(path: string): void {
   try {
     if (typeof window.gtag === 'function') {
@@ -99,6 +125,13 @@ export function trackPageView(path: string): void {
   } catch { /* non-critical */ }
 }
 
+/**
+ * Fires a custom event to GA4, Mixpanel, and Clarity.
+ *
+ * @param eventName - Event name (e.g. "plan_liked", "advisor_message_sent")
+ * @param params    - Key-value pairs attached to the event
+ * @param options   - Optional: { useBeacon: true } to use sendBeacon transport (for unload events)
+ */
 export function trackEvent(eventName: string, params: Record<string, unknown> = {}, options?: { useBeacon?: boolean }): void {
   try {
     if (typeof window.gtag === 'function') {
@@ -124,6 +157,11 @@ export function trackEvent(eventName: string, params: Record<string, unknown> = 
   } catch { /* non-critical */ }
 }
 
+/**
+ * Links analytics sessions to a logged-in user.
+ * Sets Mixpanel identity + people properties and Clarity custom user ID.
+ * Called from AuthContext after successful sign-in.
+ */
 export function identifyUser(user: SimbaUser): void {
   try {
     if (!user) return;
@@ -153,6 +191,10 @@ export function identifyUser(user: SimbaUser): void {
   } catch { /* non-critical */ }
 }
 
+/**
+ * Clears the current user identity in Mixpanel.
+ * Called from AuthContext on sign-out so subsequent events are anonymous.
+ */
 export function resetUser(): void {
   try {
     if (mixpanelLoaded) {

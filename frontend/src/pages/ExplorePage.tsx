@@ -1,3 +1,11 @@
+/**
+ * Explore page ("/plans") — category-based plan discovery.
+ *
+ * Offers predefined categories (Students, International, Data-only, Gamers, Budget, etc.)
+ * that filter the plan catalog by relevant criteria. Each category shows a filtered grid
+ * of plan cards with optional sub-filters (carrier, price, international calls, social data).
+ * Also includes a search bar for keyword filtering across plan names and providers.
+ */
 import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {

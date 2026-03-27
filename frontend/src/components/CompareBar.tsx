@@ -1,3 +1,11 @@
+/**
+ * Sticky bottom compare bar — shows selected plans and triggers the comparison overlay.
+ *
+ * Visible when 1–3 plans are selected via CompareContext.
+ * Shows plan thumbnails, a "Compare Now" button, and auto-suggests similar plans
+ * when only 1 plan is selected (based on price range).
+ * Also displays a toast when the user tries to add a 4th plan.
+ */
 import { useMemo } from 'react';
 import { X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';

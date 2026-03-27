@@ -1,3 +1,9 @@
+/**
+ * 404 page — shown for unrecognized routes (catch-all "*" in App.tsx).
+ *
+ * Displays a friendly "Page not found" message with navigation links
+ * to the homepage and the plan browser. Bilingual (EN/AR).
+ */
 import { Link } from 'react-router-dom';
 import { Home, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -1,3 +1,13 @@
+/**
+ * Plans browse page ("/browse") — full plan catalog with advanced filters and sorting.
+ *
+ * Features:
+ *  - Search by plan name or carrier
+ *  - Filter by: carrier, plan type, price range, data range, calls, social media
+ *  - Sort by: best value, price, data, calls, provider, name, newest
+ *  - Paginated grid (lazy-loaded batches) with "Load more" button
+ *  - FinderModal popup for first-time visitors
+ */
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {

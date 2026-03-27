@@ -1,15 +1,24 @@
+/**
+ * Chat page — "Meet People" random chat feature (demo/simulated).
+ *
+ * Matches the user with a simulated stranger for a text conversation.
+ * Messages are entirely client-side (no real backend) — this is a demo feature.
+ * Requires authentication to use. Includes report and skip functionality.
+ */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, SkipForward, X, Loader2, Users, Lock, Check, Flag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
+/** A single chat message in the conversation. */
 interface ChatMessage {
   id: number;
   sender: 'user' | 'stranger';
   text: string;
 }
 
+/** Info about the matched stranger (simulated). */
 interface MatchInfo {
   name: string;
   avatar: string;

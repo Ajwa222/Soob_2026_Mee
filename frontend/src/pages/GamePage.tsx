@@ -1,3 +1,13 @@
+/**
+ * Game page — "Feed Simba" idle/clicker game (disabled, not routed in App.tsx).
+ *
+ * An RPG-style idle game where the user taps to attack monsters, earns coins,
+ * buys food to level up Simba (Kitten → Cub → Young Lion → King Lion),
+ * hires companion heroes, collects equipment, and prestiges for permanent perks.
+ * Features: boss battles, chest drops, fusion crafting, daily rewards, leaderboard.
+ *
+ * This is an engagement/retention feature — purely client-side with localStorage persistence.
+ */
 // @ts-nocheck — This entire page is disabled (commented out in App.tsx routes)
 import { useState, useEffect, useRef, useCallback, useReducer } from 'react';
 // All icons now use GameIcon (PNG fantasy icons) — no more lucide-react

@@ -1,3 +1,11 @@
+/**
+ * Top navigation bar — responsive header with mobile bottom nav.
+ *
+ * Desktop: horizontal nav links + language toggle + theme toggle + WhatsApp community link.
+ * Mobile:  fixed bottom tab bar (Home, Browse, Advisor, Profile) + hamburger menu for extras.
+ * Hides on scroll-down, reappears on scroll-up (desktop only).
+ * Only renders after the user has an account (hasAccount from AuthContext).
+ */
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Smartphone, Search, User, Sun, Moon } from 'lucide-react';

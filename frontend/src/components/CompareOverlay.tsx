@@ -1,3 +1,11 @@
+/**
+ * Full-screen comparison overlay — side-by-side table of 2–3 plans.
+ *
+ * Renders inside a Dialog (modal) showing all plan attributes in a table format:
+ * price, data, local/intl calls, SMS, social media, roaming, contract, features.
+ * Each plan column has a "View Plan" link and carrier logo/color.
+ * Highlights differences and marks "Unlimited" values with a special badge.
+ */
 import { ChevronRight, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';

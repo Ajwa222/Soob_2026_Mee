@@ -1,5 +1,18 @@
+/**
+ * Plan data utilities — carrier metadata, helper functions, and value scoring.
+ *
+ * This file provides:
+ *  - CARRIERS: static list of all 8 Saudi carriers with brand color and logo path
+ *  - getCarrierLogo/getCarrierColor: look up carrier branding by name
+ *  - isValidValue: checks if a plan field has meaningful content (not empty/dash)
+ *  - getValueScore: calculates a "bang for your buck" score for sorting/ranking plans
+ *
+ * Note: actual plan data comes from the backend (GET /api/plans/cards).
+ * This file only contains carrier metadata and scoring logic.
+ */
 import type { Plan } from '../types';
 
+// ── Carrier metadata (all 8 licensed Saudi telecom carriers) ──
 export const CARRIERS = [
   { name: "STC", color: "#4F0D7F", logo: "/logos/stc.png" },
   { name: "Mobily", color: "#0099E5", logo: "/logos/mobily.png" },
@@ -11,16 +24,19 @@ export const CARRIERS = [
   { name: "Salam", color: "#00AD42", logo: "/logos/salam.svg" },
 ];
 
+/** Returns the logo path for a carrier (e.g. "/logos/stc.png"), or null if not found. */
 export const getCarrierLogo = (provider: string): string | null => {
   const carrier = CARRIERS.find(c => c.name === provider);
   return carrier?.logo || null;
 };
 
+/** Returns the brand color hex for a carrier, or a neutral gray fallback. */
 export const getCarrierColor = (provider: string): string => {
   const carrier = CARRIERS.find(c => c.name === provider);
   return carrier?.color || "#78716C";
 };
 
+/** Returns true if a plan field has meaningful content (not null, empty, or just "-"). */
 export const isValidValue = (val: string | null | undefined): boolean => {
   if (!val) return false;
   const v = val.toString().trim();

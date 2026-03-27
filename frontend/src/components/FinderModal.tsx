@@ -1,3 +1,10 @@
+/**
+ * Finder modal — a one-time prompt encouraging users to try the Smart Advisor.
+ *
+ * Appears on first visit (dismissed state stored in localStorage).
+ * Offers two choices: "Start Smart Advisor" (navigates to /advisor) or "No thanks, I'll browse".
+ * Exports both the modal component and a useFinderModal() hook for controlling visibility.
+ */
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
@@ -5,6 +12,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { Button } from '@/components/ui/button';
 import { useLang } from '../context/LanguageContext';
 
+// localStorage key — once dismissed, the modal never shows again
 const STORAGE_KEY = 'simba-finder-modal-dismissed';
 
 export function useFinderModal() {

@@ -1,3 +1,12 @@
+/**
+ * Reusable plan card component — displays a single telecom plan's key details.
+ *
+ * Shows: carrier logo + color accent, plan name, price, data, calls, SMS, social media,
+ * engagement counts (likes/dislikes/comments), and action buttons (View Details, Compare, Bookmark).
+ *
+ * Used on: ExplorePage, PlansPage, HomePage (trending), AdvisorPage (recommended plans).
+ * Each card links to /plan/:id for full details.
+ */
 import React from 'react';
 import { Wifi, Phone, MessageSquare, Share2, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle, Bookmark, Users } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';

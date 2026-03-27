@@ -1,3 +1,14 @@
+/**
+ * Advisor page ("/advisor") — AI-powered plan recommendation chat.
+ *
+ * Features:
+ *  - Full-height chat interface with message bubbles (user + assistant)
+ *  - Sends messages to POST /api/advisor/message (OpenAI GPT-4 mini backend)
+ *  - Renders referenced plans as inline PlanCard components within chat messages
+ *  - Two entry modes: "Guide me" (structured Q&A) or "I know what I want" (freeform)
+ *  - Conversation history persisted in Firestore for logged-in users
+ *  - Auto-scrolls to latest message, typing indicators while AI responds
+ */
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Send, Loader2,
