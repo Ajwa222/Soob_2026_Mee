@@ -14,6 +14,8 @@ import {
   Send, Loader2,
   Bot, ArrowLeft,
   HelpCircle, MessageSquareText,
+  Wifi, Phone, Globe, Share2,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { getFirebaseDb } from '../lib/firebase';
@@ -202,6 +204,270 @@ function InlineScanningWidget({ plans, lang, searchStatus }: { plans: Plan[]; la
   );
 }
 
+// ─── Guided flow: interactive step-by-step questionnaire ───
+type GuideAnswers = {
+  budget: number;       // SAR, 0 = no limit
+  data: 'small' | 'medium' | 'large' | '';
+  calls: 'none' | 'some' | 'lot' | '';
+  intl: 'no' | 'yes' | '';
+  social: 'no' | 'yes' | '';
+};
+
+const BUDGET_MIN = 30;
+const BUDGET_MAX = 500;
+const BUDGET_STEP = 10;
+
+function OptionChip({ selected, onClick, icon, label, desc }: {
+  selected: boolean; onClick: () => void; icon: React.ReactNode; label: string; desc?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-4 transition-all cursor-pointer
+        ${selected
+          ? 'border-primary bg-primary/10 shadow-sm shadow-primary/10'
+          : 'border-border bg-background hover:border-primary/40'
+        }`}
+    >
+      <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+        selected ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
+      }`}>
+        {icon}
+      </div>
+      <span className={`font-medium text-sm ${selected ? 'text-primary' : 'text-foreground'}`}>{label}</span>
+      {desc && <span className="text-[10px] text-muted-foreground leading-tight text-center">{desc}</span>}
+    </button>
+  );
+}
+
+function GuidedFlow({ onComplete, lang, t }: {
+  onComplete: (summary: string) => void;
+  lang: string;
+  t: (k: string) => string;
+}) {
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<GuideAnswers>({
+    budget: 150, data: '', calls: '', intl: '', social: '',
+  });
+  const totalSteps = 5;
+
+  const canProceed = () => {
+    switch (step) {
+      case 0: return true; // budget always has a value
+      case 1: return answers.data !== '';
+      case 2: return answers.calls !== '';
+      case 3: return answers.intl !== '';
+      case 4: return answers.social !== '';
+      default: return false;
+    }
+  };
+
+  const handleNext = () => {
+    if (step < totalSteps - 1) {
+      setStep(s => s + 1);
+    } else {
+      // Compile answers into a natural language message for the AI
+      const budgetText = answers.budget === 0
+        ? 'no budget limit'
+        : `around ${answers.budget} SAR/month`;
+      const dataMap = { small: 'light (browsing & messaging)', medium: 'medium (social media & videos)', large: 'heavy (streaming & downloads)' };
+      const callsMap = { none: "don't need local calls", some: 'need some local calls', lot: 'need a lot of local calls' };
+      const intlText = answers.intl === 'yes' ? 'I make international calls' : "I don't need international calls";
+      const socialText = answers.social === 'yes' ? 'dedicated social media data is important to me' : "social media data isn't a priority";
+
+      const summary = lang === 'ar'
+        ? `أبي باقة بميزانية ${answers.budget === 0 ? 'مفتوحة' : `حوالي ${answers.budget} ريال/شهر`}. استخدامي للبيانات ${answers.data === 'small' ? 'خفيف (تصفح ورسائل)' : answers.data === 'medium' ? 'متوسط (سوشل ميديا وفيديوهات)' : 'كثير (بث وتحميل)'}. ${answers.calls === 'none' ? 'ما أحتاج مكالمات محلية' : answers.calls === 'some' ? 'أحتاج شوي مكالمات محلية' : 'أحتاج مكالمات محلية كثير'}. ${answers.intl === 'yes' ? 'أسوي مكالمات دولية' : 'ما أحتاج مكالمات دولية'}. ${answers.social === 'yes' ? 'بيانات السوشل ميديا مهمة لي' : 'بيانات السوشل ميديا مو أولوية'}.`
+        : `I'm looking for a plan with ${budgetText}. My data usage is ${dataMap[answers.data as keyof typeof dataMap]}. I ${callsMap[answers.calls as keyof typeof callsMap]}. ${intlText}. ${socialText}.`;
+
+      onComplete(summary);
+    }
+  };
+
+  const stepIndicator = t('advisor.guideStepOf')
+    .replace('{current}', String(step + 1))
+    .replace('{total}', String(totalSteps));
+
+  return (
+    <div className="flex justify-start">
+      <div className="w-full max-w-[85%] md:max-w-[75%] bg-muted rounded-2xl rounded-bl-md p-4 space-y-4 animate-fade-up">
+        {/* Step indicator */}
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-muted-foreground font-medium">{stepIndicator}</span>
+          <div className="flex gap-1">
+            {Array.from({ length: totalSteps }).map((_, i) => (
+              <div key={i} className={`h-1 rounded-full transition-all duration-300 ${
+                i <= step ? 'w-5 bg-primary' : 'w-2 bg-border'
+              }`} />
+            ))}
+          </div>
+        </div>
+
+        {/* Step 0: Budget slider */}
+        {step === 0 && (
+          <div className="space-y-4">
+            <p className="text-sm font-medium text-foreground">{t('advisor.guideBudgetTitle')}</p>
+            <div className="space-y-3">
+              <div className="text-center">
+                <span className="text-2xl font-bold text-primary tabular-nums">
+                  {answers.budget === 0
+                    ? t('advisor.guideBudgetAny')
+                    : t('advisor.guideBudgetValue').replace('{value}', String(answers.budget))
+                  }
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={BUDGET_MAX}
+                step={BUDGET_STEP}
+                value={answers.budget}
+                onChange={e => {
+                  const v = Number(e.target.value);
+                  setAnswers(a => ({ ...a, budget: v < BUDGET_MIN ? 0 : v }));
+                }}
+                className="w-full h-2 bg-border rounded-full appearance-none cursor-pointer accent-primary
+                  [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5
+                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-md
+                  [&::-webkit-slider-thumb]:cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                <span>{t('advisor.guideBudgetAny')}</span>
+                <span>{BUDGET_MAX}+</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 1: Data usage */}
+        {step === 1 && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">{t('advisor.guideDataTitle')}</p>
+            <div className="grid grid-cols-3 gap-2">
+              <OptionChip
+                selected={answers.data === 'small'}
+                onClick={() => setAnswers(a => ({ ...a, data: 'small' }))}
+                icon={<Wifi size={18} />}
+                label={t('advisor.guideDataSmall')}
+                desc={t('advisor.guideDataSmallDesc')}
+              />
+              <OptionChip
+                selected={answers.data === 'medium'}
+                onClick={() => setAnswers(a => ({ ...a, data: 'medium' }))}
+                icon={<Wifi size={18} />}
+                label={t('advisor.guideDataMedium')}
+                desc={t('advisor.guideDataMediumDesc')}
+              />
+              <OptionChip
+                selected={answers.data === 'large'}
+                onClick={() => setAnswers(a => ({ ...a, data: 'large' }))}
+                icon={<Wifi size={18} />}
+                label={t('advisor.guideDataLarge')}
+                desc={t('advisor.guideDataLargeDesc')}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Local calls */}
+        {step === 2 && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">{t('advisor.guideCallsTitle')}</p>
+            <div className="grid grid-cols-3 gap-2">
+              <OptionChip
+                selected={answers.calls === 'none'}
+                onClick={() => setAnswers(a => ({ ...a, calls: 'none' }))}
+                icon={<Phone size={18} />}
+                label={t('advisor.guideCallsNone')}
+              />
+              <OptionChip
+                selected={answers.calls === 'some'}
+                onClick={() => setAnswers(a => ({ ...a, calls: 'some' }))}
+                icon={<Phone size={18} />}
+                label={t('advisor.guideCallsSome')}
+              />
+              <OptionChip
+                selected={answers.calls === 'lot'}
+                onClick={() => setAnswers(a => ({ ...a, calls: 'lot' }))}
+                icon={<Phone size={18} />}
+                label={t('advisor.guideCallsLot')}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: International calls */}
+        {step === 3 && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">{t('advisor.guideIntlTitle')}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <OptionChip
+                selected={answers.intl === 'no'}
+                onClick={() => setAnswers(a => ({ ...a, intl: 'no' }))}
+                icon={<Globe size={18} />}
+                label={t('advisor.guideIntlNo')}
+              />
+              <OptionChip
+                selected={answers.intl === 'yes'}
+                onClick={() => setAnswers(a => ({ ...a, intl: 'yes' }))}
+                icon={<Globe size={18} />}
+                label={t('advisor.guideIntlYes')}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Social media */}
+        {step === 4 && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">{t('advisor.guideSocialTitle')}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <OptionChip
+                selected={answers.social === 'no'}
+                onClick={() => setAnswers(a => ({ ...a, social: 'no' }))}
+                icon={<Share2 size={18} />}
+                label={t('advisor.guideSocialNo')}
+              />
+              <OptionChip
+                selected={answers.social === 'yes'}
+                onClick={() => setAnswers(a => ({ ...a, social: 'yes' }))}
+                icon={<Share2 size={18} />}
+                label={t('advisor.guideSocialYes')}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Navigation buttons */}
+        <div className="flex items-center gap-2 pt-1">
+          {step > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setStep(s => s - 1)}
+              className="rounded-xl gap-1 text-muted-foreground"
+            >
+              <ChevronLeft size={14} className="rtl:rotate-180" />
+              {t('advisor.guideBack')}
+            </Button>
+          )}
+          <Button
+            type="button"
+            size="sm"
+            disabled={!canProceed()}
+            onClick={handleNext}
+            className="rounded-xl gap-1 ltr:ml-auto rtl:mr-auto"
+          >
+            {step === totalSteps - 1 ? t('advisor.guideFindPlans') : t('advisor.guideNext')}
+            <ChevronRight size={14} className="rtl:rotate-180" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdvisorPage() {
   const { t, lang } = useLang();
   const [, setSearchParams] = useSearchParams();
@@ -220,6 +486,8 @@ export default function AdvisorPage() {
 
   // Whether the user has picked a quick-action card (hides the cards once chosen)
   const [started, setStarted] = useState(false);
+  // Whether the guided flow questionnaire is active
+  const [guideMode, setGuideMode] = useState(false);
 
   // Try to resume saved conversation on mount (logged-in users)
   useEffect(() => {
@@ -248,27 +516,27 @@ export default function AdvisorPage() {
     init();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handle quick-action card click — send a tailored prompt to the AI
+  // Handle quick-action card click
   const handleQuickAction = useCallback(async (mode: 'guide' | 'direct') => {
     if (loading) return;
     setStarted(true);
     setSearchParams({ chat: '1' }, { replace: true });
-    setLoading(true);
-    setError(null);
     trackEvent('advisor_started', { mode });
 
-    const prompts = {
-      guide: {
-        en: 'Hi, I need help finding a plan but I\'m not sure what I need. Guide me through it.',
-        ar: 'مرحبا، أبي باقة بس ما أدري وش أحتاج بالضبط. ساعدوني أختار.',
-      },
-      direct: {
-        en: 'Hi, I know what I want in a plan. Let me describe my needs.',
-        ar: 'مرحبا، أعرف وش أبي بالباقة. خلني أوصف لكم احتياجي.',
-      },
-    };
+    if (mode === 'guide') {
+      // Show interactive questionnaire instead of sending to AI
+      setGuideMode(true);
+      return;
+    }
 
-    const userText = prompts[mode][lang];
+    // Direct mode — send prompt to AI immediately
+    setLoading(true);
+    setError(null);
+
+    const userText = lang === 'ar'
+      ? 'مرحبا، أعرف وش أبي بالباقة. خلني أوصف لكم احتياجي.'
+      : 'Hi, I know what I want in a plan. Let me describe my needs.';
+
     const userMsg: ChatMessage = { role: 'user', text: userText };
     setMessages([userMsg]);
 
@@ -281,7 +549,28 @@ export default function AdvisorPage() {
     } finally {
       setLoading(false);
     }
-  }, [loading, lang, t, setSearchParams]);
+  }, [loading, lang, setSearchParams]);
+
+  // Handle guided flow completion — send compiled preferences to AI
+  const handleGuideComplete = useCallback(async (summary: string) => {
+    setGuideMode(false);
+    setLoading(true);
+    setError(null);
+    trackEvent('advisor_guide_completed');
+
+    const userMsg: ChatMessage = { role: 'user', text: summary };
+    setMessages([userMsg]);
+
+    try {
+      const { reply, planIds } = await sendAdvisorMessage(lang, [], summary);
+      setMessages([userMsg, { role: 'assistant', text: reply, planIds }]);
+    } catch (e) {
+      console.error('Advisor error:', e);
+      setError(lang === 'ar' ? 'حصل خطأ، جرب مرة ثانية.' : 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [lang]);
 
   // Save conversation to Firestore (debounced)
   useEffect(() => {
@@ -430,6 +719,11 @@ export default function AdvisorPage() {
                 </span>
               </button>
             </div>
+          )}
+
+          {/* Guided flow questionnaire */}
+          {guideMode && (
+            <GuidedFlow onComplete={handleGuideComplete} lang={lang} t={t} />
           )}
 
           {messages.map((msg, i) => (
