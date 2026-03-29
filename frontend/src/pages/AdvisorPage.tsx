@@ -212,12 +212,18 @@ function InlineScanningWidget({ plans, lang, searchStatus }: { plans: Plan[]; la
 type GuideAnswers = {
   internet: 'lot' | 'sometimes' | 'none' | '';
   calls: 'none' | 'some' | 'lot' | '';
-  intl: 'no' | 'yes' | '';
-  social: 'no' | 'yes' | '';
+  intl: 'no' | 'sometimes' | 'lot' | '';
+  social: 'no' | 'sometimes' | 'lot' | '';
   budget: number;       // SAR, 0 = no limit
 };
 
-const GUIDE_TOTAL_STEPS = 5;
+/** Returns the ordered list of guide steps, skipping social if internet='none' */
+function getGuideSteps(answers: GuideAnswers): ('internet' | 'calls' | 'intl' | 'social' | 'budget')[] {
+  const steps: ('internet' | 'calls' | 'intl' | 'social' | 'budget')[] = ['internet', 'calls', 'intl'];
+  if (answers.internet !== 'none') steps.push('social');
+  steps.push('budget');
+  return steps;
+}
 const BUDGET_MIN = 30;
 const BUDGET_MAX = 500;
 const BUDGET_STEP = 10;
@@ -246,24 +252,27 @@ function OptionChip({ selected, onClick, icon, label }: {
 }
 
 /** Renders the current guide step question with interactive UI */
-function GuideStepUI({ step, answers, setAnswers, onSubmit, t }: {
-  step: number;
+function GuideStepUI({ stepIndex, steps, answers, setAnswers, onSubmit, t }: {
+  stepIndex: number;
+  steps: ReturnType<typeof getGuideSteps>;
   answers: GuideAnswers;
   setAnswers: React.Dispatch<React.SetStateAction<GuideAnswers>>;
   onSubmit: () => void;
   t: (k: string) => string;
 }) {
+  const totalSteps = steps.length;
+  const currentStep = steps[stepIndex];
   const stepIndicator = t('advisor.guideStepOf')
-    .replace('{current}', String(step + 1))
-    .replace('{total}', String(GUIDE_TOTAL_STEPS));
+    .replace('{current}', String(stepIndex + 1))
+    .replace('{total}', String(totalSteps));
 
   const canSubmit = () => {
-    switch (step) {
-      case 0: return answers.internet !== '';
-      case 1: return answers.calls !== '';
-      case 2: return answers.intl !== '';
-      case 3: return answers.social !== '';
-      case 4: return true; // budget always has a value
+    switch (currentStep) {
+      case 'internet': return answers.internet !== '';
+      case 'calls': return answers.calls !== '';
+      case 'intl': return answers.intl !== '';
+      case 'social': return answers.social !== '';
+      case 'budget': return true;
       default: return false;
     }
   };
@@ -275,62 +284,64 @@ function GuideStepUI({ step, answers, setAnswers, onSubmit, t }: {
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-muted-foreground font-medium">{stepIndicator}</span>
           <div className="flex gap-1">
-            {Array.from({ length: GUIDE_TOTAL_STEPS }).map((_, i) => (
+            {Array.from({ length: totalSteps }).map((_, i) => (
               <div key={i} className={`h-1 rounded-full transition-all duration-300 ${
-                i <= step ? 'w-5 bg-primary' : 'w-2 bg-border'
+                i <= stepIndex ? 'w-5 bg-primary' : 'w-2 bg-border'
               }`} />
             ))}
           </div>
         </div>
 
-        {/* Step 0: Internet usage */}
-        {step === 0 && (
+        {/* Internet usage */}
+        {currentStep === 'internet' && (
           <div className="space-y-3">
             <p className="text-sm font-medium text-foreground">{t('advisor.guideInternetTitle')}</p>
             <div className="grid grid-cols-3 gap-2">
-              <OptionChip selected={answers.internet === 'lot'} onClick={() => setAnswers(a => ({ ...a, internet: 'lot' }))} icon={<Wifi size={18} />} label={t('advisor.guideInternetLot')} />
-              <OptionChip selected={answers.internet === 'sometimes'} onClick={() => setAnswers(a => ({ ...a, internet: 'sometimes' }))} icon={<Wifi size={18} />} label={t('advisor.guideInternetSometimes')} />
               <OptionChip selected={answers.internet === 'none'} onClick={() => setAnswers(a => ({ ...a, internet: 'none' }))} icon={<Wifi size={18} />} label={t('advisor.guideInternetNone')} />
+              <OptionChip selected={answers.internet === 'sometimes'} onClick={() => setAnswers(a => ({ ...a, internet: 'sometimes' }))} icon={<Wifi size={18} />} label={t('advisor.guideInternetSometimes')} />
+              <OptionChip selected={answers.internet === 'lot'} onClick={() => setAnswers(a => ({ ...a, internet: 'lot' }))} icon={<Wifi size={18} />} label={t('advisor.guideInternetLot')} />
             </div>
           </div>
         )}
 
-        {/* Step 1: Local calls */}
-        {step === 1 && (
+        {/* Local calls */}
+        {currentStep === 'calls' && (
           <div className="space-y-3">
             <p className="text-sm font-medium text-foreground">{t('advisor.guideCallsTitle')}</p>
             <div className="grid grid-cols-3 gap-2">
-              <OptionChip selected={answers.calls === 'lot'} onClick={() => setAnswers(a => ({ ...a, calls: 'lot' }))} icon={<Phone size={18} />} label={t('advisor.guideCallsLot')} />
-              <OptionChip selected={answers.calls === 'some'} onClick={() => setAnswers(a => ({ ...a, calls: 'some' }))} icon={<Phone size={18} />} label={t('advisor.guideCallsSome')} />
               <OptionChip selected={answers.calls === 'none'} onClick={() => setAnswers(a => ({ ...a, calls: 'none' }))} icon={<Phone size={18} />} label={t('advisor.guideCallsNone')} />
+              <OptionChip selected={answers.calls === 'some'} onClick={() => setAnswers(a => ({ ...a, calls: 'some' }))} icon={<Phone size={18} />} label={t('advisor.guideCallsSome')} />
+              <OptionChip selected={answers.calls === 'lot'} onClick={() => setAnswers(a => ({ ...a, calls: 'lot' }))} icon={<Phone size={18} />} label={t('advisor.guideCallsLot')} />
             </div>
           </div>
         )}
 
-        {/* Step 2: International calls */}
-        {step === 2 && (
+        {/* International calls */}
+        {currentStep === 'intl' && (
           <div className="space-y-3">
             <p className="text-sm font-medium text-foreground">{t('advisor.guideIntlTitle')}</p>
-            <div className="grid grid-cols-2 gap-2">
-              <OptionChip selected={answers.intl === 'yes'} onClick={() => setAnswers(a => ({ ...a, intl: 'yes' }))} icon={<Globe size={18} />} label={t('advisor.guideIntlYes')} />
+            <div className="grid grid-cols-3 gap-2">
               <OptionChip selected={answers.intl === 'no'} onClick={() => setAnswers(a => ({ ...a, intl: 'no' }))} icon={<Globe size={18} />} label={t('advisor.guideIntlNo')} />
+              <OptionChip selected={answers.intl === 'sometimes'} onClick={() => setAnswers(a => ({ ...a, intl: 'sometimes' }))} icon={<Globe size={18} />} label={t('advisor.guideIntlSometimes')} />
+              <OptionChip selected={answers.intl === 'lot'} onClick={() => setAnswers(a => ({ ...a, intl: 'lot' }))} icon={<Globe size={18} />} label={t('advisor.guideIntlLot')} />
             </div>
           </div>
         )}
 
-        {/* Step 3: Social media */}
-        {step === 3 && (
+        {/* Social media */}
+        {currentStep === 'social' && (
           <div className="space-y-3">
             <p className="text-sm font-medium text-foreground">{t('advisor.guideSocialTitle')}</p>
-            <div className="grid grid-cols-2 gap-2">
-              <OptionChip selected={answers.social === 'yes'} onClick={() => setAnswers(a => ({ ...a, social: 'yes' }))} icon={<Share2 size={18} />} label={t('advisor.guideSocialYes')} />
+            <div className="grid grid-cols-3 gap-2">
               <OptionChip selected={answers.social === 'no'} onClick={() => setAnswers(a => ({ ...a, social: 'no' }))} icon={<Share2 size={18} />} label={t('advisor.guideSocialNo')} />
+              <OptionChip selected={answers.social === 'sometimes'} onClick={() => setAnswers(a => ({ ...a, social: 'sometimes' }))} icon={<Share2 size={18} />} label={t('advisor.guideSocialSometimes')} />
+              <OptionChip selected={answers.social === 'lot'} onClick={() => setAnswers(a => ({ ...a, social: 'lot' }))} icon={<Share2 size={18} />} label={t('advisor.guideSocialLot')} />
             </div>
           </div>
         )}
 
-        {/* Step 4: Budget slider */}
-        {step === 4 && (
+        {/* Budget slider */}
+        {currentStep === 'budget' && (
           <div className="space-y-4">
             <p className="text-sm font-medium text-foreground">{t('advisor.guideBudgetTitle')}</p>
             <div className="space-y-3">
@@ -374,7 +385,7 @@ function GuideStepUI({ step, answers, setAnswers, onSubmit, t }: {
             onClick={onSubmit}
             className="rounded-xl gap-1"
           >
-            {step === GUIDE_TOTAL_STEPS - 1 ? t('advisor.guideFindPlans') : t('advisor.guideNext')}
+            {stepIndex === totalSteps - 1 ? t('advisor.guideFindPlans') : t('advisor.guideNext')}
             <ChevronRight size={14} className="rtl:rotate-180" />
           </Button>
         </div>
@@ -384,13 +395,13 @@ function GuideStepUI({ step, answers, setAnswers, onSubmit, t }: {
 }
 
 /** Returns the user-facing text for a guide answer (shown as user bubble) */
-function guideUserText(step: number, answers: GuideAnswers, t: (k: string) => string): string {
-  switch (step) {
-    case 0: return t(`advisor.guideInternet${capitalize(answers.internet)}`);
-    case 1: return t(`advisor.guideCalls${capitalize(answers.calls)}`);
-    case 2: return t(`advisor.guideIntl${capitalize(answers.intl)}`);
-    case 3: return t(`advisor.guideSocial${capitalize(answers.social)}`);
-    case 4: return answers.budget === 0 ? t('advisor.guideBudgetAny') : t('advisor.guideBudgetValue').replace('{value}', String(answers.budget));
+function guideUserText(stepName: string, answers: GuideAnswers, t: (k: string) => string): string {
+  switch (stepName) {
+    case 'internet': return t(`advisor.guideInternet${capitalize(answers.internet)}`);
+    case 'calls': return t(`advisor.guideCalls${capitalize(answers.calls)}`);
+    case 'intl': return t(`advisor.guideIntl${capitalize(answers.intl)}`);
+    case 'social': return t(`advisor.guideSocial${capitalize(answers.social)}`);
+    case 'budget': return answers.budget === 0 ? t('advisor.guideBudgetAny') : t('advisor.guideBudgetValue').replace('{value}', String(answers.budget));
     default: return '';
   }
 }
@@ -482,8 +493,10 @@ export default function AdvisorPage() {
 
   // Handle guided flow step submission — send user answer to AI, get ack, advance
   const handleGuideStepSubmit = useCallback(async () => {
-    const currentStep = guideStep;
-    const userText = guideUserText(currentStep, guideAnswers, t);
+    const steps = getGuideSteps(guideAnswers);
+    const stepName = steps[guideStep];
+    const isLastStep = guideStep === steps.length - 1;
+    const userText = guideUserText(stepName, guideAnswers, t);
     const userMsg: ChatMessage = { role: 'user', text: userText };
 
     // Hide the step UI while AI responds
@@ -492,8 +505,8 @@ export default function AdvisorPage() {
     setLoading(true);
     setError(null);
 
-    if (currentStep < GUIDE_TOTAL_STEPS - 1) {
-      // Steps 0-3: send to AI with instruction to acknowledge briefly, then show next step
+    if (!isLastStep) {
+      // Intermediate step: send to AI for brief ack, then show next step
       const contextHint = lang === 'ar'
         ? `المستخدم يجاوب على أسئلة لمساعدته يلقى باقة. اعترف بجوابه بجملة وحدة قصيرة وودية. لا ترشح باقات الحين.`
         : `The user is answering guided questions to find a plan. Acknowledge their answer in one short friendly sentence. Do NOT recommend plans yet.`;
@@ -503,12 +516,11 @@ export default function AdvisorPage() {
         const allMsgs = [...messages, userMsg];
         const { reply } = await sendAdvisorMessage(lang, allMsgs, msgWithHint);
         setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
-        setGuideStep(currentStep + 1);
+        setGuideStep(guideStep + 1);
       } catch (e) {
         console.error('Advisor error:', e);
         setError(lang === 'ar' ? 'حصل خطأ، جرب مرة ثانية.' : 'Something went wrong. Please try again.');
-        // Restore guide step so user can retry
-        setGuideStep(currentStep);
+        setGuideStep(guideStep);
       } finally {
         setLoading(false);
       }
@@ -518,9 +530,14 @@ export default function AdvisorPage() {
       trackEvent('advisor_guide_completed');
 
       const a = guideAnswers;
+      const intlMap = { lot: 'a lot', sometimes: 'sometimes', no: 'no' } as const;
+      const socialMap = { lot: 'very important', sometimes: 'somewhat important', no: 'not important' } as const;
+      const intlMapAr = { lot: 'كثير', sometimes: 'أحياناً', no: 'لا' } as const;
+      const socialMapAr = { lot: 'مهمة جداً', sometimes: 'شوي مهمة', no: 'مو مهمة' } as const;
+
       const summary = lang === 'ar'
-        ? `أبي باقة. استخدامي للإنترنت ${a.internet === 'lot' ? 'كثير' : a.internet === 'sometimes' ? 'أحياناً' : 'ما أستخدم'}. ${a.calls === 'none' ? 'ما أحتاج مكالمات محلية' : a.calls === 'some' ? 'أحتاج شوي مكالمات محلية' : 'أحتاج مكالمات محلية كثير'}. ${a.intl === 'yes' ? 'أسوي مكالمات دولية' : 'ما أحتاج مكالمات دولية'}. ${a.social === 'yes' ? 'بيانات السوشل ميديا مهمة لي' : 'السوشل ميديا مو أولوية'}. ميزانيتي ${a.budget === 0 ? 'مفتوحة' : `حوالي ${a.budget} ريال/شهر`}.`
-        : `I'm looking for a plan. My internet usage is ${a.internet === 'lot' ? 'heavy' : a.internet === 'sometimes' ? 'moderate' : 'minimal'}. I ${a.calls === 'none' ? "don't need local calls" : a.calls === 'some' ? 'need some local calls' : 'need a lot of local calls'}. ${a.intl === 'yes' ? 'I make international calls' : "I don't need international calls"}. ${a.social === 'yes' ? 'Social media data is important to me' : "Social media data isn't a priority"}. My budget is ${a.budget === 0 ? 'flexible, no limit' : `around ${a.budget} SAR/month`}.`;
+        ? `أبي باقة. استخدامي للإنترنت ${a.internet === 'lot' ? 'كثير' : a.internet === 'sometimes' ? 'أحياناً' : 'ما أستخدم'}. ${a.calls === 'none' ? 'ما أحتاج مكالمات محلية' : a.calls === 'some' ? 'أحتاج شوي مكالمات محلية' : 'أحتاج مكالمات محلية كثير'}. مكالمات دولية: ${intlMapAr[a.intl as keyof typeof intlMapAr] ?? 'لا'}. ${a.internet !== 'none' ? `بيانات السوشل ميديا: ${socialMapAr[a.social as keyof typeof socialMapAr] ?? 'مو مهمة'}.` : ''} ميزانيتي ${a.budget === 0 ? 'مفتوحة' : `حوالي ${a.budget} ريال/شهر`}.`
+        : `I'm looking for a plan. My internet usage is ${a.internet === 'lot' ? 'heavy' : a.internet === 'sometimes' ? 'moderate' : 'minimal'}. I ${a.calls === 'none' ? "don't need local calls" : a.calls === 'some' ? 'need some local calls' : 'need a lot of local calls'}. International calls: ${intlMap[a.intl as keyof typeof intlMap] ?? 'no'}. ${a.internet !== 'none' ? `Social media data: ${socialMap[a.social as keyof typeof socialMap] ?? 'not important'}.` : ''} My budget is ${a.budget === 0 ? 'flexible, no limit' : `around ${a.budget} SAR/month`}.`;
 
       try {
         const allMsgs = [...messages, userMsg];
@@ -718,7 +735,8 @@ export default function AdvisorPage() {
           {/* Guided flow — current step question (after messages, at bottom) */}
           {guideStep >= 0 && !loading && (
             <GuideStepUI
-              step={guideStep}
+              stepIndex={guideStep}
+              steps={getGuideSteps(guideAnswers)}
               answers={guideAnswers}
               setAnswers={setGuideAnswers}
               onSubmit={handleGuideStepSubmit}
