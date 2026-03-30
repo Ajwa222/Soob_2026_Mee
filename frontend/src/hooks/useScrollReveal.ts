@@ -1,10 +1,8 @@
 /**
- * Scroll animation hooks for reveal-on-scroll and count-up effects.
+ * Scroll animation hook for reveal-on-scroll effects.
  *
- *  - useScrollReveal(threshold) — returns [ref, isVisible]; once the element scrolls into view
- *    (IntersectionObserver), isVisible becomes true permanently (fires once, then unobserves).
- *  - useCountUp(target, duration, isVisible) — animates a number from 0 to target over duration ms,
- *    triggered when isVisible becomes true. Used for stat counters on the homepage.
+ * useScrollReveal(threshold) — returns [ref, isVisible]; once the element scrolls into view
+ * (IntersectionObserver), isVisible becomes true permanently (fires once, then unobserves).
  */
 import { useEffect, useRef, useState } from 'react';
 
@@ -35,35 +33,4 @@ export function useScrollReveal(threshold = 0.15): [React.RefObject<HTMLElement 
   }, [threshold]);
 
   return [ref, isVisible] as const;
-}
-
-/**
- * Animates a number from 0 → target over `duration` ms using setInterval at ~60fps.
- * Only starts when isVisible becomes true (pair with useScrollReveal).
- *
- * @param target    - Final number to count up to
- * @param duration  - Animation duration in milliseconds (default 1500)
- * @param isVisible - Trigger flag (usually from useScrollReveal)
- * @returns Current animated count value
- */
-export function useCountUp(target: number, duration = 1500, isVisible = false) {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!isVisible) return;
-    let start = 0;
-    const step = target / (duration / 16);
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, 16);
-    return () => clearInterval(timer);
-  }, [target, duration, isVisible]);
-
-  return count;
 }

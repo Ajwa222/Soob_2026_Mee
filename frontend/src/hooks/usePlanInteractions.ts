@@ -66,7 +66,7 @@ export function usePlanInteractions(planId: number | undefined) {
     }));
 
     try {
-      await fbToggleLike(planId, uid);
+      await fbToggleLike(planId);
     } catch {
       // Revert on error
       const fresh = await fetchReaction(planId);
@@ -91,7 +91,7 @@ export function usePlanInteractions(planId: number | undefined) {
     }));
 
     try {
-      await fbToggleDislike(planId, uid);
+      await fbToggleDislike(planId);
     } catch {
       const fresh = await fetchReaction(planId);
       setReaction(fresh);
@@ -101,7 +101,7 @@ export function usePlanInteractions(planId: number | undefined) {
   const addComment = useCallback(async (text: string) => {
     if (!user || !planId || !text.trim()) return;
     try {
-      const comment = await fbAddComment(planId, user, text);
+      const comment = await fbAddComment(planId, text);
       setComments(prev => [comment, ...prev]);
       trackEvent('comment_added', { plan_id: planId });
     } catch (err) { console.error("Failed to add comment:", err); }

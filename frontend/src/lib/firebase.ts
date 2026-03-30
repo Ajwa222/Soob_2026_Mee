@@ -8,9 +8,6 @@
  * Usage pattern:
  *   const auth = await getFirebaseAuth();    // triggers init on first call
  *   const db   = await getFirebaseDb();      // resolves instantly after init
- *
- * For code that has already awaited init, synchronous getters are available:
- *   const auth = getAuthSync();              // returns Auth | null
  */
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
@@ -70,7 +67,3 @@ export function getGoogleProvider(): Promise<GoogleAuthProviderType> {
   return _initPromise.then(() => _googleProvider!);
 }
 
-// ── Synchronous getters (for code that has already awaited init) ──
-
-export function getAuthSync(): Auth | null { return _auth; }
-export function getDbSync(): Firestore | null { return _db; }

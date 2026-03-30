@@ -9,7 +9,7 @@
  * All mutating endpoints require authentication (handled by apiFetch).
  */
 import { apiFetch } from "./apiClient";
-import type { PlanReaction, PlanComment, SimbaUser } from "../types";
+import type { PlanReaction, PlanComment } from "../types";
 
 /* ── In-memory cache (TTL: 5 min) ── */
 const CACHE_TTL = 5 * 60 * 1000;
@@ -83,13 +83,13 @@ export const fetchCommentCount = async (planId: number): Promise<number> => {
 };
 
 /** POST /api/plan-interactions/:id/reactions/like — toggle like for the authenticated user. */
-export const toggleLike = async (planId: number, _userId: string): Promise<void> => {
+export const toggleLike = async (planId: number): Promise<void> => {
   invalidateReactionCache(planId);
   await apiFetch(`/api/plan-interactions/${planId}/reactions/like`, { method: "POST" });
 };
 
 /** POST /api/plan-interactions/:id/reactions/dislike — toggle dislike for the authenticated user. */
-export const toggleDislike = async (planId: number, _userId: string): Promise<void> => {
+export const toggleDislike = async (planId: number): Promise<void> => {
   invalidateReactionCache(planId);
   await apiFetch(`/api/plan-interactions/${planId}/reactions/dislike`, { method: "POST" });
 };
@@ -100,7 +100,7 @@ export const fetchComments = async (planId: number): Promise<PlanComment[]> => {
 };
 
 /** POST /api/plan-interactions/:id/comments — add a new comment (max 500 chars, enforced server-side). */
-export const addComment = async (planId: number, _user: SimbaUser, text: string): Promise<PlanComment> => {
+export const addComment = async (planId: number, text: string): Promise<PlanComment> => {
   invalidateCommentCache(planId);
   return apiFetch<PlanComment>(`/api/plan-interactions/${planId}/comments`, {
     method: "POST",
