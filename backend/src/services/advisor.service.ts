@@ -182,7 +182,7 @@ export async function getAdvisorReply(
   ];
 
   const response = await client.chat.completions.create({
-    model: "gpt-5.2",
+    model: "gpt-5-mini",
     messages,
     tools: [RECOMMEND_PLANS_TOOL],
     tool_choice: "auto",
