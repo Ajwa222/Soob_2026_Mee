@@ -11,7 +11,7 @@
  * Reads plan ID from URL params, looks it up in the PlansContext catalog.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ChevronRight, ChevronLeft, ExternalLink, Plus, Check,
   Wifi, Phone, MessageSquare, Globe2, Share2, Clock,
@@ -52,6 +52,8 @@ export default function PlanDetailPage() {
   const { requestBookmark, isBookmarked } = useBookmarks();
   const { user, isLoggedIn, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const source = searchParams.get('source') || undefined;
   const [commentText, setCommentText] = useState('');
 
   const { plans } = usePlans();
@@ -64,7 +66,7 @@ export default function PlanDetailPage() {
 
   useEffect(() => {
     if (plan) {
-      trackEvent('plan_detail_viewed', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR });
+      trackEvent('plan_detail_viewed', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR, source });
     }
   }, [plan]);
 
@@ -233,7 +235,7 @@ export default function PlanDetailPage() {
               href={plan.url}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => trackEvent('get_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, url: plan.url }, { useBeacon: true })}
+              onClick={() => trackEvent('get_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, url: plan.url, source }, { useBeacon: true })}
             >
               {t('detail.getThisPlan')}
               <ExternalLink size={16} />

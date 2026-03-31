@@ -44,9 +44,10 @@ interface PlanCardProps {
   onToggleCompare?: (plan: Plan) => void;
   onToggleBookmark?: (planId: number) => void;
   onViewPlan?: () => void;
+  source?: string;
 }
 
-const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected = false, bookmarked = false, likes = 0, dislikes = 0, commentCount = 0, segmentBadge, onToggleCompare, onToggleBookmark, onViewPlan }: PlanCardProps) {
+const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected = false, bookmarked = false, likes = 0, dislikes = 0, commentCount = 0, segmentBadge, onToggleCompare, onToggleBookmark, onViewPlan, source }: PlanCardProps) {
   const { t } = useLang();
   const carrierColor = getCarrierColor(plan.provider);
   const carrierLogo = getCarrierLogo(plan.provider);
@@ -159,7 +160,7 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
 
       <CardFooter className={`gap-2 ${compact ? 'px-3.5 pb-2 pt-0' : 'px-5 pb-5'}`}>
         <Button variant="secondary" size={compact ? 'sm' : 'default'} className={`flex-1 rounded-xl ${compact ? 'text-xs font-medium py-1' : 'font-semibold'}`} asChild>
-          <Link to={`/plan/${plan.id}`} onClick={() => { trackEvent('plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR }); onViewPlan?.(); }}>{t('planCard.viewDetails')}</Link>
+          <Link to={`/plan/${plan.id}${source ? `?source=${source}` : ''}`} onClick={() => { trackEvent('plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR, source }); onViewPlan?.(); }}>{t('planCard.viewDetails')}</Link>
         </Button>
         <Button
           variant={selected ? 'default' : 'outline'}
@@ -178,7 +179,7 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
 /** Thin wrapper that subscribes to CompareContext.
  *  Only this component re-renders on context changes —
  *  the memoized PlanCard underneath skips if `selected` didn't change. */
-export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, style, compact }: { plan: Plan; style?: React.CSSProperties; compact?: boolean }) {
+export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, style, compact, source }: { plan: Plan; style?: React.CSSProperties; compact?: boolean; source?: string }) {
   const { togglePlan, isSelected } = useCompare();
   const { requestBookmark, isBookmarked } = useBookmarks();
   const { engagement } = usePlans();
@@ -202,6 +203,7 @@ export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, s
       commentCount={e?.comments ?? 0}
       onToggleCompare={handleToggleCompare}
       onToggleBookmark={handleToggleBookmark}
+      source={source}
     />
   );
 });

@@ -498,6 +498,7 @@ export default function AdvisorPage() {
     const isLastStep = guideStep === steps.length - 1;
     const userText = guideUserText(stepName, guideAnswers, t);
     const userMsg: ChatMessage = { role: 'user', text: userText };
+    trackEvent('advisor_guide_step_answered', { step: stepName, step_number: guideStep + 1, total_steps: steps.length, answer: guideAnswers[stepName] });
 
     // Hide the step UI while AI responds
     setGuideStep(-1);
@@ -601,7 +602,7 @@ export default function AdvisorPage() {
     setInput('');
     setLoading(true);
     setError(null);
-    trackEvent('advisor_message_sent');
+    trackEvent('advisor_message_sent', { message_number: messages.filter(m => m.role === 'user').length + 1 });
 
     try {
       const { reply, planIds } = await sendAdvisorMessage(
@@ -724,7 +725,7 @@ export default function AdvisorPage() {
                 <div className="mt-3 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-x-visible sm:pb-0">
                   {getPlansById(plans, msg.planIds).map((plan, idx) => (
                     <div key={plan.id} className="min-w-[75vw] snap-start sm:min-w-0" onClick={() => trackEvent('advisor_plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, position: idx + 1 })}>
-                      <ConnectedPlanCard plan={plan} />
+                      <ConnectedPlanCard plan={plan} source="advisor" />
                     </div>
                   ))}
                 </div>
