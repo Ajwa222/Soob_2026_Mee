@@ -183,7 +183,7 @@ export async function getAdvisorReply(
 
   const response = await client.chat.completions.create({
     model: "gpt-5.2",
-    max_tokens: 1024,
+    max_completion_tokens: 1024,
     messages,
     tools: [RECOMMEND_PLANS_TOOL],
     tool_choice: "auto",
