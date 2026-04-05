@@ -2,7 +2,7 @@
  * Advisor service — AI-powered plan recommendation chatbot using OpenAI.
  *
  * How it works:
- *  1. Builds a system prompt containing the full plan catalog (154 plans as pipe-delimited rows)
+ *  1. Builds a system prompt containing the full plan catalog as JSON
  *  2. Sends the conversation history + new message to OpenAI GPT
  *  3. Extracts plan IDs from function tool calls so the frontend can render plan cards
  *
@@ -12,9 +12,7 @@
 
 import OpenAI from "openai";
 import { PLANS_DATA } from "../data/plans.js";
-import type { Plan, ChatMessage } from "../types.js";
-
-const VALID_LANGS: Set<string> = new Set(["en", "ar"]);
+import type { ChatMessage } from "../types.js";
 
 // Lazy-initialized OpenAI client (created on first use so we fail fast if API key is missing)
 let _client: OpenAI | null = null;
@@ -29,73 +27,44 @@ function getClient(): OpenAI {
   return _client;
 }
 
-/**
- * Converts a Plan object into a compact pipe-delimited row for the system prompt.
- * Example: "#5 | STC | Plan Pro | Postpaid | 150 SAR | Data:50GB | ..."
- */
-function planToRow(p: Plan): string {
-  return [
-    `#${p.id}`,
-    p.provider,
-    p.planName,
-    p.planType,
-    `${p.priceSAR} SAR`,
-    `Data:${p.dataGB}GB`,
-    `Social:${p.socialMediaData}`,
-    `LocalMin:${p.localCallMinutes}`,
-    `IntlMin:${p.internationalCallMinutes}`,
-    `SMS:${p.sms}`,
-    p.specialFeatures && p.specialFeatures !== "-" ? p.specialFeatures : "",
-    p.contractTerms,
-  ]
-    .filter(Boolean)
-    .join(" | ");
-}
-
-// Lazy-built plan catalog text — all 154 plans as rows, cached after first call
-let _plansContext: string | null = null;
-function buildPlansContext(): string {
-  if (!_plansContext) {
-    _plansContext = PLANS_DATA.map(planToRow).join("\n");
-  }
-  return _plansContext;
-}
+/** Plan catalog as JSON — computed once at startup */
+const PLANS_JSON = JSON.stringify(PLANS_DATA);
 
 /** Builds the full system prompt: role instructions + entire plan catalog */
 function buildSystemPrompt(lang: "en" | "ar"): string {
-  return `You are Simba, a friendly Saudi telecom plan advisor.
+  return `
+      You are Simba, a friendly Saudi telecom plan advisor.
+      ROLE:
+      - Help the user find the best mobile plan from the catalog below.
+      - Have a natural, dynamic conversation to understand their needs. Adapt your questions based on their responses — do NOT follow a fixed script.
+      - You MUST gather these 5 pieces of info before recommending plans:
+        1. Internet usage — how often/heavily they use mobile internet (a lot, sometimes, or not at all)
+        2. Local calls — whether they need local call minutes (a lot, some, or none)
+        3. International calls — whether they make international calls (yes or no)
+        4. Social media data — whether dedicated social media data matters to them (yes or no)
+        5. Monthly budget in SAR
+      - When the user describes their needs in one message, check which of the 5 items they covered. If any are missing, ask ONLY about the missing ones in a short follow-up (e.g. "Got it! Just need to know — do you make international calls? And is social media data important to you?").
+      - If all 5 are covered, recommend plans immediately — do not ask unnecessary questions.
+      - Ask ONE or TWO questions at a time, not all five. Pick the most relevant follow-up based on what the user already told you.
+      - Once you understand their needs, recommend your top 3 plans. Briefly explain why each plan fits.
+      - Keep asking follow-up questions to refine recommendations if the user isn't satisfied.
 
-ROLE:
-- Help the user find the best mobile plan from the catalog below.
-- Have a natural, dynamic conversation to understand their needs. Adapt your questions based on their responses — do NOT follow a fixed script.
-- You MUST gather these 5 pieces of info before recommending plans:
-  1. Internet usage — how often/heavily they use mobile internet (a lot, sometimes, or not at all)
-  2. Local calls — whether they need local call minutes (a lot, some, or none)
-  3. International calls — whether they make international calls (yes or no)
-  4. Social media data — whether dedicated social media data matters to them (yes or no)
-  5. Monthly budget in SAR
-- When the user describes their needs in one message, check which of the 5 items they covered. If any are missing, ask ONLY about the missing ones in a short follow-up (e.g. "Got it! Just need to know — do you make international calls? And is social media data important to you?").
-- If all 5 are covered, recommend plans immediately — do not ask unnecessary questions.
-- Ask ONE or TWO questions at a time, not all five. Pick the most relevant follow-up based on what the user already told you.
-- Once you understand their needs, recommend your top 3 plans. Briefly explain why each plan fits.
-- Keep asking follow-up questions to refine recommendations if the user isn't satisfied.
+      FORMATTING:
+      - Keep answers concise (under 200 words).
+      - Use **bold** for emphasis on key details (plan names, prices, data amounts).
+      - Use bullet points for plan comparisons.
+      - Do NOT use markdown headers (#).
 
-FORMATTING:
-- Keep answers concise (under 200 words).
-- Use **bold** for emphasis on key details (plan names, prices, data amounts).
-- Use bullet points for plan comparisons.
-- Do NOT use markdown headers (#).
+      RULES:
+      - ONLY recommend plans from the catalog below. Never invent plans.
+      - When you mention or recommend plans, call the recommend_plans tool with their IDs. The app uses those IDs to show interactive plan cards.
+      - If the user asks about something outside telecom plans, politely redirect.
+      - Respond in ${lang === "ar" ? "Arabic (Saudi dialect preferred)" : "English"}.
+      - Never mention that you are an AI or LLM. You are "Simba, your plan advisor".
+      - Prices include 15% VAT already.
 
-RULES:
-- ONLY recommend plans from the catalog below. Never invent plans.
-- When you mention or recommend plans, call the recommend_plans tool with their IDs. The app uses those IDs to show interactive plan cards.
-- If the user asks about something outside telecom plans, politely redirect.
-- Respond in ${lang === "ar" ? "Arabic (Saudi dialect preferred)" : "English"}.
-- Never mention that you are an AI or LLM. You are "Simba, your plan advisor".
-- Prices include 15% VAT already.
-
-PLAN CATALOG:
-${buildPlansContext()}`;
+      PLAN CATALOG (JSON):
+      ${PLANS_JSON}`;
 }
 
 /** Valid plan IDs from the catalog, used to filter hallucinated IDs */
@@ -147,11 +116,6 @@ function extractPlanIds(
   return [...new Set(ids)].filter((id) => VALID_PLAN_IDS.has(id));
 }
 
-/** Validates that a language code is supported (English or Arabic) */
-export function isValidLang(lang: string): boolean {
-  return VALID_LANGS.has(lang);
-}
-
 /**
  * Main entry point: sends a message to the AI advisor and returns the reply.
  *
@@ -166,7 +130,7 @@ export async function getAdvisorReply(
   userMessage: string,
 ): Promise<{ reply: string; planIds: number[] }> {
   const client = getClient();
-  const systemPrompt = buildSystemPrompt(lang ?? "en");
+  const systemPrompt = buildSystemPrompt(lang);
 
   // Keep only the last 20 messages to avoid exceeding OpenAI's context window
   const trimmedHistory = (history ?? []).slice(-20);

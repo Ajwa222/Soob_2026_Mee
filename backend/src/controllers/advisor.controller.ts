@@ -35,7 +35,7 @@ export const sendMessage = async (req: Request, res: Response) => {
       res.status(400).json({ error: "userMessage is required" });
       return;
     }
-    if (lang && !AdvisorService.isValidLang(lang)) {
+    if (lang && lang !== "en" && lang !== "ar") {
       res.status(400).json({ error: "lang must be 'en' or 'ar'" });
       return;
     }
