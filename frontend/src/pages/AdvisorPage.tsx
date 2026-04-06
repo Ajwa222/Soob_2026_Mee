@@ -3,10 +3,9 @@
  *
  * Features:
  *  - Full-height chat interface with message bubbles (user + assistant)
- *  - Sends messages to POST /api/advisor/message (OpenAI GPT-4 mini backend)
+ *  - Sends messages to POST /api/advisor/message (OpenAI GPT-5.2 backend)
  *  - Renders referenced plans as inline PlanCard components within chat messages
  *  - Two entry modes: "Guide me" (structured Q&A) or "I know what I want" (freeform)
- *  - Conversation history persisted in Firestore for logged-in users
  *  - Auto-scrolls to latest message, typing indicators while AI responds
  */
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
@@ -18,8 +17,6 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { getFirebaseDb } from '../lib/firebase';
-import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
 import { CARRIERS } from '../data/plans';
@@ -418,20 +415,17 @@ function capitalize(s: string): string {
 }
 
 export default function AdvisorPage() {
-  const { t, lang } = useLang();
-  const [, setSearchParams] = useSearchParams();
-  const { plans } = usePlans();
-  const { user } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const searchStatus = useSearchStatus(loading, t);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasInitialized = useRef(false);
+  const { t, lang } = useLang(); // Get translation function and current language (en/ar)
+  const [, setSearchParams] = useSearchParams(); // URL search params setter (reader discarded)
+  const { plans } = usePlans(); // Full plan catalog from PlansContext
+  const [messages, setMessages] = useState<ChatMessage[]>([]); // Chat conversation history
+  const [input, setInput] = useState(''); // Current text in the message input field
+  const [loading, setLoading] = useState(false); // Whether an AI response is being fetched
+  const [error, setError] = useState<string | null>(null); // Error message to display, null if none
+  const chatEndRef = useRef<HTMLDivElement>(null); // Anchor element at bottom of chat for auto-scroll
+  const chatContainerRef = useRef<HTMLDivElement>(null); // Scrollable chat container element
+  const inputRef = useRef<HTMLInputElement>(null); // Text input element for focus management
+  const searchStatus = useSearchStatus(loading, t); // Animated status text shown while AI is searching
 
   // Whether the user has picked a quick-action card (hides the cards once chosen)
   const [started, setStarted] = useState(false);
@@ -442,33 +436,6 @@ export default function AdvisorPage() {
   });
   // True only when doing the final plan search (shows scanning widget)
   const searchingPlans = useRef(false);
-
-  // Try to resume saved conversation on mount (logged-in users)
-  useEffect(() => {
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
-
-    if (!user?.uid) return;
-    const init = async () => {
-      try {
-        const db = await getFirebaseDb();
-        const { doc, getDoc } = await import('firebase/firestore');
-        const snap = await getDoc(doc(db, 'users', user.uid, 'advisor', 'lastConversation'));
-        if (snap.exists()) {
-          const data = snap.data();
-          if (data?.messages?.length > 0) {
-            setMessages(data.messages as ChatMessage[]);
-            setStarted(true);
-            setSearchParams({ chat: '1' }, { replace: true });
-            trackEvent('advisor_conversation_resumed');
-          }
-        }
-      } catch {
-        // Silently fail — show welcome + cards
-      }
-    };
-    init();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle quick-action card click
   const handleQuickAction = useCallback(async (mode: 'guide' | 'direct') => {
@@ -554,23 +521,6 @@ export default function AdvisorPage() {
     }
   }, [guideStep, guideAnswers, lang, t, messages]);
 
-  // Save conversation to Firestore (debounced)
-  useEffect(() => {
-    if (!user?.uid || messages.length === 0) return;
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => {
-      getFirebaseDb().then(async (db) => {
-        const { doc, setDoc } = await import('firebase/firestore');
-        await setDoc(
-          doc(db, 'users', user.uid, 'advisor', 'lastConversation'),
-          { messages, updatedAt: Date.now(), lang },
-          { merge: true },
-        );
-      }).catch(() => {});
-    }, 2000);
-    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
-  }, [messages, user?.uid, lang]);
-
   // Auto-scroll chat after every change
   const scrollChat = useCallback(() => {
     const el = chatContainerRef.current;
@@ -625,7 +575,6 @@ export default function AdvisorPage() {
 
   const restart = () => {
     trackEvent('advisor_restarted');
-    hasInitialized.current = true; // prevent resume check from re-firing
     setStarted(false);
     setGuideStep(-1);
     setGuideAnswers({ internet: '', calls: '', intl: '', social: '', budget: 150 });
