@@ -18,19 +18,20 @@ export interface ChatMessage {
 /**
  * POST /api/advisor/message — Send a user message and get an AI reply.
  *
- * @param lang        - Response language ("en" or "ar")
- * @param history     - Previous conversation messages for context
- * @param userMessage - The user's new message
- * @returns { reply, planIds } — AI text reply + referenced plan IDs
+ * The backend currently supports "en" and "ar" reply languages. Other UI
+ * languages (ur/hi/bn/tl) fall back to English until backend prompts are extended.
  */
+import type { Lang } from "../context/LanguageContext";
+
 export const sendAdvisorMessage = async (
-  lang: "en" | "ar",
+  lang: Lang,
   history: ChatMessage[],
   userMessage: string,
 ): Promise<{ reply: string; planIds: number[] }> => {
+  const advisorLang: "en" | "ar" = lang === "ar" ? "ar" : "en";
   return apiFetch<{ reply: string; planIds: number[] }>("/api/advisor/message", {
     method: "POST",
-    body: JSON.stringify({ lang, history, userMessage }),
+    body: JSON.stringify({ lang: advisorLang, history, userMessage }),
   });
 };
 

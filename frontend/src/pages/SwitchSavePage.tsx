@@ -161,13 +161,11 @@ export default function SwitchSavePage() {
               <TrendingDown size={14} className="text-black" />
             </div>
             <h1 className="font-heading font-normal text-xl md:text-2xl text-black tracking-tight">
-              {isAr ? 'غيّر ووفّر' : 'Switch & Save'}
+              {t('switchSave.title')}
             </h1>
           </div>
           <p className="text-black/60 text-xs md:text-sm max-w-lg">
-            {isAr
-              ? 'عطنا باقتك، ونجيب لك عرض أفضل.'
-              : 'Tell us your plan. We\'ll find a better deal.'}
+            {t('switchSave.subtitle')}
           </p>
         </div>
       </section>

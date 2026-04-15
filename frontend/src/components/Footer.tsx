@@ -5,14 +5,13 @@
  * Includes decorative background circles and a "Made with love in Saudi Arabia" tagline.
  */
 import { Link, useLocation } from 'react-router-dom';
-import { Globe } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import LanguagePicker from './LanguagePicker';
 
 export default function Footer() {
-  const { toggleLang, t, lang } = useLang();
+  const { t } = useLang();
   const { hasAccount } = useAuth();
   const location = useLocation();
 
@@ -37,15 +36,9 @@ export default function Footer() {
             <p className="text-white/40 text-sm leading-relaxed max-w-xs">
               {t('footer.tagline')}
             </p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleLang}
-              className="mt-4 text-white/40 hover:text-white hover:bg-white/8 p-0 h-auto rounded-lg"
-            >
-              <Globe size={14} />
-              {lang === 'en' ? 'العربية' : 'English'}
-            </Button>
+            <div className="mt-4">
+              <LanguagePicker variant="footer" />
+            </div>
           </div>
 
           {/* Quick Links */}

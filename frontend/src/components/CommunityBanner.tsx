@@ -15,7 +15,7 @@ const ENGLISH_LINK = 'https://t.me/+savcYu7Ja41kODQ0';
 const ARABIC_LINK = 'https://chat.whatsapp.com/IuixL2fLPFgD5aAraoFz6D';
 
 export default function CommunityBanner() {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const isArabic = lang === 'ar';
   const [showModal, setShowModal] = useState(false);
 
@@ -39,15 +39,13 @@ export default function CommunityBanner() {
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FFF0D0] text-black/70 text-[11px] font-semibold tracking-wide uppercase mb-3">
               <Users size={11} />
-              {isArabic ? 'مجتمع سيمبا' : 'Community'}
+              {t('community.badge')}
             </div>
             <h2 className="font-heading font-bold text-xl md:text-2xl text-black leading-tight">
-              {isArabic ? 'انضم لمجتمع سيمبا' : 'Join the Simba Community'}
+              {t('community.title')}
             </h2>
             <p className="mt-1.5 text-black/70 text-sm max-w-sm leading-relaxed">
-              {isArabic
-                ? 'كن أول من يعرف عن أفضل العروض والباقات الجديدة'
-                : 'Connect with others and be the first to know about the best deals'}
+              {t('community.subtitle')}
             </p>
           </div>
 
@@ -56,7 +54,7 @@ export default function CommunityBanner() {
             variant="secondary"
             className="bg-white text-[#213E53] hover:bg-white/90 font-bold shrink-0 self-start md:self-center h-12 px-6 rounded-xl shadow-lg shadow-black/10 hover:shadow-xl transition-all duration-300"
           >
-            {isArabic ? 'انضم الآن' : 'Join Now'}
+            {t('community.join')}
             <ArrowRight size={17} className="rtl:rotate-180" />
           </Button>
         </div>
@@ -68,8 +66,8 @@ export default function CommunityBanner() {
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
               <Users size={28} className="text-primary" />
             </div>
-            <DialogTitle className="font-heading">Choose your community</DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1">Pick the language you're most comfortable with</p>
+            <DialogTitle className="font-heading">{t('community.modalTitle')}</DialogTitle>
+            <p className="text-sm text-muted-foreground mt-1">{t('community.modalDesc')}</p>
           </div>
 
           <div className="flex flex-col gap-3">

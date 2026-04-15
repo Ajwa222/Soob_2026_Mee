@@ -186,12 +186,10 @@ export default function HomePage() {
           </div>
           <div className="relative z-[2] flex-1 min-w-0">
             <h3 className="font-heading font-bold text-base text-black">
-              {lang === 'ar' ? 'غيّر ووفّر' : 'Switch & Save'}
+              {t('switchSave.title')}
             </h3>
             <p className="text-xs text-black/60 mt-0.5">
-              {lang === 'ar'
-                ? 'ادخل باقتك الحالية وبنلقالك باقات أرخص وأفضل'
-                : 'Enter your current plan and find cheaper alternatives instantly'}
+              {t('switchSave.homeCardDesc')}
             </p>
           </div>
           <ArrowRight size={18} className="relative z-[2] text-black/70 group-hover:text-black shrink-0 rtl:rotate-180 transition-colors" />

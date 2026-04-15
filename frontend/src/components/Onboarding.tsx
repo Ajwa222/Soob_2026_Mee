@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useLang } from '../context/LanguageContext';
+import { useLang, SUPPORTED_LANGS, LANG_LABELS, type Lang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { CARRIERS } from '../data/plans';
 import { trackEvent } from '../lib/analytics';
@@ -79,7 +79,7 @@ function SceneMatch() {
 }
 
 export default function Onboarding() {
-  const { lang, toggleLang } = useLang();
+  const { lang, setLang } = useLang();
   const { markOnboarded } = useAuth();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(() => !localStorage.getItem('simba-onboarded'));
@@ -95,8 +95,8 @@ export default function Onboarding() {
 
   if (!visible) return null;
 
-  const chooseLang = (chosen: string) => {
-    if (chosen !== lang) toggleLang();
+  const chooseLang = (chosen: Lang) => {
+    if (chosen !== lang) setLang(chosen);
     trackEvent('onboarding_language_selected', { language: chosen });
     setPage(1);
   };
@@ -119,21 +119,35 @@ export default function Onboarding() {
         <div className="relative z-10 w-20 h-20 md:w-28 md:h-28 mb-10 rounded-[22%] overflow-hidden shadow-lg">
           <img src="/icon-512.png" alt="Simba" className="w-full h-full object-cover scale-[1.05]" />
         </div>
-        <div className="relative z-10 flex gap-3 w-full max-w-xs md:max-w-sm">
-          <Button
-            onClick={() => chooseLang('en')}
-            variant="secondary"
-            className="flex-1 py-6 text-base font-medium bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md"
-          >
-            English
-          </Button>
-          <Button
-            onClick={() => chooseLang('ar')}
-            variant="secondary"
-            className="flex-1 py-6 text-base font-medium bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md"
-          >
-            العربية
-          </Button>
+        <div className="relative z-10 flex flex-col gap-3 w-full max-w-xs md:max-w-sm">
+          <div className="flex gap-3">
+            <Button
+              onClick={() => chooseLang('en')}
+              variant="secondary"
+              className="flex-1 py-6 text-base font-medium bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md"
+            >
+              English
+            </Button>
+            <Button
+              onClick={() => chooseLang('ar')}
+              variant="secondary"
+              className="flex-1 py-6 text-base font-medium bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md"
+            >
+              العربية
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {SUPPORTED_LANGS.filter(l => l !== 'en' && l !== 'ar').map(l => (
+              <Button
+                key={l}
+                onClick={() => chooseLang(l)}
+                variant="ghost"
+                className="py-4 text-sm font-medium bg-white/10 text-white hover:bg-white/20 border border-white/20"
+              >
+                {LANG_LABELS[l]}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
     );
