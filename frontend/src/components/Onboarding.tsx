@@ -610,7 +610,7 @@ export default function Onboarding() {
     markOnboarded();
     const variant = localStorage.getItem('simba-onboarding-variant');
     const autoGuide = variant === 'B' || variant === 'D';
-    trackCompleted('/advisor', answers, 'classic', startedAtRef.current);
+    trackCompleted('/advisor', { ...answers }, 'classic', startedAtRef.current);
     setVisible(false);
     navigate('/advisor', { state: { fromOnboarding: true, autoGuide } });
   };
@@ -1011,7 +1011,7 @@ export default function Onboarding() {
               localStorage.setItem('simba-onboarded', 'true');
               localStorage.setItem('simba-onboarding-answers', JSON.stringify(answers));
               markOnboarded();
-              trackCompleted('/', answers, 'classic', startedAtRef.current);
+              trackCompleted('/', { ...answers }, 'classic', startedAtRef.current);
               setVisible(false);
               navigate('/');
             }}
