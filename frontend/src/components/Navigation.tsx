@@ -28,7 +28,6 @@ export default function Navigation() {
   const { hasAccount } = useAuth();
   const location = useLocation();
   const [onboarded, setOnboarded] = useState(() => !!localStorage.getItem('simba-onboarded'));
-  const [firstSession, setFirstSession] = useState(() => !localStorage.getItem('simba-onboarded'));
 
   useEffect(() => {
     if (onboarded) return;
@@ -40,15 +39,35 @@ export default function Navigation() {
     return () => { window.removeEventListener('storage', check); clearInterval(interval); };
   }, [onboarded]);
 
-  // On first session, clear the flag when user navigates away from /advisor
+  // "Focus mode" — user was navigated here directly from onboarding completion.
+  // Hides the top nav until AdvisorPage signals plans have been rendered OR user leaves /advisor.
+  const [fromOnboarding, setFromOnboarding] = useState(() => {
+    return sessionStorage.getItem('simba-from-onboarding') === '1';
+  });
   useEffect(() => {
-    if (firstSession && location.pathname !== '/advisor') {
-      setFirstSession(false);
+    const navState = (location.state as { fromOnboarding?: boolean } | null)?.fromOnboarding;
+    if (navState && location.pathname === '/advisor') {
+      sessionStorage.setItem('simba-from-onboarding', '1');
+      setFromOnboarding(true);
+    } else if (location.pathname !== '/advisor') {
+      sessionStorage.removeItem('simba-from-onboarding');
+      setFromOnboarding(false);
     }
-  }, [firstSession, location.pathname]);
+  }, [location.state, location.pathname]);
+
+  // Release focus mode once the advisor page shows the user actual plans.
+  useEffect(() => {
+    if (!fromOnboarding) return;
+    const release = () => {
+      sessionStorage.removeItem('simba-from-onboarding');
+      setFromOnboarding(false);
+    };
+    window.addEventListener('simba-advisor-plans-shown', release);
+    return () => window.removeEventListener('simba-advisor-plans-shown', release);
+  }, [fromOnboarding]);
 
   if (!onboarded) return null;
-  if (firstSession && location.pathname === '/advisor' && !location.search.includes('chat=1')) return null;
+  if (fromOnboarding && location.pathname === '/advisor') return null;
 
   const handleNav = (e: React.MouseEvent, path: string) => {
     if (location.pathname === path || (path === '/home' && location.pathname === '/')) {

@@ -16,7 +16,7 @@ import {
   Wifi, Phone, Globe, Share2,
   ChevronRight,
 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext';
 import { usePlans } from '../context/PlansContext';
 import { CARRIERS } from '../data/plans';
@@ -417,6 +417,7 @@ function capitalize(s: string): string {
 export default function AdvisorPage() {
   const { t, lang } = useLang(); // Get translation function and current language (en/ar)
   const [, setSearchParams] = useSearchParams(); // URL search params setter (reader discarded)
+  const location = useLocation();
   const { plans } = usePlans(); // Full plan catalog from PlansContext
   const [messages, setMessages] = useState<ChatMessage[]>([]); // Chat conversation history
   const [input, setInput] = useState(''); // Current text in the message input field
@@ -436,6 +437,11 @@ export default function AdvisorPage() {
   });
   // True only when doing the final plan search (shows scanning widget)
   const searchingPlans = useRef(false);
+
+  // Variants B & D: onboarding navigates here with state.autoGuide === true, which
+  // means skip the "Guide me / I know what I want" choice and drop the user straight
+  // into the guided questionnaire.
+  const autoGuide = (location.state as { autoGuide?: boolean } | null)?.autoGuide === true;
 
   // Handle quick-action card click
   const handleQuickAction = useCallback(async (mode: 'guide' | 'direct') => {
@@ -532,6 +538,27 @@ export default function AdvisorPage() {
     return () => clearTimeout(t);
   }, [messages, loading, scrollChat]);
 
+  // Auto-start guide mode for variants B & D — fires once on mount.
+  const autoGuideTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (autoGuide && !autoGuideTriggeredRef.current && !started && !loading) {
+      autoGuideTriggeredRef.current = true;
+      handleQuickAction('guide');
+    }
+  }, [autoGuide, started, loading, handleQuickAction]);
+
+  // Signal to Navigation (and any other focus-mode listeners) that plans have been rendered.
+  // Fires exactly once per mount when any assistant message includes planIds.
+  const plansAnnouncedRef = useRef(false);
+  useEffect(() => {
+    if (plansAnnouncedRef.current) return;
+    const hasPlans = messages.some(m => m.role === 'assistant' && m.planIds && m.planIds.length > 0);
+    if (hasPlans) {
+      plansAnnouncedRef.current = true;
+      window.dispatchEvent(new CustomEvent('simba-advisor-plans-shown'));
+    }
+  }, [messages]);
+
   // Focus input once first message arrives (desktop only)
   const hasAutoFocused = useRef(false);
   useEffect(() => {
@@ -623,8 +650,8 @@ export default function AdvisorPage() {
             </div>
           </div>
 
-          {/* Quick-action cards — shown until user picks one */}
-          {!started && !loading && (
+          {/* Quick-action cards — shown until user picks one (hidden entirely in autoGuide variants) */}
+          {!started && !loading && !autoGuide && (
             <div className="grid grid-cols-2 gap-3 max-w-[85%] md:max-w-[75%]">
               <button
                 onClick={() => handleQuickAction('guide')}

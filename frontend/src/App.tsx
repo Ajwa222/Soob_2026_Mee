@@ -10,7 +10,7 @@
  */
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { trackPageView } from './lib/analytics';
+import { trackPageView, registerSuperProperty } from './lib/analytics';
 import { LanguageProvider, useLang } from './context/LanguageContext';
 import { CompareProvider } from './context/CompareContext';
 import { BookmarkProvider } from './context/BookmarkContext';
@@ -21,7 +21,142 @@ import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import CompareBar from './components/CompareBar';
 import Onboarding from './components/Onboarding';
+import OnboardingChat from './components/OnboardingChat';
 import PhoneGate from './components/PhoneGate';
+
+/**
+ * A/B/C/D variant picker — randomly assigns users on first visit, sticky per user.
+ *
+ *   A: Classic onboarding + advisor shows "Guide me / I know what I want" choice
+ *   B: Classic onboarding + advisor skips choice, drops user into Guide Me directly
+ *   C: Chat onboarding    + advisor shows choice
+ *   D: Chat onboarding    + advisor skips choice, goes straight into Guide Me
+ *
+ * URL override: ?ob=A|B|C|D for manual testing.
+ */
+type OnboardingVariantId = 'A' | 'B' | 'C' | 'D';
+
+export function getVariantConfig(v: OnboardingVariantId): {
+  kind: 'classic' | 'chat';
+  autoGuide: boolean;
+} {
+  switch (v) {
+    case 'A': return { kind: 'classic', autoGuide: false };
+    case 'B': return { kind: 'classic', autoGuide: true };
+    case 'C': return { kind: 'chat', autoGuide: false };
+    case 'D': return { kind: 'chat', autoGuide: true };
+  }
+}
+
+function pickOnboardingVariant(): OnboardingVariantId {
+  const url = new URLSearchParams(window.location.search).get('ob');
+  if (url === 'A' || url === 'B' || url === 'C' || url === 'D') {
+    // URL override — also reset onboarded state so the variant shows immediately.
+    localStorage.setItem('simba-onboarding-variant', url);
+    localStorage.removeItem('simba-onboarded');
+    localStorage.removeItem('simba-onboarding-answers');
+    sessionStorage.removeItem('simba-from-onboarding');
+    return url;
+  }
+  const stored = localStorage.getItem('simba-onboarding-variant');
+  if (stored === 'A' || stored === 'B' || stored === 'C' || stored === 'D') return stored;
+  const options: OnboardingVariantId[] = ['A', 'B', 'C', 'D'];
+  const picked = options[Math.floor(Math.random() * options.length)];
+  localStorage.setItem('simba-onboarding-variant', picked);
+  return picked;
+}
+
+export function getOnboardingVariant(): OnboardingVariantId {
+  return pickOnboardingVariant();
+}
+
+function OnboardingVariant() {
+  const variant = pickOnboardingVariant();
+  const { kind, autoGuide } = getVariantConfig(variant);
+  // Register the variant as a Mixpanel super-property so every event in this
+  // session is auto-tagged. Runs exactly once (registerSuperProperty is idempotent).
+  useEffect(() => {
+    registerSuperProperty('onboarding_variant', variant);
+    registerSuperProperty('onboarding_kind', kind);
+    registerSuperProperty('onboarding_auto_guide', autoGuide);
+  }, [variant, kind, autoGuide]);
+  return kind === 'chat' ? <OnboardingChat /> : <Onboarding />;
+}
+
+/**
+ * Dev-only floating badge showing the current variant + quick switcher.
+ * Visible only in dev mode OR when `?debug=1` is in the URL (so you can test
+ * a preview build too). Hidden on production deploys unless explicitly opted in.
+ */
+function VariantDevBadge() {
+  const isDev = import.meta.env.DEV;
+  const hasDebugParam = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1';
+  if (!isDev && !hasDebugParam) return null;
+
+  const current = localStorage.getItem('simba-onboarding-variant') ?? '?';
+  const config = (current === 'A' || current === 'B' || current === 'C' || current === 'D')
+    ? getVariantConfig(current)
+    : null;
+  const labels: Record<OnboardingVariantId, string> = {
+    A: 'A · classic + choice',
+    B: 'B · classic + auto-guide',
+    C: 'C · chat + choice',
+    D: 'D · chat + auto-guide',
+  };
+
+  const switchTo = (v: OnboardingVariantId) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('ob', v);
+    window.location.href = url.toString();
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 12,
+        right: 12,
+        zIndex: 99999,
+        background: 'rgba(10,10,20,0.9)',
+        color: '#FFD568',
+        borderRadius: 12,
+        padding: '8px 10px',
+        fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+        fontSize: 11,
+        lineHeight: 1.4,
+        boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+        backdropFilter: 'blur(6px)',
+        maxWidth: 240,
+      }}
+    >
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>
+        Variant: {current} {config ? `· ${config.kind}${config.autoGuide ? ' · auto-guide' : ''}` : ''}
+      </div>
+      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        {(['A', 'B', 'C', 'D'] as OnboardingVariantId[]).map((v) => (
+          <button
+            key={v}
+            onClick={() => switchTo(v)}
+            title={labels[v]}
+            style={{
+              background: current === v ? '#FFD568' : 'transparent',
+              color: current === v ? '#0A0A14' : '#FFD568',
+              border: '1px solid #FFD568',
+              borderRadius: 6,
+              padding: '3px 8px',
+              fontSize: 11,
+              fontFamily: 'inherit',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ── Lazy-loaded page components (each becomes a separate JS chunk) ──
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -128,7 +263,8 @@ function App() {
             <Footer />
             <CompareBar />
           </div>
-          <Onboarding />
+          <OnboardingVariant />
+          <VariantDevBadge />
           <PhoneGate />
         </CompareProvider>
         </BookmarkProvider>

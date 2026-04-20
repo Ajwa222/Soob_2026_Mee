@@ -126,14 +126,50 @@ export function trackPageView(path: string): void {
 }
 
 /**
+ * Attaches a key/value as a Mixpanel super-property (auto-included on every
+ * subsequent event) and as a GA4 config param. Use for cohort tags like the
+ * onboarding variant.
+ */
+export function registerSuperProperty(key: string, value: unknown): void {
+  try {
+    const apply = (mp: typeof import('mixpanel-browser')) => {
+      mp.default.register({ [key]: value });
+    };
+    if (mixpanelLoaded) apply(mixpanelLoaded);
+    else if (mixpanelPromise) mixpanelPromise.then((mp) => { if (mp) apply(mp); });
+
+    // Mirror into GA4 user properties so GA reports can segment by the same key.
+    if (typeof window.gtag === 'function') {
+      window.gtag('set', 'user_properties', { [key]: value });
+    }
+  } catch { /* non-critical */ }
+}
+
+/**
  * Fires a custom event to GA4, Mixpanel, and Clarity.
  *
  * @param eventName - Event name (e.g. "plan_liked", "advisor_message_sent")
  * @param params    - Key-value pairs attached to the event
  * @param options   - Optional: { useBeacon: true } to use sendBeacon transport (for unload events)
  */
+// Dev-only in-memory buffer of every event we emit. Inspect via
+// `console.table(window.__simbaEvents)` or `copy(__simbaEvents)` in DevTools.
+declare global {
+  interface Window {
+    __simbaEvents?: Array<{ time: string; name: string; props: Record<string, unknown> }>;
+  }
+}
+
 export function trackEvent(eventName: string, params: Record<string, unknown> = {}, options?: { useBeacon?: boolean }): void {
   try {
+    if (import.meta.env.DEV) {
+      // Mirror to console so you can see every event live during testing.
+      // eslint-disable-next-line no-console
+      console.log(`%c[track] ${eventName}`, 'color: #E37417; font-weight: 600;', params);
+      if (!window.__simbaEvents) window.__simbaEvents = [];
+      window.__simbaEvents.push({ time: new Date().toISOString(), name: eventName, props: params });
+    }
+
     if (typeof window.gtag === 'function') {
       window.gtag('event', eventName, params);
     }
