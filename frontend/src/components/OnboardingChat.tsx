@@ -127,6 +127,11 @@ export default function OnboardingChat() {
   const tRef = useRef<CopyDict>(t);
   tRef.current = t;
 
+  // Ref to the latest lang code — same reason as tRef, needed by GREETING_WITH_ABSHER
+  // which is keyed by Lang. Updated on every render.
+  const langRef = useRef<Lang>(lang);
+  langRef.current = lang;
+
   const complete = (target: '/' | '/advisor' = '/advisor', extra: Partial<OnboardingAnswers> = {}) => {
     const finalAnswers = { ...answers, ...extra };
     completedRef.current = true;
@@ -180,7 +185,7 @@ export default function OnboardingChat() {
     if (step === 'absher') {
       // Combined greeting + absher question as ONE bubble (no back-to-back messages).
       const tr = tRef.current;
-      const greet = GREETING_WITH_ABSHER[lang] ?? GREETING_WITH_ABSHER.en;
+      const greet = GREETING_WITH_ABSHER[langRef.current] ?? GREETING_WITH_ABSHER.en;
       await pushBot(greet(tr.absherTitle), 600);
       setReplies([
         { label: tr.absherYesTitle, onClick: () => pickAbsher('yes') },
