@@ -82,10 +82,6 @@ const PRE_LANG_WELCOME = "Welcome to Simba 👋 Please select your language to g
 const GREETING_WITH_ABSHER: Record<Lang, (absherTitle: string) => string> = {
   en: (q) => `I'm Simba, here to help you in the telecom world. But let me understand you first.\n\n${q}`,
   ar: (q) => `أنا سيمبا، موجود هنا عشان أساعدك في عالم الاتصالات. بس خلّني أفهمك أول.\n\n${q}`,
-  ur: (q) => `میں Simba ہوں — سعودی عرب کے ٹیلی کام کی دنیا میں آپ کا رہنما۔ صحیح مشورہ دینے کے لیے پہلے آپ کی صورتحال سمجھ لوں۔\n\n${q}`,
-  hi: (q) => `मैं Simba हूँ — सऊदी अरब की टेलीकॉम दुनिया में आपका गाइड। सही रास्ता बताने के लिए पहले आपकी स्थिति समझ लूँ।\n\n${q}`,
-  bn: (q) => `আমি Simba — সৌদি আরবের টেলিকম দুনিয়ায় আপনার গাইড। সঠিক পথ দেখাতে পারলে ভালো, তাই প্রথমে আপনার অবস্থাটা বুঝে নিই।\n\n${q}`,
-  tl: (q) => `Ako si Simba — gabay mo sa mundo ng telecom sa Saudi Arabia. Para maigabay kita nang tama, maintindihan ko muna ang sitwasyon mo.\n\n${q}`,
 };
 
 /** Strips markdown-style bold and renders newlines. Kept minimal — no raw HTML. */
@@ -121,7 +117,7 @@ export default function OnboardingChat() {
   const currentStepRef = useRef<OnboardingStep>('language');
 
   const t = getCopy(lang);
-  const isRtl = lang === 'ar' || lang === 'ur';
+  const isRtl = lang === 'ar';
 
   // Ref to the latest copy dict so async handlers always read fresh strings.
   const tRef = useRef<CopyDict>(t);
@@ -174,10 +170,6 @@ export default function OnboardingChat() {
       setReplies([
         { label: '🇬🇧 English', onClick: () => pickLang('en') },
         { label: '🇸🇦 العربية', onClick: () => pickLang('ar') },
-        { label: '🇵🇰 اردو', onClick: () => pickLang('ur') },
-        { label: '🇮🇳 हिन्दी', onClick: () => pickLang('hi') },
-        { label: '🇧🇩 বাংলা', onClick: () => pickLang('bn') },
-        { label: '🇵🇭 Filipino', onClick: () => pickLang('tl') },
       ]);
       return;
     }
