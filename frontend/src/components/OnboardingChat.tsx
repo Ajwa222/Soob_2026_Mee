@@ -217,7 +217,13 @@ export default function OnboardingChat() {
       if (tr.movingHint) parts.push(`💡 ${tr.movingHint}`);
       await pushBot(parts.join('\n\n'), 900);
       setReplies([
-        { label: tr.ctaGetTemp, onClick: () => goStep('visiting') },
+        {
+          label: tr.ctaGetTemp,
+          onClick: () => {
+            trackAnswer('moving', 'get_temp_plan', true, 'chat', startedAtRef.current);
+            goStep('visiting');
+          },
+        },
         { label: tr.ctaHome, onClick: () => complete('/') },
       ]);
       return;
