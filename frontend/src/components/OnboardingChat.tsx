@@ -17,7 +17,7 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Send, Home as HomeIcon, ArrowLeft } from 'lucide-react';
+import { Send, ArrowLeft } from 'lucide-react';
 import { useLang, type Lang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { trackEvent } from '../lib/analytics';
@@ -386,13 +386,8 @@ export default function OnboardingChat() {
             </div>
           </div>
         </div>
-        <button
-          onClick={() => complete('/')}
-          className="text-[#213E53]/70 hover:text-[#213E53] hover:bg-black/5 p-2 -mr-2 rounded-lg transition-colors"
-          aria-label="Home"
-        >
-          <HomeIcon size={18} />
-        </button>
+        {/* spacer to keep Simba profile centered between the back arrow and the right edge */}
+        <span className="w-9" aria-hidden="true" />
       </div>
 
       {/* Chat area */}
