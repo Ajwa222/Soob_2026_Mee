@@ -72,16 +72,20 @@ export function getOnboardingVariant(): OnboardingVariantId {
   return pickOnboardingVariant();
 }
 
+// Register super-properties at MODULE LOAD time — before any React effect fires,
+// before any trackEvent call lands. Guarantees every event (including the very
+// first ones fired during component mount) carries onboarding_variant.
+if (typeof window !== 'undefined') {
+  const v = pickOnboardingVariant();
+  const cfg = getVariantConfig(v);
+  registerSuperProperty('onboarding_variant', v);
+  registerSuperProperty('onboarding_kind', cfg.kind);
+  registerSuperProperty('onboarding_auto_guide', cfg.autoGuide);
+}
+
 function OnboardingVariant() {
   const variant = pickOnboardingVariant();
-  const { kind, autoGuide } = getVariantConfig(variant);
-  // Register the variant as a Mixpanel super-property so every event in this
-  // session is auto-tagged. Runs exactly once (registerSuperProperty is idempotent).
-  useEffect(() => {
-    registerSuperProperty('onboarding_variant', variant);
-    registerSuperProperty('onboarding_kind', kind);
-    registerSuperProperty('onboarding_auto_guide', autoGuide);
-  }, [variant, kind, autoGuide]);
+  const { kind } = getVariantConfig(variant);
   return kind === 'chat' ? <OnboardingChat /> : <Onboarding />;
 }
 

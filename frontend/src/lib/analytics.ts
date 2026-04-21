@@ -97,16 +97,24 @@ function startMixpanel() {
         ignore_dnt: true,
         stop_utm_persistence: true,
       });
-      // Flush any events queued before the SDK was ready.
-      while (pendingMixpanel.length) {
-        const ev = pendingMixpanel.shift()!;
+      // Flush any events queued before the SDK was ready. Order matters: apply
+      // super-property registrations FIRST so the track events that follow
+      // automatically pick up those properties. Otherwise early track events
+      // would land without onboarding_variant / onboarding_kind attached.
+      const supers = pendingMixpanel.filter((ev) => ev.kind === 'super');
+      const tracks = pendingMixpanel.filter((ev) => ev.kind === 'track');
+      pendingMixpanel.length = 0;
+      for (const ev of supers) {
+        try {
+          if (ev.kind === 'super') mp.default.register({ [ev.key]: ev.value });
+        } catch { /* non-critical */ }
+      }
+      for (const ev of tracks) {
         try {
           if (ev.kind === 'track') {
             mp.default.track(ev.name, ev.params, {
               transport: ev.useBeacon ? 'sendBeacon' : 'xhr',
             });
-          } else {
-            mp.default.register({ [ev.key]: ev.value });
           }
         } catch { /* non-critical */ }
       }
