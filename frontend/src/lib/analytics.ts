@@ -66,10 +66,21 @@ function initAnalytics() {
   }
 }
 
-// Mixpanel is deferred until the browser is idle (or first user interaction).
-// The SDK chunk is ~120 KB gzipped — fetching it on app boot was competing
-// with critical assets and slowing first paint for new visitors. Early events
-// are queued until the SDK lands.
+// Mixpanel SDK is deferred (120 KB gzipped) to avoid competing with critical
+// assets on first paint. Events fired before the SDK lands are queued here
+// and flushed once init completes — no event is dropped.
+type PendingEvent = {
+  kind: 'track';
+  name: string;
+  params: Record<string, unknown>;
+  useBeacon?: boolean;
+} | {
+  kind: 'super';
+  key: string;
+  value: unknown;
+};
+const pendingMixpanel: PendingEvent[] = [];
+
 function startMixpanel() {
   if (mixpanelPromise || typeof window === 'undefined' || !MP_TOKEN) return;
   mixpanelPromise = import('mixpanel-browser').then((mp) => {
@@ -86,6 +97,19 @@ function startMixpanel() {
         ignore_dnt: true,
         stop_utm_persistence: true,
       });
+      // Flush any events queued before the SDK was ready.
+      while (pendingMixpanel.length) {
+        const ev = pendingMixpanel.shift()!;
+        try {
+          if (ev.kind === 'track') {
+            mp.default.track(ev.name, ev.params, {
+              transport: ev.useBeacon ? 'sendBeacon' : 'xhr',
+            });
+          } else {
+            mp.default.register({ [ev.key]: ev.value });
+          }
+        } catch { /* non-critical */ }
+      }
     } catch { /* non-critical */ }
     return mp;
   }).catch(() => null);
@@ -147,6 +171,13 @@ export function trackPageView(path: string): void {
       trackMp(mixpanelLoaded);
     } else if (mixpanelPromise) {
       mixpanelPromise.then((mp) => { if (mp) trackMp(mp); });
+    } else if (MP_TOKEN) {
+      // SDK not started yet — queue as a regular event so it isn't lost.
+      pendingMixpanel.push({
+        kind: 'track',
+        name: '$mp_web_page_view',
+        params: { page: path, page_title: document.title },
+      });
     }
   } catch { /* non-critical */ }
 }
@@ -163,8 +194,8 @@ export function registerSuperProperty(key: string, value: unknown): void {
     };
     if (mixpanelLoaded) apply(mixpanelLoaded);
     else if (mixpanelPromise) mixpanelPromise.then((mp) => { if (mp) apply(mp); });
+    else pendingMixpanel.push({ kind: 'super', key, value });
 
-    // Mirror into GA4 user properties so GA reports can segment by the same key.
     if (typeof window.gtag === 'function') {
       window.gtag('set', 'user_properties', { [key]: value });
     }
@@ -209,8 +240,17 @@ export function trackEvent(eventName: string, params: Record<string, unknown> = 
     if (mixpanelLoaded) {
       trackMixpanel(mixpanelLoaded);
     } else if (mixpanelPromise) {
-      // Mixpanel is still loading — wait for it then fire
+      // SDK is loading — wait for it then fire
       mixpanelPromise.then((mp) => { if (mp) trackMixpanel(mp); });
+    } else if (MP_TOKEN) {
+      // SDK not even started yet (still deferred) — queue the event so it
+      // fires as soon as the SDK lands. Guarantees no events are dropped.
+      pendingMixpanel.push({
+        kind: 'track',
+        name: eventName,
+        params,
+        useBeacon: options?.useBeacon,
+      });
     }
 
     if (CLARITY_ID && typeof window.clarity === 'function') {
