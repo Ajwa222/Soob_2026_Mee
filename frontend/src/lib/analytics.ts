@@ -75,6 +75,8 @@ if (typeof window !== 'undefined' && MP_TOKEN) {
         debug: import.meta.env.DEV,
         track_pageview: false,
         persistence: 'localStorage',
+        autocapture: false, // only explicit trackEvent calls — no click/form auto-capture
+        record_heatmap_data: false,
         record_sessions_percent: 0,
         api_host: 'https://api-eu.mixpanel.com',
         ignore_dnt: true,
