@@ -59,8 +59,16 @@ async function walkVariant(browser, variant, runIndex) {
   console.log(`→ ${url}`);
   await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-  // Give the onboarding a moment to mount + fire onboarding_started
-  await page.waitForTimeout(1200);
+  // Force-trigger Mixpanel SDK load: dispatch a synthetic pointerdown that our
+  // analytics.ts listener is waiting for. Without this, the SDK may not finish
+  // loading before the script closes the context and events get lost.
+  await page.evaluate(() => {
+    window.dispatchEvent(new PointerEvent('pointerdown'));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
+  });
+
+  // Give onboarding time to mount AND the Mixpanel SDK time to load + flush the pending queue
+  await page.waitForTimeout(2500);
 
   const isChat = variant === 'C' || variant === 'D';
 
@@ -131,6 +139,10 @@ async function walkVariant(browser, variant, runIndex) {
   } catch (err) {
     console.warn(`  ! step failed: ${err.message}`);
   }
+
+  // Let pending Mixpanel XHRs flush before closing the context. Without this
+  // wait, the browser terminates in-flight requests and events get lost.
+  await page.waitForTimeout(4000);
 
   // Summarize what fired
   const uniqEvents = new Set();
