@@ -657,9 +657,18 @@ export default function Onboarding() {
           paddingRight: 'max(env(safe-area-inset-right), 1.25rem)',
         }}
       >
-        <WaveLinesOnly />
+        {/* WaveLinesOnly intentionally skipped on the language page — the
+            gaussian-blur filter is expensive to paint on first mount and was
+            delaying the language buttons from becoming interactive. */}
         <div className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 mb-6 sm:mb-8 md:mb-10 rounded-[22%] overflow-hidden shadow-lg shrink-0">
-          <img src="/icon-512.png" alt="Simba" className="w-full h-full object-cover scale-[1.05]" />
+          <img
+            src="/icon-192.png"
+            alt="Simba"
+            className="w-full h-full object-cover scale-[1.05]"
+            decoding="async"
+            width={112}
+            height={112}
+          />
         </div>
         <div className="relative z-10 flex flex-col gap-3 w-full max-w-xs md:max-w-sm">
           <div className="flex gap-3">

@@ -357,7 +357,7 @@ export default function OnboardingChat() {
         </button>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full overflow-hidden shadow-sm shrink-0">
-            <img src="/icon-512.png" alt="Simba" className="w-full h-full object-cover scale-[1.05]" />
+            <img src="/icon-192.png" alt="Simba" className="w-full h-full object-cover scale-[1.05]" decoding="async" width={32} height={32} />
           </div>
           <div className="leading-tight">
             <div className="font-heading font-semibold text-[14px] text-[#213E53]">Simba</div>
