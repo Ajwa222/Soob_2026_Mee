@@ -687,18 +687,8 @@ export default function Onboarding() {
               العربية
             </Button>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            {SUPPORTED_LANGS.filter(l => l !== 'en' && l !== 'ar').map(l => (
-              <Button
-                key={l}
-                onClick={() => chooseLang(l)}
-                variant="ghost"
-                className="h-11 text-sm font-medium bg-white/10 text-white hover:bg-white/20 border border-white/20"
-              >
-                {LANG_LABELS[l]}
-              </Button>
-            ))}
-          </div>
+          {/* Classic variant shows only EN + AR to keep the language picker snappy.
+              The chat variant still offers all 6 via its reply chips. */}
         </div>
       </div>
     );
