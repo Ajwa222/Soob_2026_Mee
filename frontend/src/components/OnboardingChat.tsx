@@ -15,7 +15,7 @@
  * Persists answers to localStorage['simba-onboarding-answers'] just like
  * the classic flow.
  */
-import { useState, useEffect, useRef, startTransition } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Send, Home as HomeIcon, ArrowLeft } from 'lucide-react';
 import { useLang, type Lang } from '../context/LanguageContext';
@@ -246,15 +246,12 @@ export default function OnboardingChat() {
   };
 
   const pickLang = async (chosen: Lang) => {
-    // Instant visual feedback: clear reply chips + show typing dots.
     setReplies([]);
     setTyping(true);
     pushUser(chosen === lang ? 'OK' : chosen.toUpperCase());
-    // setLang is heavy (flips HTML dir + re-renders all context consumers);
-    // defer it as a transition so the click handler returns immediately.
     if (chosen !== lang) {
-      startTransition(() => setLang(chosen));
-      langRef.current = chosen;  // keep greeting language correct without waiting for commit
+      setLang(chosen);
+      langRef.current = chosen;
     }
     trackAnswer('language', 'language', chosen, 'chat', startedAtRef.current);
     setTimeout(() => {

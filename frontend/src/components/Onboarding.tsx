@@ -14,7 +14,7 @@
  * Answers are persisted to localStorage ('simba-onboarding-answers') so downstream
  * pages (advisor, explore) can adapt recommendations.
  */
-import { useState, useEffect, useRef, startTransition } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Check, CheckCircle2, XCircle, Home, Plane, IdCard, Clock3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -598,15 +598,9 @@ export default function Onboarding() {
   };
 
   const chooseLang = (chosen: Lang) => {
-    // Move to the next page FIRST for instant visual feedback.
-    gotoPage('intro1');
+    if (chosen !== lang) setLang(chosen);
     trackAnswer('language', 'language', chosen, 'classic', startedAtRef.current);
-    // setLang cascades through every context consumer + flips the HTML dir
-    // attribute, which reflows the hidden page behind the overlay. Defer it as
-    // a non-urgent transition so the click feels snappy.
-    if (chosen !== lang) {
-      startTransition(() => setLang(chosen));
-    }
+    gotoPage('intro1');
   };
 
   const complete = () => {
