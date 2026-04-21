@@ -66,8 +66,12 @@ function initAnalytics() {
   }
 }
 
-// Start Mixpanel import immediately so it's ready for early events
-if (typeof window !== 'undefined' && MP_TOKEN) {
+// Mixpanel is deferred until the browser is idle (or first user interaction).
+// The SDK chunk is ~120 KB gzipped — fetching it on app boot was competing
+// with critical assets and slowing first paint for new visitors. Early events
+// are queued until the SDK lands.
+function startMixpanel() {
+  if (mixpanelPromise || typeof window === 'undefined' || !MP_TOKEN) return;
   mixpanelPromise = import('mixpanel-browser').then((mp) => {
     mixpanelLoaded = mp;
     try {
@@ -75,7 +79,7 @@ if (typeof window !== 'undefined' && MP_TOKEN) {
         debug: import.meta.env.DEV,
         track_pageview: false,
         persistence: 'localStorage',
-        autocapture: false, // only explicit trackEvent calls — no click/form auto-capture
+        autocapture: false,
         record_heatmap_data: false,
         record_sessions_percent: 0,
         api_host: 'https://api-eu.mixpanel.com',
@@ -85,6 +89,27 @@ if (typeof window !== 'undefined' && MP_TOKEN) {
     } catch { /* non-critical */ }
     return mp;
   }).catch(() => null);
+}
+
+if (typeof window !== 'undefined' && MP_TOKEN) {
+  type IdleWin = Window & {
+    requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+  };
+  const w = window as IdleWin;
+  if (typeof w.requestIdleCallback === 'function') {
+    w.requestIdleCallback(startMixpanel, { timeout: 3000 });
+  } else {
+    setTimeout(startMixpanel, 1500);
+  }
+  // Also boot on first user interaction — in case idle never fires and the
+  // user acts before we load Mixpanel, we still want to capture their events.
+  const onFirstInteract = () => {
+    startMixpanel();
+    window.removeEventListener('pointerdown', onFirstInteract);
+    window.removeEventListener('keydown', onFirstInteract);
+  };
+  window.addEventListener('pointerdown', onFirstInteract, { once: true });
+  window.addEventListener('keydown', onFirstInteract, { once: true });
 }
 
 // Kick off remaining analytics (GA, Clarity) after first paint
