@@ -290,8 +290,28 @@ export default function OnboardingChat() {
     await goStep(value === 'moving' ? 'moving' : 'visiting');
   };
 
-  const openCarrier = (key: string, url: string) => {
-    trackCarrierOpened(key, 'chat', startedAtRef.current, { url });
+  const openCarrier = (carrier: CarrierGroup, plan: VisitorPlan) => {
+    const url = plan.url ?? carrier.url;
+    const planId = `onboarding-${carrier.key}-${plan.name.toLowerCase().replace(/\s+/g, '-')}`;
+    // Fire the main app's plan-click event so visitor plan redirects funnel
+    // through the same get_plan_clicked conversion metric.
+    trackEvent(
+      'get_plan_clicked',
+      {
+        plan_id: planId,
+        plan_name: plan.name,
+        provider: carrier.name,
+        url,
+        source: 'onboarding-visitor',
+      },
+      { useBeacon: true },
+    );
+    // Onboarding-specific event for step-level funnels.
+    trackCarrierOpened(carrier.key, 'chat', startedAtRef.current, {
+      url,
+      plan_id: planId,
+      plan_name: plan.name,
+    });
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -454,7 +474,7 @@ function PlansCarousel({
 }: {
   t: CopyDict;
   isRtl: boolean;
-  onOpenUrl: (carrierKey: string, url: string) => void;
+  onOpenUrl: (carrier: CarrierGroup, plan: VisitorPlan) => void;
 }) {
   const carriers: CarrierGroup[] = [
     {
@@ -556,7 +576,7 @@ function PlansCarousel({
                       <div className="mt-2 flex items-center justify-between gap-2">
                         <div className="text-[9.5px] text-[#213E53]/55">{t.visitingVat}</div>
                         <button
-                          onClick={() => onOpenUrl(carrier.key, p.url ?? carrier.url)}
+                          onClick={() => onOpenUrl(carrier, p)}
                           className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#C45F0A] hover:text-[#213E53] transition-colors"
                         >
                           {t.visitingGet}

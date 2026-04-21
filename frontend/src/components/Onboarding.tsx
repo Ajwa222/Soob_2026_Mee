@@ -993,8 +993,28 @@ export default function Onboarding() {
       },
     ];
 
-    const openUrl = (carrierKey: string, url: string) => {
-      trackCarrierOpened(carrierKey, 'classic', startedAtRef.current, { url });
+    const openUrl = (carrier: CarrierGroup, plan: VisitorPlan) => {
+      const url = plan.url ?? carrier.url;
+      const planId = `onboarding-${carrier.key}-${plan.name.toLowerCase().replace(/\s+/g, '-')}`;
+      // Fire the same event as the main app's plan-detail redirect so visitor plan
+      // clicks roll up into the same "get_plan_clicked" funnel.
+      trackEvent(
+        'get_plan_clicked',
+        {
+          plan_id: planId,
+          plan_name: plan.name,
+          provider: carrier.name,
+          url,
+          source: 'onboarding-visitor',
+        },
+        { useBeacon: true },
+      );
+      // Onboarding-specific event for step-level funnels.
+      trackCarrierOpened(carrier.key, 'classic', startedAtRef.current, {
+        url,
+        plan_id: planId,
+        plan_name: plan.name,
+      });
       window.open(url, '_blank', 'noopener,noreferrer');
     };
 
@@ -1115,7 +1135,7 @@ export default function Onboarding() {
                             {t.visitingVat}
                           </div>
                           <button
-                            onClick={() => openUrl(carrier.key, p.url ?? carrier.url)}
+                            onClick={() => openUrl(carrier, p)}
                             className="inline-flex items-center gap-1 text-[12px] sm:text-[12.5px] font-semibold text-[#C45F0A] hover:text-[#213E53] transition-colors"
                           >
                             {t.visitingGet}
