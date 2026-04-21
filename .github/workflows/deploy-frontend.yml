@@ -45,5 +45,12 @@ jobs:
       - name: Deploy to S3
         run: aws s3 sync frontend/dist/ s3://simba-app-frontend --delete
 
+      # CORS on the bucket — required so Microsoft Clarity (and other
+      # replay/debug tools) can fetch the CSS/fonts from S3 during playback.
+      # Without this, Clarity recordings render as a blank white page because
+      # cross-origin CSS requests get blocked.
+      - name: Apply S3 CORS config
+        run: aws s3api put-bucket-cors --bucket simba-app-frontend --cors-configuration file://.github/workflows/s3-cors.json
+
       - name: Invalidate CloudFront cache
         run: aws cloudfront create-invalidation --distribution-id E894QHGNBJEVQ --paths "/*" --region us-east-1
