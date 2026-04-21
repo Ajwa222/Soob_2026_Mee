@@ -3476,11 +3476,27 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return result as string;
   }, [lang]);
 
-  // Set HTML dir and lang attributes for RTL support
+  // Set HTML dir and lang attributes for RTL support.
+  // Deferred to idle time — changing <html dir> reflows the entire document,
+  // including hidden/lazy pages behind overlays like onboarding. Doing it
+  // synchronously on every language click made the taps feel laggy.
   useEffect(() => {
-    const html = document.documentElement;
-    html.setAttribute('dir', RTL_LANGS.includes(lang) ? 'rtl' : 'ltr');
-    html.setAttribute('lang', lang);
+    const apply = () => {
+      const html = document.documentElement;
+      html.setAttribute('dir', RTL_LANGS.includes(lang) ? 'rtl' : 'ltr');
+      html.setAttribute('lang', lang);
+    };
+    type IdleWindow = Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    const w = window as IdleWindow;
+    if (typeof w.requestIdleCallback === 'function') {
+      const id = w.requestIdleCallback(apply, { timeout: 500 });
+      return () => { if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id); };
+    }
+    const id = setTimeout(apply, 16);
+    return () => clearTimeout(id);
   }, [lang]);
 
   // Toggle Tailwind dark class on <html> for dark mode
