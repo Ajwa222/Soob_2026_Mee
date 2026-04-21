@@ -15,7 +15,7 @@
  * Persists answers to localStorage['simba-onboarding-answers'] just like
  * the classic flow.
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, startTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Send, Home as HomeIcon, ArrowLeft } from 'lucide-react';
 import { useLang, type Lang } from '../context/LanguageContext';
@@ -145,7 +145,7 @@ export default function OnboardingChat() {
     navigate(target, { state: { fromOnboarding: true, autoGuide } });
   };
 
-  const pushBot = (text: string, delay = 650) =>
+  const pushBot = (text: string, delay = 350) =>
     new Promise<void>((resolve) => {
       if (!text) return resolve();
       setTyping(true);
@@ -246,19 +246,28 @@ export default function OnboardingChat() {
   };
 
   const pickLang = async (chosen: Lang) => {
+    // Instant visual feedback: clear reply chips + show typing dots.
+    setReplies([]);
+    setTyping(true);
     pushUser(chosen === lang ? 'OK' : chosen.toUpperCase());
-    if (chosen !== lang) setLang(chosen);
+    // setLang is heavy (flips HTML dir + re-renders all context consumers);
+    // defer it as a transition so the click handler returns immediately.
+    if (chosen !== lang) {
+      startTransition(() => setLang(chosen));
+      langRef.current = chosen;  // keep greeting language correct without waiting for commit
+    }
     trackAnswer('language', 'language', chosen, 'chat', startedAtRef.current);
-    // Give React a tick so tRef reflects the new language before the next step
     setTimeout(() => {
       currentStepRef.current = 'absher';
       trackStepReached('absher', 'chat', startedAtRef.current);
       goStep('absher');
-    }, 250);
+    }, 60);
   };
 
   const pickAbsher = async (value: 'yes' | 'no') => {
     const tr = tRef.current;
+    setReplies([]);
+    if (value === 'no') setTyping(true);
     pushUser(value === 'yes' ? tr.absherYesTitle : tr.absherNoTitle);
     setAnswers((a) => ({ ...a, absher: value }));
     trackAnswer('absher', 'has_absher', value, 'chat', startedAtRef.current);
@@ -273,6 +282,8 @@ export default function OnboardingChat() {
 
   const pickStatus = async (value: 'moving' | 'visiting') => {
     const tr = tRef.current;
+    setReplies([]);
+    setTyping(true);
     pushUser(value === 'moving' ? tr.statusMovingTitle : tr.statusVisitingTitle);
     setAnswers((a) => ({ ...a, status: value }));
     trackAnswer('status', 'residence_intent', value, 'chat', startedAtRef.current);
