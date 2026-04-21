@@ -49,14 +49,16 @@ export function getVariantConfig(v: OnboardingVariantId): {
 }
 
 function pickOnboardingVariant(): OnboardingVariantId {
-  const url = new URLSearchParams(window.location.search).get('ob');
-  if (url === 'A' || url === 'B' || url === 'C' || url === 'D') {
+  const raw = new URLSearchParams(window.location.search).get('ob') ?? '';
+  // Strip whitespace, quotes, backticks — accept lowercase.
+  const cleaned = raw.trim().replace(/['"`]/g, '').toUpperCase();
+  if (cleaned === 'A' || cleaned === 'B' || cleaned === 'C' || cleaned === 'D') {
     // URL override — also reset onboarded state so the variant shows immediately.
-    localStorage.setItem('simba-onboarding-variant', url);
+    localStorage.setItem('simba-onboarding-variant', cleaned);
     localStorage.removeItem('simba-onboarded');
     localStorage.removeItem('simba-onboarding-answers');
     sessionStorage.removeItem('simba-from-onboarding');
-    return url;
+    return cleaned;
   }
   const stored = localStorage.getItem('simba-onboarding-variant');
   if (stored === 'A' || stored === 'B' || stored === 'C' || stored === 'D') return stored;
