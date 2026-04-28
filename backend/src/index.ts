@@ -1,5 +1,5 @@
 /**
- * Entry point for the SimbaApp Express backend server.
+ * Entry point for the SoobApp Express backend server.
  *
  * This server provides REST APIs for:
  *  - Browsing & searching Saudi telecom plans (150+ plans, 8 carriers)
@@ -22,6 +22,7 @@ import plansRouter from "./routes/plans.routes.js";
 import advisorRouter from "./routes/advisor.routes.js";
 import interactionsRouter from "./routes/interactions.routes.js";
 import recommendationsRouter from "./routes/recommendations.routes.js";
+import labRouter from "./routes/lab.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -44,7 +45,8 @@ if (process.env.NODE_ENV === "production" && !process.env.PRODUCTION_URL) {
 // ── Global Middleware ──
 app.use(compression());                       // Compress all HTTP responses
 app.use(cors({ origin: allowedOrigins }));    // Restrict cross-origin requests to known frontends
-app.use(express.json({ limit: "1mb" }));      // Parse JSON bodies, cap at 1MB to prevent abuse
+// 12 MB cap — fits a typical phone screenshot as a base64 JSON payload (~7–10 MB raw).
+app.use(express.json({ limit: "12mb" }));
 
 // Rate limiter for the AI advisor
 const advisorLimiter = rateLimit({
@@ -73,6 +75,16 @@ app.use("/api/advisor", advisorLimiter, advisorRouter);
 
 // Personalized plan recommendations (global popularity + collaborative filtering)
 app.use("/api/recommendations", recommendationsRouter);
+
+// Experimental Lab — hidden usage-based plan matcher (rate-limited: vision calls are expensive)
+const labLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later" },
+});
+app.use("/api/lab", labLimiter, labRouter);
 
 // ── Error Handling ──
 

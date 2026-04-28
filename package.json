@@ -1,5 +1,5 @@
 {
-  "name": "simba-app",
+  "name": "soob-app",
   "private": true,
   "scripts": {
     "dev:frontend": "cd frontend && npm run dev",

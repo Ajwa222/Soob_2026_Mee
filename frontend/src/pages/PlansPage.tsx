@@ -288,7 +288,7 @@ export default function PlansPage() {
                 onClick={() => toggleCarrier(carrier.name)}
                 className={`flex items-center gap-2 rounded-xl font-medium
                   ${active
-                    ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
+                    ? 'bg-[var(--ob-cta)] text-[var(--ob-cta-text)] ring-1 ring-[var(--ob-cta)] hover:bg-[var(--ob-cta-hover)] shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -318,7 +318,7 @@ export default function PlansPage() {
                 className={`rounded-xl text-sm font-semibold
                   ${active
                     ? 'ring-1'
-                    : 'bg-muted text-black hover:bg-muted/80'
+                    : 'bg-muted text-foreground hover:bg-muted/80'
                   }`}
                 style={active ? { backgroundColor: tc.bg, color: tc.active, '--tw-ring-color': tc.ring } as React.CSSProperties : {}}
               >
@@ -366,7 +366,7 @@ export default function PlansPage() {
                 onClick={() => setDataFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
+                    ? 'bg-[var(--ob-cta)] text-[var(--ob-cta-text)] ring-1 ring-[var(--ob-cta)] hover:bg-[var(--ob-cta-hover)] shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -393,7 +393,7 @@ export default function PlansPage() {
                 onClick={() => setLocalCallsFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
+                    ? 'bg-[var(--ob-cta)] text-[var(--ob-cta-text)] ring-1 ring-[var(--ob-cta)] hover:bg-[var(--ob-cta-hover)] shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -420,7 +420,7 @@ export default function PlansPage() {
                 onClick={() => setIntlCallsFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
+                    ? 'bg-[var(--ob-cta)] text-[var(--ob-cta-text)] ring-1 ring-[var(--ob-cta)] hover:bg-[var(--ob-cta-hover)] shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -447,7 +447,7 @@ export default function PlansPage() {
                 onClick={() => setSocialFilter(opt.key)}
                 className={`rounded-xl text-sm font-semibold
                   ${active
-                    ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
+                    ? 'bg-[var(--ob-cta)] text-[var(--ob-cta-text)] ring-1 ring-[var(--ob-cta)] hover:bg-[var(--ob-cta-hover)] shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
@@ -469,7 +469,7 @@ export default function PlansPage() {
           onClick={() => { setFiveGFilter(prev => { trackEvent('filter_applied', { filter: '5g', active: !prev }); return !prev; }); }}
           className={`rounded-xl text-sm font-semibold
             ${fiveGFilter
-              ? 'bg-[#E37417] text-white ring-1 ring-[#E37417] hover:bg-[#E37417]/90 shadow-sm'
+              ? 'bg-[var(--ob-cta)] text-[var(--ob-cta-text)] ring-1 ring-[var(--ob-cta)] hover:bg-[var(--ob-cta-hover)] shadow-sm'
               : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
         >
@@ -484,22 +484,18 @@ export default function PlansPage() {
 
       <FinderModal show={showFinderModal} onDismiss={dismissFinderModal} />
 
-      {/* ========= HEADER ========= */}
-      <section className="relative z-10 hero-gradient grain overflow-hidden">
-        <WaveLines />
-        <div className="absolute top-0 end-0 w-64 h-64 rounded-full bg-white/[0.03] -translate-y-1/3 translate-x-1/3 blob" />
-        <div className="absolute bottom-0 start-0 w-40 h-40 rounded-full bg-accent/[0.05] translate-y-1/3 -translate-x-1/3 blob-alt" />
-
-        <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-6 md:pt-12 md:pb-10">
-          <h1 className="font-heading font-normal text-3xl md:text-4xl text-black tracking-tight">
+      {/* ========= HEADER — compact so plan rows show above the fold ========= */}
+      <section className="relative z-10 page-hero overflow-hidden border-b border-border">
+        <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 pt-5 pb-4 md:pt-7 md:pb-5">
+          <h1 className="font-heading font-bold text-2xl md:text-3xl text-foreground tracking-tight">
             {t('browse.title')}
           </h1>
-          <p className="text-black/60 mt-2 text-base md:text-lg">
+          <p className="text-foreground/60 mt-1 text-sm md:text-base">
             {t('browse.subtitle')}
           </p>
 
           {/* Search + Sort bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
             {/* Search */}
             <div className="relative flex-1">
               <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-foreground/50 z-10" />
@@ -529,8 +525,8 @@ export default function PlansPage() {
                 trackEvent('sort_changed', { sort: value });
               }}
             >
-              <SelectTrigger className="rounded-xl bg-white border-white/80 text-sm font-semibold
-                text-foreground hover:border-white w-full sm:w-[220px] h-auto py-3 shadow-sm">
+              <SelectTrigger className="rounded-xl bg-card border-border text-sm font-semibold
+                text-foreground hover:border-primary/30 w-full sm:w-[220px] h-auto py-3 shadow-sm">
                 <span className="text-foreground/50 me-1">{t('browse.sortBy')}:</span>
                 <SelectValue>{t(activeSort.label)}</SelectValue>
               </SelectTrigger>
@@ -547,8 +543,8 @@ export default function PlansPage() {
             <Button
               variant="ghost"
               onClick={() => setShowMobileFilters(true)}
-              className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 h-auto rounded-xl bg-white border border-white/80
-                text-sm font-semibold text-foreground hover:border-white hover:bg-white/90 shadow-sm"
+              className="flex lg:hidden items-center justify-center gap-2 px-4 py-3 h-auto rounded-xl bg-card border border-border
+                text-sm font-semibold text-foreground hover:border-primary/30 hover:bg-card/90 shadow-sm"
             >
               <SlidersHorizontal size={16} />
               {t('browse.filters')}
@@ -611,7 +607,7 @@ export default function PlansPage() {
                   <Badge
                     key={c}
                     variant="secondary"
-                    className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm"
+                    className="gap-1.5 px-3 py-1.5 bg-[var(--ob-cta)] text-[var(--ob-cta-text)] border-0 shadow-sm"
                   >
                     {c}
                     <button onClick={() => toggleCarrier(c)} className="hover:opacity-70">
@@ -644,7 +640,7 @@ export default function PlansPage() {
                   </Badge>
                 )}
                 {(priceRange[0] > 0 || priceRange[1] < PRICE_MAX) && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[var(--ob-cta)] text-[var(--ob-cta-text)] border-0 shadow-sm">
                     SAR {priceRange[0]}–{priceRange[1] >= PRICE_MAX ? `${PRICE_MAX}+` : priceRange[1]}
                     <button onClick={() => setPriceRange([0, PRICE_MAX])}>
                       <X size={12} />
@@ -660,7 +656,7 @@ export default function PlansPage() {
                   </Badge>
                 )}
                 {intlCallsFilter !== 'any' && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[var(--ob-cta)] text-[var(--ob-cta-text)] border-0 shadow-sm">
                     {t('browse.hasIntl')}
                     <button onClick={() => setIntlCallsFilter('any')}>
                       <X size={12} />
@@ -668,7 +664,7 @@ export default function PlansPage() {
                   </Badge>
                 )}
                 {socialFilter !== 'any' && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[var(--ob-cta)] text-[var(--ob-cta-text)] border-0 shadow-sm">
                     {socialOptions.find(o => o.key === socialFilter)?.label}
                     <button onClick={() => setSocialFilter('any')}>
                       <X size={12} />
@@ -676,7 +672,7 @@ export default function PlansPage() {
                   </Badge>
                 )}
                 {fiveGFilter && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[#E37417] text-white border-0 shadow-sm">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 bg-[var(--ob-cta)] text-[var(--ob-cta-text)] border-0 shadow-sm">
                     5G
                     <button onClick={() => setFiveGFilter(false)}>
                       <X size={12} />
@@ -736,7 +732,7 @@ export default function PlansPage() {
                             onClick={() => goToPage(item as number)}
                             className={`w-11 h-11 rounded-xl text-sm font-bold
                               ${currentPage === item
-                                ? 'bg-primary text-white shadow-md shadow-primary/20'
+                                ? 'bg-[var(--ob-cta)] text-[var(--ob-cta-text)] shadow-md shadow-[var(--ob-cta)]/20'
                                 : 'text-muted-foreground'
                               }`}
                           >
@@ -783,22 +779,22 @@ export default function PlansPage() {
         </div>
 
         {/* ========= FINDER CTA BANNER ========= */}
-        <div className="mt-16 relative overflow-hidden rounded-3xl p-8 md:p-12 text-center hero-gradient grain">
+        <div className="mt-16 relative overflow-hidden rounded-3xl p-8 md:p-12 text-center page-hero grain">
           <WaveLines />
           <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
           <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-accent/[0.06] translate-y-1/3 -translate-x-1/3 blob-alt" />
           <div className="relative z-10">
-            <Badge variant="secondary" className="gap-2 px-3 py-1 bg-[#FFF0D0] text-black/70 border-0 text-xs font-semibold mb-4">
+            <Badge variant="secondary" className="gap-2 px-3 py-1 bg-secondary text-secondary-foreground border-0 text-xs font-semibold mb-4">
               <Sparkles size={12} />
               {t('home.just30Seconds')}
             </Badge>
-            <h3 className="font-heading font-normal text-2xl md:text-3xl text-black tracking-tight">
+            <h3 className="font-heading font-normal text-2xl md:text-3xl text-foreground tracking-tight">
               {t('finderCta.title')}
             </h3>
-            <p className="text-black/50 mt-2 text-sm max-w-md mx-auto">
+            <p className="text-foreground/50 mt-2 text-sm max-w-md mx-auto">
               {t('finderCta.subtitle')}
             </p>
-            <Button asChild className="mt-6 px-6 py-3 h-auto rounded-xl bg-white text-primary font-bold text-sm hover:bg-white/90 shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300">
+            <Button asChild className="mt-6 px-6 py-3 h-auto rounded-xl bg-card text-foreground font-bold text-sm hover:bg-white/90 shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300">
               <Link to="/advisor">
                 {t('finderCta.cta')}
                 <ArrowRight size={16} className="rtl:rotate-180" />
@@ -831,7 +827,7 @@ export default function PlansPage() {
                 <Button
                   size="sm"
                   onClick={() => setShowMobileFilters(false)}
-                  className="rounded-xl text-white text-sm font-bold bg-primary"
+                  className="rounded-xl text-[var(--ob-cta-text)] text-sm font-bold bg-[var(--ob-cta)]"
                 >
                   {t('browse.showResults', { count: String(filteredPlans.length) })}
                 </Button>

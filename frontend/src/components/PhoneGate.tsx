@@ -37,7 +37,7 @@ export default function PhoneGate() {
   if (!isLoggedIn || !needsPhone) return null;
 
   const navigateAway = () => {
-    if (localStorage.getItem('simba-finder-pending')) {
+    if (localStorage.getItem('soob-finder-pending')) {
       navigate('/advisor?reveal=1');
     } else {
       navigate('/advisor');
@@ -115,7 +115,7 @@ export default function PhoneGate() {
           <Button
             type="submit"
             disabled={saving}
-            className="w-full bg-white text-[#213E53] hover:bg-white/90 font-bold"
+            className="w-full bg-card text-foreground hover:bg-card/90 font-bold"
           >
             {saving ? (lang === 'ar' ? 'جاري الحفظ...' : 'Saving...') : t('profile.savePhone')}
           </Button>

@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { useLang } from '../context/LanguageContext';
 
 // localStorage key — once dismissed, the modal never shows again
-const STORAGE_KEY = 'simba-finder-modal-dismissed';
+const STORAGE_KEY = 'soob-finder-modal-dismissed';
 
 export function useFinderModal() {
   const [show, setShow] = useState(() => !localStorage.getItem(STORAGE_KEY));
@@ -39,7 +39,7 @@ export default function FinderModal({ show, onDismiss }: { show: boolean; onDism
         <div className="flex flex-col gap-2.5 mt-2">
           <Button
             onClick={() => { onDismiss(); navigate('/advisor'); }}
-            className="bg-primary text-white"
+            className="bg-[var(--ob-cta)] text-[var(--ob-cta-text)] hover:bg-[var(--ob-cta-hover)] shadow-sm"
           >
             {t('finderCta.cta')}
           </Button>

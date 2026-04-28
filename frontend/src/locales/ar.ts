@@ -25,7 +25,7 @@ export default {
     trending: { title: "الباقات الأكثر طلب", seeAll: "شوف كل الباقات" },
     deals: { title: "العروض الحالية", seeAll: "شوف كل العروض" },
     carriers: { title: "نقارن باقات كل شركات الاتصالات المرخصة" },
-    whySimba: {
+    whySOOB: {
       title: "ليش سيمبا؟",
       card1Title: "ما نبيع شرائح",
       card1Desc: "نحوّلك لموقع الشركة الرسمي. بدون مخاطر وبدون وسطاء.",

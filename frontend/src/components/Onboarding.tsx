@@ -11,7 +11,7 @@
  *  5. If visiting → Short-stay visitor options
  *  Then → /advisor (Plan Finder)
  *
- * Answers are persisted to localStorage ('simba-onboarding-answers') so downstream
+ * Answers are persisted to localStorage ('soob-onboarding-answers') so downstream
  * pages (advisor, explore) can adapt recommendations.
  */
 import { useState, useEffect, useRef } from 'react';
@@ -61,9 +61,9 @@ function WaveLinesOnly() {
 
 function SceneCarriers() {
   return (
-    <div className="w-52 h-28 md:w-72 md:h-40 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-3 md:p-4 grid grid-cols-4 grid-rows-2 gap-2 md:gap-3">
+    <div className="w-52 h-28 md:w-72 md:h-40 rounded-2xl bg-[var(--ob-chip)] backdrop-blur-sm border border-[var(--ob-chip-border)] p-3 md:p-4 grid grid-cols-4 grid-rows-2 gap-2 md:gap-3">
       {CARRIERS.map((c) => (
-        <div key={c.name} className="rounded-xl bg-white/10 flex items-center justify-center">
+        <div key={c.name} className="rounded-xl bg-[var(--ob-chip)] flex items-center justify-center">
           <img src={c.logo} alt={c.name} className="w-6 h-6 md:w-8 md:h-8 object-contain" />
         </div>
       ))}
@@ -79,15 +79,15 @@ function SceneMatch() {
         return (
           <div
             key={i}
-            className={`rounded-2xl bg-white/10 backdrop-blur-sm border flex flex-col items-center p-3 gap-2 ${
+            className={`rounded-2xl bg-[var(--ob-chip)] backdrop-blur-sm border flex flex-col items-center p-3 gap-2 ${
               best
                 ? 'w-[76px] h-40 md:w-24 md:h-48 border-white/40 shadow-md'
                 : 'w-16 h-28 md:w-20 md:h-36 border-white/10 opacity-40'
             }`}
           >
-            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg shrink-0 ${best ? 'bg-white/20' : 'bg-white/10'}`} />
-            <div className="w-full h-1.5 rounded-full bg-white/10" />
-            <div className="w-2/3 h-1.5 rounded-full bg-white/10" />
+            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg shrink-0 ${best ? 'bg-[var(--ob-chip)]' : 'bg-[var(--ob-chip)]'}`} />
+            <div className="w-full h-1.5 rounded-full bg-[var(--ob-chip)]" />
+            <div className="w-2/3 h-1.5 rounded-full bg-[var(--ob-chip)]" />
             {best && (
               <div className="mt-auto w-7 h-7 rounded-full bg-white flex items-center justify-center shrink-0">
                 <Check size={14} className="text-primary" strokeWidth={3} />
@@ -115,22 +115,22 @@ function OptionCard({
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left rounded-2xl bg-white/85 hover:bg-white active:bg-white backdrop-blur-sm border border-[#213E53]/10 hover:border-[#213E53]/25 transition-all p-3.5 sm:p-4 md:p-5 flex items-start gap-3 sm:gap-4 shadow-sm hover:shadow-md"
+      className="group w-full text-left rounded-2xl bg-[var(--ob-card)] hover:bg-[var(--ob-card)] active:bg-[var(--ob-card)] backdrop-blur-sm border border-[var(--ob-card-border)] hover:border-[var(--ob-card-border)] transition-all p-3.5 sm:p-4 md:p-5 flex items-start gap-3 sm:gap-4 ob-card-elev"
     >
-      <div className="shrink-0 w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl bg-[#FFF0D0] text-[#213E53] border border-[#213E53]/10 flex items-center justify-center">
+      <div className="shrink-0 w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl bg-[var(--ob-icon)] text-[var(--ob-icon-text)] border border-[var(--ob-card-border)] flex items-center justify-center">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`font-heading font-semibold text-[15px] sm:text-[16px] md:text-[17px] text-[#213E53] leading-snug ${desc ? 'mb-0.5 sm:mb-1' : ''}`}>
+        <div className={`font-heading font-semibold text-[15px] sm:text-[16px] md:text-[17px] text-[var(--ob-card-text)] leading-snug ${desc ? 'mb-0.5 sm:mb-1' : ''}`}>
           {title}
         </div>
         {desc && (
-          <div className="text-[12.5px] sm:text-[13px] md:text-[14px] text-[#213E53]/65 leading-relaxed">
+          <div className="text-[12.5px] sm:text-[13px] md:text-[14px] text-[var(--ob-card-text-soft)] leading-relaxed">
             {desc}
           </div>
         )}
       </div>
-      <ArrowRight size={16} className="shrink-0 mt-1.5 sm:mt-2 text-[#213E53]/40 group-hover:text-[#213E53] group-hover:translate-x-0.5 transition-all" />
+      <ArrowRight size={16} className="shrink-0 mt-1.5 sm:mt-2 text-[var(--ob-card-text-soft)] group-hover:text-[var(--ob-card-text)] group-hover:translate-x-0.5 transition-all" />
     </button>
   );
 }
@@ -237,7 +237,7 @@ export const COPY: Record<Lang, CopyDict> = {
     visitingMinsUnit: (n: number) => `${n} MINs`,
     visitingSmsUnit: (n: number) => `${n} SMS`,
     visitingUnlimited: 'Unlimited',
-    visitingCta: 'See all plans on Simba',
+    visitingCta: 'See all plans on SOOB',
     ctaFindPlans: 'See plans that fit me',
     ctaContinue: 'Continue',
     ctaClose: 'Close',
@@ -405,7 +405,7 @@ export const COPY: Record<Lang, CopyDict> = {
     visitingDays: (n: number) => `${n} दिन`,
     visitingMinsUnit: (n: number) => `${n} मिनट`,
     visitingSmsUnit: (n: number) => `${n} SMS`,
-    visitingCta: 'Simba पर सभी प्लान्स देखें',
+    visitingCta: 'SOOB पर सभी प्लान्स देखें',
     ctaFindPlans: 'मुझे उपयुक्त प्लान्स दिखाएँ',
     ctaContinue: 'जारी रखें',
     ctaClose: 'बंद करें',
@@ -461,7 +461,7 @@ export const COPY: Record<Lang, CopyDict> = {
     visitingDays: (n: number) => `${n} দিন`,
     visitingMinsUnit: (n: number) => `${n} মিনিট`,
     visitingSmsUnit: (n: number) => `${n} SMS`,
-    visitingCta: 'Simba-তে সব প্ল্যান দেখুন',
+    visitingCta: 'SOOB-তে সব প্ল্যান দেখুন',
     ctaFindPlans: 'আমার জন্য উপযুক্ত প্ল্যান দেখান',
     ctaContinue: 'চালিয়ে যান',
     ctaClose: 'বন্ধ করুন',
@@ -517,7 +517,7 @@ export const COPY: Record<Lang, CopyDict> = {
     visitingDays: (n: number) => `${n} araw`,
     visitingMinsUnit: (n: number) => `${n} MIN`,
     visitingSmsUnit: (n: number) => `${n} SMS`,
-    visitingCta: 'Tingnan lahat sa Simba',
+    visitingCta: 'Tingnan lahat sa SOOB',
     ctaFindPlans: 'Ipakita ang mga planong bagay sa akin',
     ctaContinue: 'Magpatuloy',
     ctaClose: 'Isara',
@@ -559,7 +559,7 @@ export default function Onboarding() {
   const { lang, setLang } = useLang();
   const { markOnboarded } = useAuth();
   const navigate = useNavigate();
-  const [visible, setVisible] = useState(() => !localStorage.getItem('simba-onboarded'));
+  const [visible, setVisible] = useState(() => !localStorage.getItem('soob-onboarded'));
   const [page, setPage] = useState<Page>('lang');
   const [answers, setAnswers] = useState<OnboardingAnswers>({});
   const startedAtRef = useRef<number>(Date.now());
@@ -605,10 +605,10 @@ export default function Onboarding() {
 
   const complete = () => {
     completedRef.current = true;
-    localStorage.setItem('simba-onboarded', 'true');
-    localStorage.setItem('simba-onboarding-answers', JSON.stringify(answers));
+    localStorage.setItem('soob-onboarded', 'true');
+    localStorage.setItem('soob-onboarding-answers', JSON.stringify(answers));
     markOnboarded();
-    const variant = localStorage.getItem('simba-onboarding-variant');
+    const variant = localStorage.getItem('soob-onboarding-variant');
     const autoGuide = variant === 'B' || variant === 'D';
     trackCompleted('/advisor', { ...answers }, 'classic', startedAtRef.current);
     setVisible(false);
@@ -663,7 +663,7 @@ export default function Onboarding() {
         <div className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 mb-6 sm:mb-8 md:mb-10 rounded-[22%] overflow-hidden shadow-lg shrink-0">
           <img
             src="/icon-192.png"
-            alt="Simba"
+            alt="SOOB"
             className="w-full h-full object-cover scale-[1.05]"
             decoding="async"
             width={112}
@@ -675,14 +675,14 @@ export default function Onboarding() {
             <Button
               onClick={() => chooseLang('en')}
               variant="secondary"
-              className="flex-1 h-12 sm:h-14 text-base font-medium bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md"
+              className="flex-1 h-12 sm:h-14 text-base font-medium bg-[var(--ob-cta)] text-[var(--ob-cta-text)] hover:bg-[var(--ob-cta-hover)] ob-cta-elev"
             >
               English
             </Button>
             <Button
               onClick={() => chooseLang('ar')}
               variant="secondary"
-              className="flex-1 h-12 sm:h-14 text-base font-medium bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md"
+              className="flex-1 h-12 sm:h-14 text-base font-medium bg-[var(--ob-cta)] text-[var(--ob-cta-text)] hover:bg-[var(--ob-cta-hover)] ob-cta-elev"
             >
               العربية
             </Button>
@@ -718,7 +718,7 @@ export default function Onboarding() {
         <div className="relative z-10 px-5 pt-4 sm:px-6 sm:pt-6 flex items-center shrink-0">
           <button
             onClick={goBack}
-            className="text-white/70 hover:text-white p-2 -ml-2 rounded-lg transition-colors"
+            className="text-[var(--ob-text-soft)] hover:text-[var(--ob-text)] p-2 -ml-2 rounded-lg transition-colors"
             aria-label="Back"
           >
             <ArrowLeft size={20} className={isRtl ? 'rotate-180' : ''} />
@@ -741,7 +741,7 @@ export default function Onboarding() {
               <div
                 key={i}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === idx ? 'w-6 bg-white' : i < idx ? 'w-1.5 bg-white/40' : 'w-1.5 bg-white/20'
+                  i === idx ? 'w-6 bg-[var(--ob-cta)]' : i < idx ? 'w-1.5 bg-[var(--ob-chip-border)]' : 'w-1.5 bg-[var(--ob-chip)]'
                 }`}
               />
             ))}
@@ -750,7 +750,7 @@ export default function Onboarding() {
           <Button
             onClick={next}
             variant="secondary"
-            className="bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md font-medium w-12 h-12 p-0"
+            className="bg-[var(--ob-cta)] text-[var(--ob-cta-text)] hover:bg-[var(--ob-cta-hover)] ob-cta-elev font-medium w-12 h-12 p-0"
           >
             <ArrowRight size={18} />
           </Button>
@@ -789,27 +789,27 @@ export default function Onboarding() {
       <div className="relative z-10 px-4 pt-3 sm:px-5 sm:pt-5 flex items-center justify-between shrink-0">
         <button
           onClick={goBack}
-          className="text-[#213E53]/70 hover:text-[#213E53] hover:bg-black/5 p-2 -ml-2 rounded-lg transition-colors"
+          className="text-[var(--ob-text-soft)] hover:text-[var(--ob-text)] hover:bg-[var(--ob-chip-hover)] p-2 -ml-2 rounded-lg transition-colors"
           aria-label="Back"
         >
           <ArrowLeft size={20} className={isRtl ? 'rotate-180' : ''} />
         </button>
-        <div className="text-[11px] font-mono tracking-widest text-[#213E53]/50 uppercase">Simba</div>
+        <div className="text-[11px] font-mono tracking-widest text-[var(--ob-text-faint)] uppercase">SOOB</div>
       </div>
 
       {/* Scrollable content */}
       <div className="relative z-10 flex-1 overflow-y-auto overscroll-contain">
         <div className="flex flex-col px-4 sm:px-5 md:px-8 pt-2 pb-4 max-w-lg w-full mx-auto">
           {hint && (
-            <div className="inline-flex self-start px-3 py-1 rounded-full bg-[#213E53]/10 border border-[#213E53]/20 text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-[#213E53]/75 mb-3 sm:mb-4 max-w-full">
+            <div className="inline-flex self-start px-3 py-1 rounded-full bg-[var(--ob-chip)] border border-[var(--ob-chip-border)] text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-[var(--ob-text-soft)] mb-3 sm:mb-4 max-w-full">
               <span className="truncate">{hint}</span>
             </div>
           )}
-          <h2 className="font-heading font-semibold text-[22px] sm:text-[24px] md:text-[30px] text-[#213E53] leading-tight mb-2">
+          <h2 className="font-heading font-semibold text-[22px] sm:text-[24px] md:text-[30px] text-[var(--ob-text)] leading-tight mb-2">
             {title}
           </h2>
           {subtitle && (
-            <p className="text-[13px] sm:text-[14px] md:text-[15px] text-[#213E53]/70 leading-relaxed mb-5 sm:mb-6">
+            <p className="text-[13px] sm:text-[14px] md:text-[15px] text-[var(--ob-text-soft)] leading-relaxed mb-5 sm:mb-6">
               {subtitle}
             </p>
           )}
@@ -889,7 +889,7 @@ export default function Onboarding() {
         subtitle={t.movingSub}
         footer={
           <div className="flex flex-col gap-2.5 sm:gap-3">
-            <div className="rounded-xl bg-white/70 border border-[#213E53]/15 px-3 py-2.5 sm:px-4 sm:py-3 text-[12.5px] sm:text-[13px] text-[#213E53] leading-relaxed">
+            <div className="rounded-xl bg-[var(--ob-card)] border border-[var(--ob-card-border)] px-3 py-2.5 sm:px-4 sm:py-3 text-[12.5px] sm:text-[13px] text-[var(--ob-card-text)] leading-relaxed">
               <span className="font-semibold">💡 </span>
               {t.movingHint}
             </div>
@@ -898,7 +898,7 @@ export default function Onboarding() {
                 trackAnswer('moving', 'get_temp_plan', true, 'classic', startedAtRef.current);
                 gotoPage('visiting');
               }}
-              className="w-full h-12 sm:h-14 text-[15px] sm:text-base font-semibold bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md"
+              className="w-full h-12 sm:h-14 text-[15px] sm:text-base font-semibold bg-[var(--ob-cta)] text-[var(--ob-cta-text)] hover:bg-[var(--ob-cta-hover)] ob-cta-elev"
             >
               {t.ctaGetTemp}
               <ArrowRight size={18} className="ml-2" />
@@ -912,15 +912,15 @@ export default function Onboarding() {
           { n: 3, icon: <IdCard size={18} />, title: t.movingStep3, desc: t.movingStep3Desc },
           { n: 4, icon: <Check size={18} />, title: t.movingStep4, desc: t.movingStep4Desc },
         ].map((step) => (
-          <div key={step.n} className="flex items-start gap-3 rounded-2xl bg-white/80 border border-[#213E53]/10 p-3 sm:p-4 shadow-sm">
-            <div className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#FFF0D0] text-[#213E53] border border-[#213E53]/15 flex items-center justify-center font-bold text-[13px] sm:text-sm">
+          <div key={step.n} className="flex items-start gap-3 rounded-2xl bg-[var(--ob-card)] border border-[var(--ob-card-border)] p-3 sm:p-4 ob-card-elev">
+            <div className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[var(--ob-icon)] text-[var(--ob-icon-text)] border border-[var(--ob-card-border)] flex items-center justify-center font-bold text-[13px] sm:text-sm">
               {step.n}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-heading font-semibold text-[14px] sm:text-[15px] text-[#213E53] mb-0.5 sm:mb-1">
+              <div className="font-heading font-semibold text-[14px] sm:text-[15px] text-[var(--ob-card-text)] mb-0.5 sm:mb-1">
                 {step.title}
               </div>
-              <div className="text-[12.5px] sm:text-[13px] text-[#213E53]/70 leading-relaxed">
+              <div className="text-[12.5px] sm:text-[13px] text-[var(--ob-card-text-soft)] leading-relaxed">
                 {step.desc}
               </div>
             </div>
@@ -1027,14 +1027,14 @@ export default function Onboarding() {
           <Button
             onClick={() => {
               completedRef.current = true;
-              localStorage.setItem('simba-onboarded', 'true');
-              localStorage.setItem('simba-onboarding-answers', JSON.stringify(answers));
+              localStorage.setItem('soob-onboarded', 'true');
+              localStorage.setItem('soob-onboarding-answers', JSON.stringify(answers));
               markOnboarded();
               trackCompleted('/', { ...answers }, 'classic', startedAtRef.current);
               setVisible(false);
               navigate('/');
             }}
-            className="w-full h-12 sm:h-14 text-[15px] sm:text-base font-semibold bg-[#FFF0D0] text-[#213E53] hover:bg-[#FFE8B8] shadow-md"
+            className="w-full h-12 sm:h-14 text-[15px] sm:text-base font-semibold bg-[var(--ob-cta)] text-[var(--ob-cta-text)] hover:bg-[var(--ob-cta-hover)] ob-cta-elev"
           >
             <Home size={18} className="mr-2" />
             {t.ctaHome}
@@ -1049,10 +1049,10 @@ export default function Onboarding() {
                   className="inline-block w-2 h-2 rounded-full shrink-0"
                   style={{ backgroundColor: carrier.color }}
                 />
-                <span className="font-heading font-semibold text-[14px] sm:text-[15px] text-[#213E53]">
+                <span className="font-heading font-semibold text-[14px] sm:text-[15px] text-[var(--ob-text)]">
                   {carrier.name}
                 </span>
-                <span className="text-[11px] text-[#213E53]/50">
+                <span className="text-[11px] text-[var(--ob-text-faint)]">
                   · {carrier.plans.length} {t.plansWord}
                 </span>
               </div>
@@ -1078,7 +1078,7 @@ export default function Onboarding() {
                   return (
                     <div
                       key={p.name}
-                      className="shrink-0 snap-start w-[78vw] max-w-[280px] sm:w-[260px] rounded-2xl bg-white/90 border border-[#213E53]/10 shadow-sm overflow-hidden"
+                      className="shrink-0 snap-start w-[78vw] max-w-[280px] sm:w-[260px] rounded-2xl bg-[var(--ob-card)] border border-[var(--ob-card-border)] ob-card-elev overflow-hidden"
                     >
                       {/* Colored top accent bar */}
                       <div className="h-1 w-full" style={{ backgroundColor: carrier.color }} />
@@ -1095,29 +1095,29 @@ export default function Onboarding() {
                             >
                               {t.visitingPrepaid}
                             </div>
-                            <div className="font-heading font-bold text-[17px] sm:text-[18px] text-[#213E53] leading-tight">
+                            <div className="font-heading font-bold text-[17px] sm:text-[18px] text-[var(--ob-card-text)] leading-tight">
                               {p.name}
                             </div>
                           </div>
                         </div>
 
                         <div className={`flex items-baseline gap-1.5 mb-2.5 ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
-                          <div className="font-heading font-bold text-[22px] sm:text-[24px] text-[#C45F0A] leading-none">
+                          <div className="font-heading font-bold text-[22px] sm:text-[24px] text-[var(--ob-card-text)] leading-none">
                             {p.price}
                           </div>
-                          <div className="text-[12px] font-semibold text-[#C45F0A]">SAR</div>
-                          <div className="text-[11px] text-[#213E53]/55 ml-1">
+                          <div className="text-[12px] font-semibold text-[var(--ob-card-text)]">SAR</div>
+                          <div className="text-[11px] text-[var(--ob-card-text-soft)] ml-1">
                             / {t.visitingDays(p.validityDays)}
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5 py-2.5 border-y border-[#213E53]/10">
+                        <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5 py-2.5 border-y border-[var(--ob-card-border)]">
                           {rows.map(([label, value]) => (
                             <div key={label} className="min-w-0">
-                              <div className="text-[9.5px] sm:text-[10px] uppercase tracking-wider text-[#213E53]/55 mb-0.5 truncate">
+                              <div className="text-[9.5px] sm:text-[10px] uppercase tracking-wider text-[var(--ob-card-text-soft)] mb-0.5 truncate">
                                 {label}
                               </div>
-                              <div className="text-[12.5px] sm:text-[13px] font-semibold text-[#213E53] truncate">
+                              <div className="text-[12.5px] sm:text-[13px] font-semibold text-[var(--ob-card-text)] truncate">
                                 {value}
                               </div>
                             </div>
@@ -1125,18 +1125,18 @@ export default function Onboarding() {
                         </div>
 
                         {p.note && (
-                          <div className="mt-2 text-[11px] text-[#C45F0A] font-medium leading-snug">
+                          <div className="mt-2 text-[11px] text-[var(--ob-card-text-soft)] font-medium leading-snug">
                             ★ {p.note}
                           </div>
                         )}
 
                         <div className="mt-auto pt-2.5 flex items-center justify-between gap-2">
-                          <div className="text-[10px] text-[#213E53]/55">
+                          <div className="text-[10px] text-[var(--ob-card-text-soft)]">
                             {t.visitingVat}
                           </div>
                           <button
                             onClick={() => openUrl(carrier, p)}
-                            className="inline-flex items-center gap-1 text-[12px] sm:text-[12.5px] font-semibold text-[#C45F0A] hover:text-[#213E53] transition-colors"
+                            className="inline-flex items-center gap-1 text-[12px] sm:text-[12.5px] font-semibold text-[var(--ob-card-text)] hover:text-[var(--ob-card-text-soft)] transition-colors"
                           >
                             {t.visitingGet}
                             <ArrowRight size={13} />

@@ -3,7 +3,7 @@
  *
  * These types mirror the backend data shapes:
  *  - Plan          — a Saudi telecom plan (from the static in-memory catalog)
- *  - SimbaUser     — the currently authenticated user (Google Sign-In)
+ *  - SOOBUser     — the currently authenticated user (Google Sign-In)
  *  - PlanReaction  — aggregated like/dislike counts for a plan
  *  - PlanComment   — a single user comment on a plan
  */
@@ -26,14 +26,14 @@ export interface Plan {
   url: string;                     // Link to the plan on the carrier's website
 }
 
-/** Authenticated user profile — populated after Google Sign-In. */
-export interface SimbaUser {
+/** Authenticated user profile — populated after Google or OTP sign-in. */
+export interface SOOBUser {
   name: string;
   email: string;
-  photoURL: string | null;         // Google profile photo URL
-  uid: string;                     // Firebase UID
-  provider: 'google';              // Auth provider (currently only Google)
-  phone: string | null;            // Optional phone number (collected via PhoneGate)
+  photoURL: string | null;         // Google profile photo URL (null for OTP users)
+  uid: string;                     // Firebase UID (or otp-{phone|email} for OTP users)
+  provider: 'google' | 'otp';      // Auth provider
+  phone: string | null;             // Optional phone number
 }
 
 /** Aggregated reaction counts for a plan, plus arrays of user IDs who reacted. */

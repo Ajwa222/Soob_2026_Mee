@@ -3,7 +3,7 @@
  *
  * Flow:
  *  1. User enters their current monthly spend (or selects their carrier)
- *  2. Simba shows plans that cost less while offering equal or better value
+ *  2. SOOB shows plans that cost less while offering equal or better value
  *  3. Plans are ranked by savings potential (value score / price ratio)
  *
  * Uses the getValueScore() utility to rank alternatives objectively.
@@ -79,6 +79,7 @@ export default function SwitchSavePage() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+
   const results = useMemo(() => {
     if (!showResults) return [];
 
@@ -148,25 +149,26 @@ export default function SwitchSavePage() {
 
   return (
     <div className="safe-pb">
-      {/* Hero */}
-      <section className="relative overflow-hidden hero-gradient grain">
-        <WaveLines />
-        <div className="relative z-[2] max-w-3xl mx-auto px-4 sm:px-6 md:px-8 pt-5 pb-4 md:pt-8 md:pb-6">
-          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-black/60 text-xs font-medium mb-2 hover:text-black transition-colors">
-            <ArrowLeft size={14} className="rtl:rotate-180" />
+      {/* Hero — slim themed bar */}
+      <section className="relative overflow-hidden page-hero border-b border-border">
+        <div className="relative z-[2] max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-3 md:py-4">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-foreground/60 text-[11px] font-medium hover:text-foreground transition-colors">
+            <ArrowLeft size={13} className="rtl:rotate-180" />
             {isAr ? 'رجوع' : 'Back'}
           </button>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-              <TrendingDown size={14} className="text-black" />
+          <div className="flex items-center gap-2.5 mt-1.5">
+            <div className="w-8 h-8 rounded-lg bg-card/40 backdrop-blur-md border border-border flex items-center justify-center">
+              <TrendingDown size={16} className="text-foreground" />
             </div>
-            <h1 className="font-heading font-normal text-xl md:text-2xl text-black tracking-tight">
-              {t('switchSave.title')}
-            </h1>
+            <div className="min-w-0">
+              <h1 className="font-heading font-bold text-base md:text-lg text-foreground tracking-tight leading-tight">
+                {t('switchSave.title')}
+              </h1>
+              <p className="text-foreground/55 text-[11px] leading-tight">
+                {t('switchSave.subtitle')}
+              </p>
+            </div>
           </div>
-          <p className="text-black/60 text-xs md:text-sm max-w-lg">
-            {t('switchSave.subtitle')}
-          </p>
         </div>
       </section>
 

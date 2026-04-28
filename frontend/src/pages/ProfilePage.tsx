@@ -33,12 +33,12 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [signingIn, setSigningIn] = useState(false);
   const [searchParams] = useSearchParams();
-  const isSignUp = !localStorage.getItem('simba-has-account') || searchParams.get('tab') === 'signup';
-  const hasPendingBookmark = useMemo(() => !!localStorage.getItem('simba-pending-bookmark'), []);
+  const isSignUp = !localStorage.getItem('soob-has-account') || searchParams.get('tab') === 'signup';
+  const hasPendingBookmark = useMemo(() => !!localStorage.getItem('soob-pending-bookmark'), []);
   const navTo = useNavigate();
 
   const redirectAfterLogin = (signup: boolean) => {
-    if (localStorage.getItem('simba-finder-pending')) {
+    if (localStorage.getItem('soob-finder-pending')) {
       navTo('/advisor?reveal=1');
     } else if (signup) {
       navTo('/advisor');
@@ -48,10 +48,10 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    if (isLoggedIn && !needsPhone && localStorage.getItem('simba-auth-redirect') === 'pending') {
-      const wasSignUp = localStorage.getItem('simba-auth-flow') === 'signup';
-      localStorage.removeItem('simba-auth-redirect');
-      localStorage.removeItem('simba-auth-flow');
+    if (isLoggedIn && !needsPhone && localStorage.getItem('soob-auth-redirect') === 'pending') {
+      const wasSignUp = localStorage.getItem('soob-auth-flow') === 'signup';
+      localStorage.removeItem('soob-auth-redirect');
+      localStorage.removeItem('soob-auth-flow');
       redirectAfterLogin(wasSignUp);
     }
   }, [isLoggedIn, needsPhone]);
@@ -62,10 +62,10 @@ export default function ProfilePage() {
     setSigningIn(true);
     try {
       const wasSignUp = isSignUp;
-      localStorage.setItem('simba-auth-flow', wasSignUp ? 'signup' : 'signin');
+      localStorage.setItem('soob-auth-flow', wasSignUp ? 'signup' : 'signin');
       await loginWithGoogle();
       trackEvent(wasSignUp ? 'signup' : 'login', { method: 'google' });
-      localStorage.removeItem('simba-auth-flow');
+      localStorage.removeItem('soob-auth-flow');
       redirectAfterLogin(wasSignUp);
     } catch (err: unknown) {
       if (import.meta.env.DEV) console.error('Google sign-in failed:', err);

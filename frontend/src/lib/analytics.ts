@@ -1,5 +1,5 @@
 /**
- * Unified analytics layer for SimbaApp.
+ * Unified analytics layer for SoobApp.
  *
  * Integrates three providers, all lazy-loaded to avoid blocking first paint:
  *  - Google Analytics 4 (GA4) — page views and custom events via gtag.js
@@ -13,10 +13,10 @@
  * Exported functions:
  *  - trackPageView(path)   — fires on every route change (called by AnalyticsTracker in App.tsx)
  *  - trackEvent(name, params) — fires custom events to all providers
- *  - identifyUser(user)    — links analytics data to a logged-in SimbaUser
+ *  - identifyUser(user)    — links analytics data to a logged-in SOOBUser
  *  - resetUser()           — clears user identity on logout
  */
-import type { SimbaUser } from '../types';
+import type { SOOBUser } from '../types';
 
 // Extend Window to include analytics globals injected by script tags
 declare global {
@@ -230,7 +230,7 @@ export function trackEvent(eventName: string, params: Record<string, unknown> = 
     if (import.meta.env.DEV) {
       // Mirror to console so you can see every event live during testing.
       // eslint-disable-next-line no-console
-      console.log(`%c[track] ${eventName}`, 'color: #E37417; font-weight: 600;', params);
+      console.log(`%c[track] ${eventName}`, 'color: #16143A; font-weight: 600;', params);
       if (!window.__simbaEvents) window.__simbaEvents = [];
       window.__simbaEvents.push({ time: new Date().toISOString(), name: eventName, props: params });
     }
@@ -272,7 +272,7 @@ export function trackEvent(eventName: string, params: Record<string, unknown> = 
  * Sets Mixpanel identity + people properties and Clarity custom user ID.
  * Called from AuthContext after successful sign-in.
  */
-export function identifyUser(user: SimbaUser): void {
+export function identifyUser(user: SOOBUser): void {
   try {
     if (!user) return;
 

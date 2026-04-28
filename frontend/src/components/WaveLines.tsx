@@ -1,6 +1,6 @@
 /**
  * Decorative SVG wave lines overlay with floating bubbles.
- * Drop inside any `hero-gradient` container (must be `relative`).
+ * Drop inside any `page-hero` container (must be `relative`).
  */
 export default function WaveLines() {
   return (

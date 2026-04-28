@@ -8,9 +8,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-white shadow hover:bg-primary/90",
+        // SOOB primary button — themed via --ob-cta tokens.
+        // Theme B: deeper-purple pill on lavender bg, navy ink.
+        // Theme C: lime pill on navy bg, navy ink.
+        default: "bg-[var(--ob-cta)] text-[var(--ob-cta-text)] shadow-sm hover:bg-[var(--ob-cta-hover)] hover:shadow-md",
         destructive: "bg-destructive text-white shadow-sm hover:bg-destructive/90",
-        outline: "border border-border bg-background shadow-sm hover:bg-muted hover:text-foreground",
+        outline: "border border-[#16143A]/20 bg-white text-[#16143A] shadow-sm hover:bg-white/95",
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-muted hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",

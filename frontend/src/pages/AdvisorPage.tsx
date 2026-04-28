@@ -555,7 +555,7 @@ export default function AdvisorPage() {
     const hasPlans = messages.some(m => m.role === 'assistant' && m.planIds && m.planIds.length > 0);
     if (hasPlans) {
       plansAnnouncedRef.current = true;
-      window.dispatchEvent(new CustomEvent('simba-advisor-plans-shown'));
+      window.dispatchEvent(new CustomEvent('soob-advisor-plans-shown'));
     }
   }, [messages]);
 
@@ -614,27 +614,24 @@ export default function AdvisorPage() {
 
   return (
     <div className="relative z-10 h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)] flex flex-col">
-      {/* Header */}
-      <section className="shrink-0 relative overflow-hidden hero-gradient grain">
-        <WaveLines />
-        <div className="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-3 md:pt-6 md:pb-4 relative z-[2]">
-          <button onClick={restart} className="flex items-center gap-1 text-black/60 text-xs font-medium mb-2 hover:text-black transition-colors">
-            <ArrowLeft size={14} className="rtl:rotate-180" />
+      {/* Header — slim themed bar so the chat is visible above the fold */}
+      <section className="shrink-0 relative overflow-hidden page-hero border-b border-border">
+        <div className="max-w-3xl mx-auto px-4 md:px-8 py-3 md:py-3.5 relative z-[2]">
+          <button onClick={restart} className="flex items-center gap-1 text-foreground/60 text-[11px] font-medium hover:text-foreground transition-colors">
+            <ArrowLeft size={13} className="rtl:rotate-180" />
             {lang === 'ar' ? 'رجوع' : 'Back'}
           </button>
-          <div className="flex items-center justify-between animate-fade-up">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-                <Bot size={18} className="text-black" />
-              </div>
-              <div>
-                <h1 className="font-heading font-normal text-lg md:text-xl text-black tracking-tight">
-                  {t('advisor.chatTitle')}
-                </h1>
-                <p className="text-black/50 text-[11px] md:text-xs">
-                  {t('advisor.chatSubtitle')}
-                </p>
-              </div>
+          <div className="flex items-center gap-2.5 mt-1.5 animate-fade-up">
+            <div className="w-8 h-8 rounded-lg bg-card/40 backdrop-blur-md border border-border flex items-center justify-center">
+              <Bot size={16} className="text-foreground" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-heading font-bold text-base md:text-lg text-foreground tracking-tight leading-tight">
+                {t('advisor.chatTitle')}
+              </h1>
+              <p className="text-foreground/55 text-[11px] leading-tight">
+                {t('advisor.chatSubtitle')}
+              </p>
             </div>
           </div>
         </div>
@@ -688,7 +685,7 @@ export default function AdvisorPage() {
                 <div
                   className={`max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed
                     ${msg.role === 'user'
-                      ? 'bg-primary text-white rounded-br-md whitespace-pre-wrap'
+                      ? 'bg-[var(--ob-cta)] text-[var(--ob-cta-text)] rounded-br-md whitespace-pre-wrap'
                       : 'bg-muted text-foreground rounded-bl-md'
                     }`}
                 >

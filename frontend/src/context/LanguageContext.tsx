@@ -71,10 +71,10 @@ async function loadDict(lang: Lang): Promise<Dict> {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
-    const stored = localStorage.getItem('simba-lang') as Lang | null;
+    const stored = localStorage.getItem('soob-lang') as Lang | null;
     return stored && SUPPORTED_LANGS.includes(stored) ? stored : 'en';
   });
-  const [theme, setThemeState] = useState<Theme>(() => (localStorage.getItem('simba-theme') as Theme) || 'light');
+  const [theme, setThemeState] = useState<Theme>(() => (localStorage.getItem('soob-theme') as Theme) || 'light');
   // Tick bumps every time a new dict finishes loading — forces t() consumers to re-render
   // with the newly available strings without changing the `lang` identity.
   const [dictTick, setDictTick] = useState(0);
@@ -91,12 +91,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [lang]);
 
   const setTheme = useCallback((t: Theme) => {
-    localStorage.setItem('simba-theme', t);
+    localStorage.setItem('soob-theme', t);
     setThemeState(t);
   }, []);
 
   const setLang = useCallback((next: Lang) => {
-    localStorage.setItem('simba-lang', next);
+    localStorage.setItem('soob-lang', next);
     setLangState(next);
     // Warm the cache in the background if it isn't there yet — reduces the flicker
     // when the component re-renders with the stale dict before the load completes.
@@ -108,7 +108,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const toggleLang = useCallback(() => {
     setLangState((prev) => {
       const next = prev === 'en' ? 'ar' : 'en';
-      localStorage.setItem('simba-lang', next);
+      localStorage.setItem('soob-lang', next);
       if (!dictCache[next]) loadDict(next).then(() => setDictTick((n) => n + 1));
       return next;
     });
@@ -117,7 +117,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const toggleTheme = useCallback(() => {
     setThemeState((prev) => {
       const next = prev === 'light' ? 'dark' : 'light';
-      localStorage.setItem('simba-theme', next);
+      localStorage.setItem('soob-theme', next);
       return next;
     });
   }, []);

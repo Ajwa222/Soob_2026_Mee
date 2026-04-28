@@ -1,5 +1,5 @@
 /**
- * Entry point for the SimbaApp React frontend.
+ * Entry point for the SoobApp React frontend.
  *
  * Mounts the root <App /> component into the DOM inside React StrictMode
  * (enables extra development warnings and double-renders for side-effect detection).

@@ -3,22 +3,25 @@
 @import "@abdulrysr/saudi-riyal-new-symbol-font/style.css";
 
 @theme {
-  --color-primary: #E37417;
-  --color-primary-light: #EEAE4E;
-  --color-primary-dark: #C45F0A;
-  --color-accent: #FFD568;
-  --color-accent-light: #FFE4A0;
-  --color-bg: #FDFCFA;
+  /* SOOB brand palette — deep navy + lavender + lime */
+  --color-primary: #16143A;
+  --color-primary-light: #3F3A7A;
+  --color-primary-dark: #0A0826;
+  --color-accent: #E0FF4F;
+  --color-accent-light: #F0FF99;
+  --color-tertiary: #B79EFF;
+  --color-tertiary-light: #DCCFFF;
+  --color-bg: #FAFAFA;
   --color-surface: #FFFFFF;
-  --color-surface-alt: #FDF8F3;
-  --color-text-primary: #213E53;
-  --color-text-secondary: rgba(33, 62, 83, 0.7);
-  --color-text-tertiary: rgba(33, 62, 83, 0.5);
+  --color-surface-alt: #F4F0FF;
+  --color-text-primary: #16143A;
+  --color-text-secondary: rgba(22, 20, 58, 0.7);
+  --color-text-tertiary: rgba(22, 20, 58, 0.5);
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-error: #EF4444;
-  --color-border: #E7E5E4;
-  --color-footer-bg: #0F0F1A;
+  --color-border: #E5E1F0;
+  --color-footer-bg: #0A0826;
 
   --color-carrier-stc: #4F0D7F;
   --color-carrier-mobily: #0099E5;
@@ -45,7 +48,8 @@
   --color-secondary-foreground: var(--color-text-primary);
   --color-muted: var(--color-surface-alt);
   --color-muted-foreground: var(--color-text-secondary);
-  --color-accent-foreground: var(--color-text-primary);
+  /* Lime is the same hue in both themes — text on lime is ALWAYS navy. */
+  --color-accent-foreground: #16143A;
   --color-destructive: var(--color-error);
   --color-destructive-foreground: #ffffff;
   --color-input: var(--color-border);
@@ -54,23 +58,50 @@
 }
 
 
-.dark {
-  --color-bg: #0A0A14;
-  --color-surface: #14142A;
-  --color-surface-alt: #1E1E38;
-  --color-text-primary: #F0F0F5;
-  --color-text-secondary: #9CA3AF;
-  --color-text-tertiary: #6B7280;
-  --color-border: #2A2A44;
-  --color-primary: #F5942E;
-  --color-primary-light: #FFD568;
-  --color-primary-dark: #E37417;
-  --color-accent: #FFD568;
-  --color-accent-light: #FFE4A0;
+/* ============================================================
+ * SITE-WIDE DARK THEME — applied when <html data-ot="C">
+ * Theme C ("Deep Night") becomes the dark mode for the entire app.
+ * Inherits the same brand palette but flips bg/surface/text.
+ * ============================================================ */
+[data-ot="C"] {
+  --color-bg: #0A0826;
+  --color-surface: #16143A;
+  --color-surface-alt: #221E55;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: rgba(255, 255, 255, 0.78);
+  --color-text-tertiary: rgba(255, 255, 255, 0.55);
+  --color-border: rgba(255, 255, 255, 0.10);
+  /* Primary stays navy-family but darker on light bg, lighter on dark bg.
+   * On dark mode the brand "primary action" surface becomes white so CTAs pop. */
+  --color-primary: #FFFFFF;
+  --color-primary-light: rgba(255, 255, 255, 0.92);
+  --color-primary-dark: rgba(255, 255, 255, 0.80);
+  --color-primary-foreground: #16143A;
+  --color-accent: #E0FF4F;
+  --color-accent-light: #F0FF99;
+  --color-tertiary: #B79EFF;
+  --color-tertiary-light: #DCCFFF;
   --color-success: #34D399;
   --color-warning: #FBBF24;
   --color-error: #F87171;
-  --color-footer-bg: #060610;
+  --color-footer-bg: #050313;
+}
+
+/* Keep .dark class compatible with system dark-mode preference for users
+ * who haven't explicitly picked B or C. Mirrors the [data-ot="C"] block. */
+.dark {
+  --color-bg: #0A0826;
+  --color-surface: #16143A;
+  --color-surface-alt: #221E55;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: rgba(255, 255, 255, 0.78);
+  --color-text-tertiary: rgba(255, 255, 255, 0.55);
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-primary: #FFFFFF;
+  --color-primary-light: rgba(255, 255, 255, 0.92);
+  --color-primary-dark: rgba(255, 255, 255, 0.80);
+  --color-primary-foreground: #16143A;
+  --color-footer-bg: #050313;
 }
 
 @layer base {
@@ -221,15 +252,10 @@
   animation: slide-in-right 0.5s ease-out both;
 }
 
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-  will-change: transform;
-}
-
+.animate-float,
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2.5s ease-in-out infinite;
+  /* Static — looping motion disabled for SOOB */
+  animation: none;
 }
 
 /* Stagger delays */
@@ -255,29 +281,203 @@
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-/* Gradient mesh hero background */
-.hero-gradient {
-  background:
-    radial-gradient(ellipse 80% 60% at 10% 20%, #FFD568 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 90% 30%, #E37417 0%, transparent 55%),
-    radial-gradient(ellipse 60% 70% at 50% 80%, #EEAE4E 0%, transparent 50%),
-    radial-gradient(ellipse 50% 40% at 30% 50%, #F5C255 0%, transparent 50%),
-    linear-gradient(135deg, #FFD568, #E37417);
-  background-size: 200% 200%, 200% 200%, 100% 100%, 100% 100%, 100% 100%;
-  animation: gradient-shift 12s ease infinite;
-  will-change: background-position;
+/* ============================================================
+ * SOOB SITE THEMES (B / C)  — applied via <html data-ot="B|C">
+ * ------------------------------------------------------------
+ * B = Light: lavender hero surfaces + lime accents (default).
+ * C = Dark : navy field + white ink.
+ *
+ * The same --ob-* tokens drive the onboarding overlay AND the
+ * page hero sections (HomePage hero, AboutPage hero, etc).
+ * Tailwind --color-* tokens (defined above + in [data-ot="C"])
+ * drive every other surface — cards, navbar, footer, buttons.
+ * ============================================================ */
+
+:root {
+  /* ---------------------------------------------------------------
+   * THEME B — "Lavender Monochrome" (default site theme)
+   * Lavender field, deeper-purple wave (same family — calmer than lime).
+   * CTAs are a step darker than the bg so they read as actionable
+   * without breaking the monochrome palette.
+   * --------------------------------------------------------------- */
+  --ob-bg: #B79EFF;
+  --ob-bg-image: url("/patterns/wave-purple-medium.png");
+  --ob-bg-image-opacity: 0.55;
+  --ob-bg-image-size: 720px;
+
+  --ob-text: #16143A;
+  --ob-text-soft: rgba(22, 20, 58, 0.72);
+  --ob-text-faint: rgba(22, 20, 58, 0.50);
+
+  --ob-card: #FFFFFF;
+  --ob-card-border: rgba(22, 20, 58, 0.10);
+  --ob-card-shadow: 0 1px 2px rgba(22, 20, 58, 0.06), 0 12px 32px -14px rgba(22, 20, 58, 0.30);
+  --ob-card-text: #16143A;
+  --ob-card-text-soft: rgba(22, 20, 58, 0.65);
+
+  --ob-chip: rgba(255, 255, 255, 0.30);
+  --ob-chip-hover: rgba(255, 255, 255, 0.50);
+  --ob-chip-text: #16143A;
+  --ob-chip-border: rgba(22, 20, 58, 0.18);
+
+  --ob-icon: #16143A;
+  --ob-icon-text: #FFFFFF;
+
+  /* CTA — slightly darker purple than the bg so it reads as a button */
+  --ob-cta: #9B7DEE;
+  --ob-cta-text: #16143A;
+  --ob-cta-hover: #8772E0;
+  --ob-cta-shadow: 0 6px 20px -6px rgba(22, 20, 58, 0.35);
+
+  --ob-bot-bubble: #FFFFFF;
+  --ob-user-bubble: #9B7DEE;
 }
 
-.hero-gradient-lion {
-  background:
-    radial-gradient(ellipse 80% 60% at 10% 20%, #FFD568 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 90% 30%, #E37417 0%, transparent 55%),
-    radial-gradient(ellipse 60% 70% at 50% 80%, #EEAE4E 0%, transparent 50%),
-    radial-gradient(ellipse 50% 40% at 30% 50%, #F5C255 0%, transparent 50%),
-    linear-gradient(135deg, #FFD568, #E37417);
-  background-size: 200% 200%, 200% 200%, 100% 100%, 100% 100%, 100% 100%;
-  animation: gradient-shift 12s ease infinite;
+[data-ot="C"] {
+  /* THEME C — "Deep Night" (dark site theme)
+   * Dark hero surfaces match the dark page surfaces — uniform feel.
+   * CTA is white + navy text so it pops against the navy field. */
+  --ob-bg: #0A0826;
+  --ob-bg-image: url("/patterns/wave-lavender.png");
+  --ob-bg-image-opacity: 0.18;
+  --ob-bg-image-size: 600px;
+
+  --ob-text: #FFFFFF;
+  --ob-text-soft: rgba(255, 255, 255, 0.80);
+  --ob-text-faint: rgba(255, 255, 255, 0.55);
+
+  --ob-card: #16143A;
+  --ob-card-border: rgba(255, 255, 255, 0.10);
+  --ob-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.30), 0 12px 32px -14px rgba(0, 0, 0, 0.50);
+  --ob-card-text: #FFFFFF;
+  --ob-card-text-soft: rgba(255, 255, 255, 0.72);
+
+  --ob-chip: rgba(255, 255, 255, 0.08);
+  --ob-chip-hover: rgba(255, 255, 255, 0.14);
+  --ob-chip-text: #FFFFFF;
+  --ob-chip-border: rgba(255, 255, 255, 0.18);
+
+  --ob-icon: #FFFFFF;
+  --ob-icon-text: #16143A;
+
+  --ob-cta: #E0FF4F;
+  --ob-cta-text: #16143A;
+  --ob-cta-hover: #ECFF7A;
+  --ob-cta-shadow: 0 6px 20px -6px rgba(224, 255, 79, 0.35);
+
+  --ob-bot-bubble: #16143A;
+  --ob-user-bubble: #221E55;
 }
+
+/* ============================================================
+ * SOOB BRAND SURFACES — wave as a SINGLE positioned element
+ * ------------------------------------------------------------
+ * Like the SOOB ad posters: the wave is one big shape covering
+ * ~60% of the surface, not a tiled wallpaper. This stays
+ * legible at any viewport size — no repeating-pattern fatigue.
+ * ============================================================ */
+
+/* Onboarding overlay — bold full-screen ad-poster moment.
+ * One huge wave aligned to the right (mirrors the SOOB ad layout).
+ *
+ * IMPORTANT: do NOT set `position` here. The Onboarding components apply
+ * `fixed inset-0 z-[300]` via Tailwind inline classes — overriding that
+ * with `position: relative` here breaks the fullscreen overlay (it stops
+ * being fullscreen but still blocks interaction → invisible-but-stuck UI).
+ *
+ * `fixed` already establishes a containing block for the `::before`
+ * absolute positioning below, so we don't need our own position rule. */
+.hero-gradient,
+.hero-gradient-lion {
+  background-color: var(--ob-bg, #B79EFF);
+}
+.hero-gradient::before,
+.hero-gradient-lion::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--ob-bg-image);
+  background-repeat: no-repeat;
+  background-size: 140% auto;
+  background-position: 80% 50%;
+  opacity: var(--ob-bg-image-opacity, 0.22);
+  pointer-events: none;
+  z-index: 0;
+}
+[data-ot="C"] .hero-gradient,
+[data-ot="C"] .hero-gradient-lion {
+  background-color: var(--ob-bg, #0A0826);
+}
+@media (max-width: 768px) {
+  .hero-gradient::before,
+  .hero-gradient-lion::before {
+    background-size: 220% auto;
+    background-position: 70% 60%;
+  }
+}
+/* Children are lifted above the wave overlay using the Tailwind utility
+ * classes already in the JSX (`relative z-10` is set on every header/content
+ * div inside the onboarding shells). Don't force a global `> *` rule here —
+ * it would override `absolute inset-0` on the WaveLinesOnly SVG and break
+ * its full-coverage layout. */
+
+/* Page hero — slim band at the top of /plans, /advisor, /about.
+ * Single wave anchored to the right edge as a corner accent.
+ * Calm: 0.18 opacity in B, 0.10 in C. Never tiles. */
+.page-hero {
+  position: relative;
+  background-color: var(--ob-bg);
+  overflow: hidden;
+}
+.page-hero::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -8%;
+  width: 60%;
+  height: 200%;
+  transform: translateY(-50%);
+  background-image: var(--ob-bg-image);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center right;
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-ot="C"] .page-hero::before {
+  opacity: 0.10;
+}
+@media (max-width: 768px) {
+  .page-hero::before {
+    width: 80%;
+    right: -20%;
+    opacity: 0.12;
+  }
+  [data-ot="C"] .page-hero::before {
+    opacity: 0.08;
+  }
+}
+.page-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Onboarding card elevation utility — applies the themed shadow.
+ * Use alongside bg-[var(--ob-card)] to get a card that always pops
+ * against the themed background. */
+.ob-card-elev {
+  box-shadow: var(--ob-card-shadow);
+}
+.ob-cta-elev {
+  box-shadow: var(--ob-cta-shadow);
+}
+
+/* Theme-conditional visibility — show in B (light) or C (dark) only. */
+.theme-light-only { display: block; }
+.theme-dark-only  { display: none; }
+[data-ot="C"] .theme-light-only { display: none; }
+[data-ot="C"] .theme-dark-only  { display: block; }
 
 /* Noise/grain overlay for texture — hidden on mobile for performance */
 .grain::after {
@@ -308,21 +508,21 @@
 
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px -8px rgba(227, 116, 23, 0.12), 0 4px 16px -4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 40px -8px rgba(22, 20, 58, 0.18), 0 4px 16px -4px rgba(183, 158, 255, 0.12);
 }
 
 .dark .card-hover:hover {
-  box-shadow: 0 12px 40px -8px rgba(245, 148, 46, 0.15), 0 4px 16px -4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 40px -8px rgba(183, 158, 255, 0.25), 0 4px 16px -4px rgba(0, 0, 0, 0.4);
 }
 
 /* Decorative dot grid pattern */
 .dot-pattern {
-  background-image: radial-gradient(circle, rgba(227, 116, 23, 0.08) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(22, 20, 58, 0.10) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
 .dark .dot-pattern {
-  background-image: radial-gradient(circle, rgba(245, 148, 46, 0.06) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(183, 158, 255, 0.10) 1px, transparent 1px);
 }
 
 /* Gradient border (for cards on hover) */
@@ -359,20 +559,17 @@
 
 /* Glow effect for CTAs */
 .glow-primary {
-  box-shadow: 0 0 20px rgba(227, 116, 23, 0.3), 0 0 60px rgba(227, 116, 23, 0.1);
+  box-shadow: 0 0 20px rgba(224, 255, 79, 0.45), 0 0 60px rgba(183, 158, 255, 0.18);
 }
 
 .dark .glow-primary {
-  box-shadow: 0 0 20px rgba(245, 148, 46, 0.25), 0 0 60px rgba(245, 148, 46, 0.08);
+  box-shadow: 0 0 20px rgba(224, 255, 79, 0.35), 0 0 60px rgba(183, 158, 255, 0.20);
 }
 
-/* Decorative blobs */
-.blob {
-  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-}
-
+/* Decorative background blobs — hidden in SOOB rebrand */
+.blob,
 .blob-alt {
-  border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
+  display: none !important;
 }
 
 /* Floating bubble animation — GPU-accelerated, no scale/opacity changes to avoid repaints */
@@ -387,4 +584,16 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* SOOB — looping motion is disabled brand-wide. Reveal animations (fade-in,
+   fade-up, scale-in, slide-*) play once and stop, those stay. */
+.animate-marquee,
+.animate-marquee-rtl,
+.animate-spin,
+.animate-bounce,
+.animate-pulse,
+.animate-ping,
+.animate-pulse-glow {
+  animation: none !important;
 }

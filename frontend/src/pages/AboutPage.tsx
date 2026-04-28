@@ -1,9 +1,9 @@
 /**
- * About page ("/about") — Simba's mission, vision, values, and carrier list.
+ * About page ("/about") — SOOB's mission, vision, values, and carrier list.
  *
  * Static marketing page with:
  *  - Mission, vision, and values sections
- *  - "How Simba Works" explainer (same as homepage)
+ *  - "How SOOB Works" explainer (same as homepage)
  *  - Grid of all 8 carrier logos
  *  - CTA to start browsing plans
  */
@@ -26,27 +26,24 @@ export default function AboutPage() {
 
   return (
     <div className="safe-pb flex flex-col">
-      {/* Hero */}
-      <div className="relative overflow-hidden flex items-center justify-center pt-16 pb-10 md:pt-24 md:pb-14 hero-gradient grain">
-        <WaveLines />
-        <div className="absolute top-0 end-0 w-80 h-80 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob animate-float" />
-        <div className="absolute bottom-0 start-0 w-52 h-52 rounded-full bg-white/[0.04] translate-y-1/3 -translate-x-1/3 blob-alt" style={{ animationDelay: '2s' }} />
+      {/* Hero — compact, content-driven height */}
+      <div className="relative overflow-hidden flex items-center justify-center pt-8 pb-8 md:pt-12 md:pb-12 page-hero border-b border-border">
         <div className="relative z-[2] max-w-3xl w-full mx-auto px-4 sm:px-6 md:px-8 text-center">
-          <h1 className="font-heading font-normal text-3xl md:text-5xl text-black leading-tight">
+          <h1 className="font-heading font-bold text-2xl md:text-3xl text-foreground leading-tight tracking-tight">
             {t('about.title')}
           </h1>
-          <p className="text-black/60 mt-4 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+          <p className="text-foreground/65 mt-2 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
             {t('about.subtitle')}
           </p>
 
-          <div className="flex items-center justify-center gap-8 md:gap-12 mt-10">
+          <div className="flex items-center justify-center gap-6 md:gap-10 mt-5">
             {stats.map((stat, i) => {
               const Icon = stat.icon;
               return (
                 <div key={i} className="text-center">
-                  <Icon size={20} className="text-black/70 mx-auto mb-1.5" />
-                  <p className="font-heading font-bold text-2xl md:text-3xl text-black">{stat.value}</p>
-                  <p className="text-xs text-black/50 font-medium mt-0.5">{stat.label}</p>
+                  <Icon size={18} className="text-foreground/70 mx-auto mb-1" />
+                  <p className="font-heading font-bold text-xl md:text-2xl text-foreground leading-none">{stat.value}</p>
+                  <p className="text-[10px] md:text-xs text-foreground/50 font-medium mt-0.5">{stat.label}</p>
                 </div>
               );
             })}
@@ -114,25 +111,25 @@ export default function AboutPage() {
 
         {/* CTA */}
         <section className="text-center">
-          <div className="relative overflow-hidden rounded-xl p-8 md:p-12 hero-gradient grain">
+          <div className="relative overflow-hidden rounded-xl p-8 md:p-12 page-hero grain">
             <WaveLines />
             <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
             <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-white/[0.04] translate-y-1/3 -translate-x-1/3 blob-alt" />
             <div className="relative z-[2]">
-              <h3 className="font-heading font-bold text-2xl md:text-3xl text-black">
+              <h3 className="font-heading font-bold text-2xl md:text-3xl text-foreground">
                 {t('about.ctaTitle')}
               </h3>
-              <p className="text-black/50 mt-2 text-sm max-w-md mx-auto">
+              <p className="text-foreground/50 mt-2 text-sm max-w-md mx-auto">
                 {t('about.ctaSubtitle')}
               </p>
               <div className="flex items-center justify-center gap-3 mt-6">
-                <Button asChild className="bg-white text-primary hover:bg-white/95 font-bold shadow-md">
+                <Button asChild className="bg-card text-foreground hover:bg-card/95 font-bold shadow-md">
                   <Link to="/advisor">
                     {t('finderCta.cta')}
                     <ArrowRight size={16} className="rtl:rotate-180" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="bg-white/10 text-white border-white/20 hover:bg-white/20 font-bold">
+                <Button asChild variant="outline" className="bg-card/15 text-[var(--ob-text)] border-[var(--ob-chip-border)] hover:bg-card/25 font-bold">
                   <Link to="/plans">{t('nav.plans')}</Link>
                 </Button>
               </div>

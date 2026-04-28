@@ -1,11 +1,11 @@
 {
-  "name": "Simba",
-  "short_name": "Simba",
-  "description": "Find your perfect plan in seconds",
+  "name": "SOOB",
+  "short_name": "SOOB",
+  "description": "Find your perfect Saudi telecom plan in seconds",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FAFAF9",
-  "theme_color": "#1FA9FF",
+  "background_color": "#FAFAFA",
+  "theme_color": "#16143A",
   "icons": [
     {
       "src": "/icon-192.png",

@@ -12,7 +12,7 @@
  *       moving   → Iqama/Absher/buy-online steps → offer visitor plans
  *       visiting → carrier links (Salam/Mobily/Zain)
  *
- * Persists answers to localStorage['simba-onboarding-answers'] just like
+ * Persists answers to localStorage['soob-onboarding-answers'] just like
  * the classic flow.
  */
 import { useState, useEffect, useRef } from 'react';
@@ -75,17 +75,17 @@ const MOBILY_URL = 'https://www.mobily.com.sa/wps/portal/web/personal/services/d
 const ZAIN_URL = 'https://sa.zain.com/en/mobile/visitor/visitor-40';
 
 // Pre-language welcome (English, user hasn't picked a language yet)
-const PRE_LANG_WELCOME = "Welcome to Simba 👋 Please select your language to get started.";
+const PRE_LANG_WELCOME = "Welcome to SOOB 👋 Please select your language to get started.";
 
 // Combined greeting + first question, localized. Delivered as one bubble after
 // the user picks their language so we don't send two bot messages in a row.
 const GREETING_WITH_ABSHER: Record<Lang, (absherTitle: string) => string> = {
-  en: (q) => `I'm Simba, here to help you in the telecom world. But let me understand you first.\n\n${q}`,
+  en: (q) => `I'm SOOB, here to help you in the telecom world. But let me understand you first.\n\n${q}`,
   ar: (q) => `أنا سيمبا، موجود هنا عشان أساعدك في عالم الاتصالات. بس خلّني أفهمك أول.\n\n${q}`,
-  ur: (q) => `میں Simba ہوں — سعودی عرب کے ٹیلی کام کی دنیا میں آپ کا رہنما۔ صحیح مشورہ دینے کے لیے پہلے آپ کی صورتحال سمجھ لوں۔\n\n${q}`,
-  hi: (q) => `मैं Simba हूँ — सऊदी अरब की टेलीकॉम दुनिया में आपका गाइड। सही रास्ता बताने के लिए पहले आपकी स्थिति समझ लूँ।\n\n${q}`,
-  bn: (q) => `আমি Simba — সৌদি আরবের টেলিকম দুনিয়ায় আপনার গাইড। সঠিক পথ দেখাতে পারলে ভালো, তাই প্রথমে আপনার অবস্থাটা বুঝে নিই।\n\n${q}`,
-  tl: (q) => `Ako si Simba — gabay mo sa mundo ng telecom sa Saudi Arabia. Para maigabay kita nang tama, maintindihan ko muna ang sitwasyon mo.\n\n${q}`,
+  ur: (q) => `میں SOOB ہوں — سعودی عرب کے ٹیلی کام کی دنیا میں آپ کا رہنما۔ صحیح مشورہ دینے کے لیے پہلے آپ کی صورتحال سمجھ لوں۔\n\n${q}`,
+  hi: (q) => `मैं SOOB हूँ — सऊदी अरब की टेलीकॉम दुनिया में आपका गाइड। सही रास्ता बताने के लिए पहले आपकी स्थिति समझ लूँ।\n\n${q}`,
+  bn: (q) => `আমি SOOB — সৌদি আরবের টেলিকম দুনিয়ায় আপনার গাইড। সঠিক পথ দেখাতে পারলে ভালো, তাই প্রথমে আপনার অবস্থাটা বুঝে নিই।\n\n${q}`,
+  tl: (q) => `Ako si SOOB — gabay mo sa mundo ng telecom sa Saudi Arabia. Para maigabay kita nang tama, maintindihan ko muna ang sitwasyon mo.\n\n${q}`,
 };
 
 /** Strips markdown-style bold and renders newlines. Kept minimal — no raw HTML. */
@@ -108,7 +108,7 @@ export default function OnboardingChat() {
   const { lang, setLang } = useLang();
   const { markOnboarded } = useAuth();
   const navigate = useNavigate();
-  const [visible, setVisible] = useState(() => !localStorage.getItem('simba-onboarded'));
+  const [visible, setVisible] = useState(() => !localStorage.getItem('soob-onboarded'));
   const [messages, setMessages] = useState<Msg[]>([]);
   const [replies, setReplies] = useState<Reply[]>([]);
   const [typing, setTyping] = useState(false);
@@ -135,12 +135,12 @@ export default function OnboardingChat() {
   const complete = (target: '/' | '/advisor' = '/advisor', extra: Partial<OnboardingAnswers> = {}) => {
     const finalAnswers = { ...answers, ...extra };
     completedRef.current = true;
-    localStorage.setItem('simba-onboarded', 'true');
-    localStorage.setItem('simba-onboarding-answers', JSON.stringify(finalAnswers));
+    localStorage.setItem('soob-onboarded', 'true');
+    localStorage.setItem('soob-onboarding-answers', JSON.stringify(finalAnswers));
     markOnboarded();
     trackCompleted(target, finalAnswers, 'chat', startedAtRef.current);
     setVisible(false);
-    const variant = localStorage.getItem('simba-onboarding-variant');
+    const variant = localStorage.getItem('soob-onboarding-variant');
     const autoGuide = target === '/advisor' && (variant === 'B' || variant === 'D');
     navigate(target, { state: { fromOnboarding: true, autoGuide } });
   };
@@ -376,23 +376,23 @@ export default function OnboardingChat() {
       <div className="relative z-10 px-4 pt-3 sm:px-5 sm:pt-5 flex items-center justify-between shrink-0">
         <button
           onClick={goBack}
-          className="text-[#213E53]/70 hover:text-[#213E53] hover:bg-black/5 p-2 -ml-2 rounded-lg transition-colors"
+          className="text-[var(--ob-text-soft)] hover:text-[var(--ob-text)] hover:bg-[var(--ob-chip-hover)] p-2 -ml-2 rounded-lg transition-colors"
           aria-label="Close"
         >
           <ArrowLeft size={20} />
         </button>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full overflow-hidden shadow-sm shrink-0">
-            <img src="/icon-192.png" alt="Simba" className="w-full h-full object-cover scale-[1.05]" decoding="async" width={32} height={32} />
+            <img src="/icon-192.png" alt="SOOB" className="w-full h-full object-cover scale-[1.05]" decoding="async" width={32} height={32} />
           </div>
           <div className="leading-tight">
-            <div className="font-heading font-semibold text-[14px] text-[#213E53]">Simba</div>
-            <div className="text-[10px] text-[#213E53]/60 font-mono tracking-wider uppercase">
+            <div className="font-heading font-semibold text-[14px] text-[var(--ob-text)]">SOOB</div>
+            <div className="text-[10px] text-[var(--ob-text-soft)] font-mono tracking-wider uppercase">
               {typing ? '…' : 'online'}
             </div>
           </div>
         </div>
-        {/* spacer to keep Simba profile centered between the back arrow and the right edge */}
+        {/* spacer to keep SOOB profile centered between the back arrow and the right edge */}
         <span className="w-9" aria-hidden="true" />
       </div>
 
@@ -421,7 +421,7 @@ export default function OnboardingChat() {
               <button
                 key={i}
                 onClick={r.onClick}
-                className="rounded-full bg-[#FFF0D0] hover:bg-[#FFE4A0] active:bg-[#FFD568] text-[#213E53] border border-[#213E53]/10 hover:border-[#213E53]/25 px-4 py-2 text-[13px] sm:text-[14px] font-medium shadow-sm hover:shadow-md transition-all"
+                className="rounded-full bg-[var(--ob-card)] hover:bg-[var(--ob-chip-hover)] active:bg-[var(--ob-chip-hover)] text-[var(--ob-card-text)] border border-[var(--ob-card-border)] hover:border-[var(--ob-chip-border)] px-4 py-2 text-[13px] sm:text-[14px] font-medium ob-card-elev transition-all"
               >
                 {r.label}
               </button>
@@ -431,16 +431,16 @@ export default function OnboardingChat() {
       )}
 
       {/* Visual-only input row so this feels like a chat */}
-      <div className="relative z-10 shrink-0 border-t border-[#213E53]/10 bg-white/60 backdrop-blur-sm px-3 sm:px-5 py-2.5">
+      <div className="relative z-10 shrink-0 border-t border-[var(--ob-chip-border)] bg-[var(--ob-card)]/95 backdrop-blur-sm px-3 sm:px-5 py-2.5">
         <div className="max-w-lg w-full mx-auto flex items-center gap-2">
           <input
             disabled
             placeholder="…"
-            className="flex-1 bg-transparent text-[13px] sm:text-[14px] text-[#213E53] placeholder-[#213E53]/50 outline-none py-2 px-2"
+            className="flex-1 bg-transparent text-[13px] sm:text-[14px] text-[var(--ob-card-text)] placeholder-[var(--ob-card-text-soft)] outline-none py-2 px-2"
           />
           <button
             disabled
-            className="w-9 h-9 rounded-full bg-[#FFF0D0] text-[#213E53]/50 flex items-center justify-center opacity-50"
+            className="w-9 h-9 rounded-full bg-[var(--ob-cta)] text-[var(--ob-text-faint)] flex items-center justify-center opacity-50"
             aria-label="Send"
           >
             <Send size={16} />
@@ -456,10 +456,10 @@ function MessageBubble({ role, text, isRtl }: { role: 'bot' | 'user'; text: stri
   return (
     <div className={`flex ${isBot ? 'justify-start' : 'justify-end'}`}>
       <div
-        className={`max-w-[82%] px-3.5 py-2.5 text-[14px] sm:text-[15px] leading-relaxed shadow-sm ${
+        className={`max-w-[82%] px-3.5 py-2.5 text-[14px] sm:text-[15px] leading-relaxed ob-card-elev ${
           isBot
-            ? `bg-white/95 text-[#213E53] border border-[#213E53]/10 ${isRtl ? 'rounded-2xl rounded-tr-md' : 'rounded-2xl rounded-tl-md'}`
-            : `bg-[#FFF0D0] text-[#213E53] font-medium border border-[#213E53]/10 ${isRtl ? 'rounded-2xl rounded-tl-md' : 'rounded-2xl rounded-tr-md'}`
+            ? `bg-[var(--ob-bot-bubble)] text-[var(--ob-card-text)] border border-[var(--ob-card-border)] ${isRtl ? 'rounded-2xl rounded-tr-md' : 'rounded-2xl rounded-tl-md'}`
+            : `bg-[var(--ob-icon)] text-[var(--ob-icon-text)] font-medium border border-[var(--ob-card-border)] ${isRtl ? 'rounded-2xl rounded-tl-md' : 'rounded-2xl rounded-tr-md'}`
         }`}
       >
         {renderBotText(text)}
@@ -525,8 +525,8 @@ function PlansCarousel({
           <div key={carrier.key} className="flex flex-col gap-2">
             <div className="flex items-center gap-2 px-3 sm:px-5">
               <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: carrier.color }} />
-              <span className="font-heading font-semibold text-[14px] text-[#213E53]">{carrier.name}</span>
-              <span className="text-[11px] text-[#213E53]/50">· {carrier.plans.length} {t.plansWord}</span>
+              <span className="font-heading font-semibold text-[14px] text-[var(--ob-text)]">{carrier.name}</span>
+              <span className="text-[11px] text-[var(--ob-text-faint)]">· {carrier.plans.length} {t.plansWord}</span>
             </div>
             <div
               className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth px-3 sm:px-5 pb-2 [&::-webkit-scrollbar]:hidden"
@@ -542,7 +542,7 @@ function PlansCarousel({
                   ...(p.countries !== undefined ? [[t.visitingCountries, String(p.countries)] as [string, string]] : []),
                 ];
                 return (
-                  <div key={p.name} className="shrink-0 snap-start w-[76vw] max-w-[260px] sm:w-[240px] rounded-2xl bg-white/95 border border-[#213E53]/10 shadow-sm overflow-hidden">
+                  <div key={p.name} className="shrink-0 snap-start w-[76vw] max-w-[260px] sm:w-[240px] rounded-2xl bg-[var(--ob-card)] border border-[var(--ob-card-border)] ob-card-elev overflow-hidden">
                     <div className="h-1 w-full" style={{ backgroundColor: carrier.color }} />
                     <div className="p-3 sm:p-3.5 flex flex-col">
                       <div className="flex items-start justify-between gap-2 mb-2">
@@ -553,32 +553,32 @@ function PlansCarousel({
                           >
                             {t.visitingPrepaid}
                           </div>
-                          <div className="font-heading font-bold text-[16px] text-[#213E53] leading-tight">
+                          <div className="font-heading font-bold text-[16px] text-[var(--ob-card-text)] leading-tight">
                             {p.name}
                           </div>
                         </div>
                       </div>
                       <div className={`flex items-baseline gap-1.5 mb-2 ${isRtl ? 'flex-row-reverse justify-end' : ''}`}>
-                        <div className="font-heading font-bold text-[20px] text-[#C45F0A] leading-none">{p.price}</div>
-                        <div className="text-[11px] font-semibold text-[#C45F0A]">SAR</div>
-                        <div className="text-[10px] text-[#213E53]/55 ml-1">/ {t.visitingDays(p.validityDays)}</div>
+                        <div className="font-heading font-bold text-[20px] text-[var(--ob-card-text)] leading-none">{p.price}</div>
+                        <div className="text-[11px] font-semibold text-[var(--ob-card-text)]">SAR</div>
+                        <div className="text-[10px] text-[var(--ob-card-text-soft)] ml-1">/ {t.visitingDays(p.validityDays)}</div>
                       </div>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 py-2 border-y border-[#213E53]/10">
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 py-2 border-y border-[var(--ob-card-border)]">
                         {rows.map(([label, value]) => (
                           <div key={label} className="min-w-0">
-                            <div className="text-[9.5px] uppercase tracking-wider text-[#213E53]/55 mb-0.5 truncate">{label}</div>
-                            <div className="text-[12px] font-semibold text-[#213E53] truncate">{value}</div>
+                            <div className="text-[9.5px] uppercase tracking-wider text-[var(--ob-card-text-soft)] mb-0.5 truncate">{label}</div>
+                            <div className="text-[12px] font-semibold text-[var(--ob-card-text)] truncate">{value}</div>
                           </div>
                         ))}
                       </div>
                       {p.note && (
-                        <div className="mt-1.5 text-[10.5px] text-[#C45F0A] font-medium leading-snug">★ {p.note}</div>
+                        <div className="mt-1.5 text-[10.5px] text-[var(--ob-card-text-soft)] font-medium leading-snug">★ {p.note}</div>
                       )}
                       <div className="mt-2 flex items-center justify-between gap-2">
-                        <div className="text-[9.5px] text-[#213E53]/55">{t.visitingVat}</div>
+                        <div className="text-[9.5px] text-[var(--ob-card-text-soft)]">{t.visitingVat}</div>
                         <button
                           onClick={() => onOpenUrl(carrier, p)}
-                          className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#C45F0A] hover:text-[#213E53] transition-colors"
+                          className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[var(--ob-card-text)] hover:text-[var(--ob-card-text-soft)] transition-colors"
                         >
                           {t.visitingGet}
                         </button>
@@ -598,15 +598,15 @@ function PlansCarousel({
 function TypingBubble() {
   return (
     <div className="flex justify-start">
-      <div className="bg-white/95 border border-[#213E53]/10 rounded-2xl rounded-tl-md px-4 py-3 shadow-sm">
+      <div className="bg-[var(--ob-bot-bubble)] border border-[var(--ob-card-border)] rounded-2xl rounded-tl-md px-4 py-3 ob-card-elev">
         <div className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#213E53]/50 animate-[pulse_1.2s_ease-in-out_infinite]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--ob-card-text-soft)] animate-[pulse_1.2s_ease-in-out_infinite]" />
           <span
-            className="w-1.5 h-1.5 rounded-full bg-[#213E53]/50 animate-[pulse_1.2s_ease-in-out_infinite]"
+            className="w-1.5 h-1.5 rounded-full bg-[var(--ob-card-text-soft)] animate-[pulse_1.2s_ease-in-out_infinite]"
             style={{ animationDelay: '0.2s' }}
           />
           <span
-            className="w-1.5 h-1.5 rounded-full bg-[#213E53]/50 animate-[pulse_1.2s_ease-in-out_infinite]"
+            className="w-1.5 h-1.5 rounded-full bg-[var(--ob-card-text-soft)] animate-[pulse_1.2s_ease-in-out_infinite]"
             style={{ animationDelay: '0.4s' }}
           />
         </div>

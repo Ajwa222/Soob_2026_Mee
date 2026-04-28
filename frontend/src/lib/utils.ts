@@ -11,7 +11,7 @@ import { twMerge } from "tailwind-merge"
  * Combines class names using clsx, then resolves Tailwind conflicts via twMerge.
  * Used throughout the UI wherever conditional or merged class strings are needed.
  *
- * @example cn("px-4 py-2", isActive && "bg-primary text-white")
+ * @example cn("px-4 py-2", isActive && "bg-[var(--ob-cta)] text-[var(--ob-cta-text)]")
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

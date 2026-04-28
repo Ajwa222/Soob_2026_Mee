@@ -12,7 +12,7 @@ import { getFirebaseDb } from '../lib/firebase';
 import { useAuth } from './AuthContext';
 
 // localStorage key for bookmarks queued before login
-const PENDING_KEY = 'simba-pending-bookmark';
+const PENDING_KEY = 'soob-pending-bookmark';
 
 interface BookmarkContextValue {
   bookmarkedIds: number[];                         // Plan IDs the user has bookmarked

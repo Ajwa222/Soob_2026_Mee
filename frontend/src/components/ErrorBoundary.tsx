@@ -33,7 +33,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      const isAr = localStorage.getItem('simba-lang') === 'ar';
+      const isAr = localStorage.getItem('soob-lang') === 'ar';
       return (
         <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg,#fff)] px-6" dir={isAr ? 'rtl' : 'ltr'}>
           <div className="text-center max-w-sm">
@@ -48,8 +48,8 @@ export default class ErrorBoundary extends Component<Props, State> {
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-primary text-white
-                hover:bg-primary-dark transition-colors"
+              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-[var(--ob-cta)] text-[var(--ob-cta-text)]
+                hover:bg-[var(--ob-cta-hover)] shadow-sm transition-colors"
             >
               {isAr ? 'إعادة التحميل' : 'Reload'}
             </button>

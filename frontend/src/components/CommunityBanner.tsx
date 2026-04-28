@@ -1,5 +1,5 @@
 /**
- * Community banner — invites users to join the Simba community chat.
+ * Community banner — invites users to join the SOOB community chat.
  *
  * Arabic users are directed to WhatsApp, English users see a modal with
  * both Telegram and WhatsApp options. Displayed on the HomePage.
@@ -29,7 +29,7 @@ export default function CommunityBanner() {
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-2xl p-7 md:p-10 hero-gradient grain">
+      <div className="relative overflow-hidden rounded-2xl p-7 md:p-10 page-hero grain">
         {/* Decorative blobs */}
         <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.05] -translate-y-1/3 translate-x-1/3 blob" />
         <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-accent/[0.08] translate-y-1/3 -translate-x-1/3 blob-alt" />
@@ -37,14 +37,14 @@ export default function CommunityBanner() {
 
         <div className="relative z-[2] flex flex-col md:flex-row md:items-center md:justify-between gap-5">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FFF0D0] text-black/70 text-[11px] font-semibold tracking-wide uppercase mb-3">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground text-[11px] font-semibold tracking-wide uppercase mb-3">
               <Users size={11} />
               {t('community.badge')}
             </div>
-            <h2 className="font-heading font-bold text-xl md:text-2xl text-black leading-tight">
+            <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground leading-tight">
               {t('community.title')}
             </h2>
-            <p className="mt-1.5 text-black/70 text-sm max-w-sm leading-relaxed">
+            <p className="mt-1.5 text-foreground/70 text-sm max-w-sm leading-relaxed">
               {t('community.subtitle')}
             </p>
           </div>
@@ -52,7 +52,7 @@ export default function CommunityBanner() {
           <Button
             onClick={handleJoin}
             variant="secondary"
-            className="bg-white text-[#213E53] hover:bg-white/90 font-bold shrink-0 self-start md:self-center h-12 px-6 rounded-xl shadow-lg shadow-black/10 hover:shadow-xl transition-all duration-300"
+            className="bg-card text-foreground hover:bg-card/90 font-bold shrink-0 self-start md:self-center h-12 px-6 rounded-xl shadow-lg shadow-black/10 hover:shadow-xl transition-all duration-300"
           >
             {t('community.join')}
             <ArrowRight size={17} className="rtl:rotate-180" />
