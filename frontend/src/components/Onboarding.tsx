@@ -996,7 +996,7 @@ export default function Onboarding() {
                 ? (lang === 'ar' ? 'نحتاج تفاصيلك قبل إظهار الفروع.' : 'We need your details before showing stores.')
                 : storesStep === 'otp'
                   ? <>{lang === 'ar' ? 'أرسلنا رمزاً إلى ' : 'We sent a 4-digit code to '}<span className="font-mono">{storeContact}</span></>
-                  : (lang === 'ar' ? 'اختر فرعاً قريباً منك لشراء شريحة مؤقتة.' : 'Pick a nearby store to buy a visitor SIM.')}
+                  : (lang === 'ar' ? 'اختر فرعاً قريباً منك لشراء شريحة مؤقتة.' : 'Pick a nearby store to buy a temporary SIM.')}
             </p>
           </div>
         </div>
@@ -1111,6 +1111,7 @@ export default function Onboarding() {
 
         {/* Map */}
         <div className="relative z-10 w-full max-w-md mx-auto flex-1 overflow-y-auto px-5 sm:px-6 pb-5 sm:pb-6 mt-3">
+
           {/* Map preview — small, realistic colors (like Apple Maps / Uber preview cards) */}
           <div className="rounded-xl overflow-hidden border border-[var(--ob-card-border)] shadow-sm">
             <div
@@ -1207,26 +1208,27 @@ export default function Onboarding() {
           </div>
 
           {picked && (
-            <div className="mt-4 rounded-xl border-2 px-4 py-3 flex items-center gap-3" style={{ background: 'rgba(254, 113, 81, 0.10)', borderColor: '#FE7151' }}>
-              <Phone size={16} style={{ color: '#16143A' }} />
-              <div className="flex-1 min-w-0">
-                <div className="text-[12px] font-semibold text-[var(--ob-card-text)]">{picked.name}</div>
-                <div className="text-[11px] text-[var(--ob-card-text-soft)]">
-                  {lang === 'ar' ? `${picked.distance} · ${picked.open}` : `${picked.distance} · open ${picked.open}`}
+            <>
+              <div className="mt-4 rounded-xl border-2 px-4 py-3 flex items-center gap-3" style={{ background: 'rgba(254, 113, 81, 0.10)', borderColor: '#FE7151' }}>
+                <Phone size={16} style={{ color: '#16143A' }} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] font-semibold text-[var(--ob-card-text)]">{picked.name}</div>
+                  <div className="text-[11px] text-[var(--ob-card-text-soft)]">
+                    {lang === 'ar' ? `${picked.distance} · ${picked.open}` : `${picked.distance} · open ${picked.open}`}
+                  </div>
                 </div>
+                <Button
+                  size="sm"
+                  className="font-bold"
+                  style={{ background: '#16143A', color: '#FFFFFF' }}
+                  onClick={() => {
+                    trackAnswer('moving', 'store_directions', picked.id, 'classic', startedAtRef.current);
+                  }}
+                >
+                  {lang === 'ar' ? 'الاتجاهات' : 'Get directions'}
+                </Button>
               </div>
-              <Button
-                size="sm"
-                className="font-bold"
-                style={{ background: '#16143A', color: '#FFFFFF' }}
-                onClick={() => {
-                  trackAnswer('moving', 'store_directions', picked.id, 'classic', startedAtRef.current);
-                  // In production this'd open Google Maps with directions; for now keep onboarding intact.
-                }}
-              >
-                {lang === 'ar' ? 'الاتجاهات' : 'Get directions'}
-              </Button>
-            </div>
+            </>
           )}
           </div>
         </>

@@ -48,6 +48,7 @@ const TICKET_CATEGORIES = [
 ];
 
 export default function SupportButton() {
+  // ─── ALL HOOKS UP TOP — no early return between hooks (Rules of Hooks) ───
   const { lang } = useLang();
   const { user } = useAuth();
   const isAr = lang === 'ar';
@@ -55,10 +56,6 @@ export default function SupportButton() {
   const [view, setView] = useState<View>('chooser');
   const { pathname } = useLocation();
 
-  // Hide on the chat advisor page and lab tools — they own the screen.
-  if (pathname === '/advisor' || pathname.startsWith('/lab')) return null;
-
-  // ── Chat state ────────────────────────────────────────────────
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
     {
       id: 'm0',
@@ -140,6 +137,11 @@ export default function SupportButton() {
     setView('ticket');
     trackEvent('support_ticket_opened');
   };
+
+  // Hide on the chat advisor page and lab tools — they own the screen.
+  // IMPORTANT: this conditional return MUST come AFTER every hook above,
+  // otherwise hook count varies between renders and React throws.
+  if (pathname === '/advisor' || pathname.startsWith('/lab')) return null;
 
   return (
     <>
