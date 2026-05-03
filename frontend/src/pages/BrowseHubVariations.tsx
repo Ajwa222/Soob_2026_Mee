@@ -132,7 +132,7 @@ export default function BrowseHubVariations() {
                   to={cat.href}
                   className="group flex flex-col items-center text-center rounded-2xl bg-card border border-border ob-card-elev hover:shadow-xl hover:-translate-y-0.5 transition-all p-6 md:p-8"
                 >
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#B79EFF]/20 flex items-center justify-center mb-4 group-hover:bg-[#B79EFF]/35 transition-colors">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#C59AFA]/20 flex items-center justify-center mb-4 group-hover:bg-[#C59AFA]/35 transition-colors">
                     <Icon size={28} className="text-[#16143A]" strokeWidth={2.2} />
                   </div>
                   <h3 className="font-heading font-bold text-base md:text-lg text-foreground leading-tight">
@@ -161,7 +161,7 @@ export default function BrowseHubVariations() {
           <div className="flex flex-col gap-3">
             {cats.map((cat, i) => {
               const Icon = cat.icon;
-              const railColors = ['#B79EFF', '#9B7DEE', '#16143A'];
+              const railColors = ['#C59AFA', '#9B7DEE', '#16143A'];
               return (
                 <Link
                   key={cat.key}
@@ -209,7 +209,7 @@ export default function BrowseHubVariations() {
                   to={cat.href}
                   className="group relative flex flex-col justify-between overflow-hidden rounded-2xl ob-card-elev hover:shadow-xl transition-all min-h-[200px] md:min-h-[240px] p-6 md:p-8"
                   style={{
-                    backgroundColor: '#B79EFF',
+                    backgroundColor: '#C59AFA',
                     backgroundImage: 'url(/patterns/wave-purple-deep.png)',
                     backgroundSize: '120% auto',
                     backgroundPosition: '90% 50%',
@@ -282,7 +282,7 @@ export default function BrowseHubVariations() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
             {cats.map((cat, i) => {
               const Icon = cat.icon;
-              const blockBg = ['#B79EFF', '#DCCFFF', '#9B7DEE'];
+              const blockBg = ['#C59AFA', '#DCCFFF', '#9B7DEE'];
               return (
                 <Link
                   key={cat.key}
@@ -335,7 +335,7 @@ export default function BrowseHubVariations() {
                       backgroundPosition: 'top right',
                     }}
                   />
-                  <div className="relative z-10 w-12 h-12 rounded-xl bg-[#B79EFF]/15 flex items-center justify-center">
+                  <div className="relative z-10 w-12 h-12 rounded-xl bg-[#C59AFA]/15 flex items-center justify-center">
                     <Icon size={22} className="text-[#16143A]" strokeWidth={2.2} />
                   </div>
                   <div className="relative z-10">
@@ -373,7 +373,7 @@ export default function BrowseHubVariations() {
                   to={cat.href}
                   className={`group flex items-center gap-3 px-5 py-4 hover:bg-secondary/40 transition-colors ${i < cats.length - 1 ? 'border-b border-border' : ''}`}
                 >
-                  <div className="w-9 h-9 rounded-lg bg-[#B79EFF]/20 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-[#C59AFA]/20 flex items-center justify-center shrink-0">
                     <Icon size={18} className="text-[#16143A]" strokeWidth={2.2} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -401,7 +401,7 @@ export default function BrowseHubVariations() {
           <div
             className="relative overflow-hidden rounded-3xl p-6 md:p-8"
             style={{
-              backgroundColor: '#B79EFF',
+              backgroundColor: '#C59AFA',
               backgroundImage: 'url(/patterns/wave-purple-deep.png)',
               backgroundSize: '140% auto',
               backgroundPosition: '80% 50%',

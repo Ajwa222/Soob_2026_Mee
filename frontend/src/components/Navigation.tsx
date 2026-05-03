@@ -8,14 +8,13 @@
  */
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, LayoutGrid, Search, User, Sun, Moon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Home, LayoutGrid, Search, User, UserCircle, Package } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navigation() {
-  const { t, lang, theme, toggleTheme } = useLang();
-  const { hasAccount } = useAuth();
+  const { t, lang } = useLang();
+  const { hasAccount, user } = useAuth();
   const location = useLocation();
   const [onboarded, setOnboarded] = useState(() => !!localStorage.getItem('soob-onboarded'));
 
@@ -68,10 +67,14 @@ export default function Navigation() {
 
   const browseLabel = lang === 'ar' ? 'تصفح' : 'Browse';
 
+  const ordersLabel = lang === 'ar' ? 'طلباتي' : 'Orders';
+
   const navItems = [
     { path: '/home', label: t('nav.home') },
     { path: '/browse', label: browseLabel },
     { path: '/advisor', label: t('nav.finder') },
+    // Orders only for logged-in users — they wouldn't have any otherwise.
+    ...(user ? [{ path: '/orders', label: ordersLabel }] : []),
     { path: '/profile', label: t('nav.profile') },
   ];
 
@@ -79,7 +82,10 @@ export default function Navigation() {
     { path: '/home', label: t('nav.home'), icon: Home },
     { path: '/browse', label: browseLabel, icon: LayoutGrid },
     { path: '/advisor', label: t('nav.finder'), icon: Search },
-    { path: '/profile', label: t('nav.profile'), icon: User },
+    // Replace Profile with Orders for logged-in users (Profile reachable via top-right pill).
+    user
+      ? { path: '/orders', label: ordersLabel, icon: Package }
+      : { path: '/profile', label: t('nav.profile'), icon: User },
   ];
 
   const isActive = (path: string) => {
@@ -127,22 +133,49 @@ export default function Navigation() {
               >
                 {item.label}
                 {isActive(item.path) && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full" style={{ background: '#FE7151' }} />
                 )}
               </Link>
             ))}
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-              className="rounded-xl hover:bg-muted/80 transition-colors"
-            >
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </Button>
+          <div className="flex items-center">
+            {user ? (
+              <Link
+                to="/profile"
+                aria-label={lang === 'ar' ? 'الحساب' : 'Account'}
+                className={`rounded-xl w-9 h-9 inline-flex items-center justify-center transition-colors ${
+                  isActive('/profile') ? 'bg-muted/80' : 'hover:bg-muted/80'
+                }`}
+              >
+                {user.photoURL ? (
+                  <img
+                    src={user.photoURL}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    className="w-7 h-7 rounded-full object-cover"
+                  />
+                ) : (
+                  <span
+                    className="w-7 h-7 rounded-full inline-flex items-center justify-center text-[11px] font-bold text-white"
+                    style={{ background: 'linear-gradient(135deg, #C59AFA 0%, #FE7151 100%)' }}
+                  >
+                    {(user.name || user.phone || '?')[0].toUpperCase()}
+                  </span>
+                )}
+              </Link>
+            ) : (
+              <Link
+                to="/profile"
+                className="inline-flex items-center gap-2 ps-1.5 pe-3.5 h-9 rounded-full text-[12px] font-bold border-2 transition-transform hover:translate-y-[-1px]"
+                style={{ background: '#C59AFA', color: '#16143A', borderColor: '#16143A' }}
+              >
+                <span className="w-6 h-6 rounded-full bg-white/30 inline-flex items-center justify-center">
+                  <UserCircle size={15} strokeWidth={2.2} />
+                </span>
+                <span>{lang === 'ar' ? 'انضم لصوب' : 'Join SOOB'}</span>
+              </Link>
+            )}
           </div>
         </div>
       </nav>
@@ -165,7 +198,7 @@ export default function Navigation() {
                   ${active ? 'text-primary' : 'text-muted-foreground'}`}
               >
                 {active && (
-                  <span className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-primary" />
+                  <span className="absolute -top-0.5 w-5 h-0.5 rounded-full" style={{ background: '#FE7151' }} />
                 )}
                 <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
                 <span className={`text-[10px] ${active ? 'font-semibold' : 'font-medium'}`}>
@@ -184,9 +217,40 @@ export default function Navigation() {
             <img src="/logo-arabic-navy.png"  alt="SOOB / صوب" className="theme-light-only h-4 w-auto max-w-none" />
             <img src="/logo-arabic-white.png" alt="SOOB / صوب" className="theme-dark-only h-4 w-auto max-w-none" />
           </Link>
-          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme" className="rounded-xl">
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </Button>
+          {user ? (
+            <Link
+              to="/profile"
+              aria-label={lang === 'ar' ? 'الحساب' : 'Account'}
+              className="rounded-xl w-9 h-9 inline-flex items-center justify-center"
+            >
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  className="w-7 h-7 rounded-full object-cover"
+                />
+              ) : (
+                <span
+                  className="w-7 h-7 rounded-full inline-flex items-center justify-center text-[11px] font-bold text-white"
+                  style={{ background: 'linear-gradient(135deg, #C59AFA 0%, #FE7151 100%)' }}
+                >
+                  {(user.name || user.phone || '?')[0].toUpperCase()}
+                </span>
+              )}
+            </Link>
+          ) : (
+            <Link
+              to="/profile"
+              className="inline-flex items-center gap-1.5 ps-1 pe-3 h-8 rounded-full text-[11px] font-bold border-2"
+              style={{ background: '#C59AFA', color: '#16143A', borderColor: '#16143A' }}
+            >
+              <span className="w-5 h-5 rounded-full bg-white/30 inline-flex items-center justify-center">
+                <UserCircle size={13} strokeWidth={2.2} />
+              </span>
+              <span>{lang === 'ar' ? 'انضم لصوب' : 'Join SOOB'}</span>
+            </Link>
+          )}
         </div>
       </div>
     </>

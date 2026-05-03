@@ -161,7 +161,7 @@ export default function AuthVariations() {
             {/* Brand strip */}
             <div
               className="relative px-6 pt-5 pb-4 overflow-hidden"
-              style={{ backgroundColor: '#B79EFF' }}
+              style={{ backgroundColor: '#C59AFA' }}
             >
               <div
                 className="absolute top-0 bottom-0 right-0 pointer-events-none"

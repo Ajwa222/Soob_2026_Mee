@@ -14,7 +14,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useLang } from '../context/LanguageContext';
 import { CARRIERS } from '../data/plans';
-import WaveLines from '../components/WaveLines';
 
 export default function AboutPage() {
   const { t } = useLang();
@@ -41,9 +40,9 @@ export default function AboutPage() {
               const Icon = stat.icon;
               return (
                 <div key={i} className="text-center">
-                  <Icon size={18} className="text-foreground/70 mx-auto mb-1" />
-                  <p className="font-heading font-bold text-xl md:text-2xl text-foreground leading-none">{stat.value}</p>
-                  <p className="text-[10px] md:text-xs text-foreground/50 font-medium mt-0.5">{stat.label}</p>
+                  <Icon size={20} className="mx-auto mb-1.5 text-foreground" />
+                  <p className="font-heading font-bold text-xl md:text-2xl leading-none text-foreground">{stat.value}</p>
+                  <p className="text-[10px] md:text-xs text-foreground/55 font-medium mt-0.5">{stat.label}</p>
                 </div>
               );
             })}
@@ -95,8 +94,8 @@ export default function AboutPage() {
         </section>
 
         {/* Carriers */}
-        <section className="mb-16">
-          <h2 className="font-heading font-bold text-2xl text-foreground mb-8 text-center">
+        <section className="mb-10">
+          <h2 className="font-heading font-bold text-2xl text-foreground mb-6 text-center">
             {t('about.carriersTitle')}
           </h2>
           <div className="flex flex-wrap items-center justify-center gap-4">
@@ -109,27 +108,43 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* CTA */}
+        {/* CTA — lavender with a contained right-anchored wave (no oversize pattern). */}
         <section className="text-center">
-          <div className="relative overflow-hidden rounded-xl p-8 md:p-12 page-hero grain">
-            <WaveLines />
-            <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
-            <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-white/[0.04] translate-y-1/3 -translate-x-1/3 blob-alt" />
+          <div
+            className="relative overflow-hidden rounded-xl px-6 py-6 md:px-10 md:py-7"
+            style={{ background: '#C59AFA' }}
+          >
+            {/* Wave anchored to the far-right corner — true edge accent, never crosses
+             * past the title area. Smaller than the homepage cards because the About
+             * CTA is much wider, so 55% would visually dominate the middle. */}
+            <div
+              className="absolute top-0 bottom-0 right-0 pointer-events-none"
+              style={{
+                width: '35%',
+                maxWidth: '320px',
+                backgroundImage: 'url(/patterns/wave-purple-medium.png)',
+                backgroundSize: 'auto 130%',
+                backgroundPosition: 'right center',
+                backgroundRepeat: 'no-repeat',
+                opacity: 0.30,
+                mixBlendMode: 'multiply',
+              }}
+            />
             <div className="relative z-[2]">
-              <h3 className="font-heading font-bold text-2xl md:text-3xl text-foreground">
+              <h3 className="font-heading font-bold text-lg md:text-xl text-[#16143A] leading-tight">
                 {t('about.ctaTitle')}
               </h3>
-              <p className="text-foreground/50 mt-2 text-sm max-w-md mx-auto">
+              <p className="text-[#16143A]/70 mt-1 text-sm max-w-md mx-auto">
                 {t('about.ctaSubtitle')}
               </p>
-              <div className="flex items-center justify-center gap-3 mt-6">
-                <Button asChild className="bg-card text-foreground hover:bg-card/95 font-bold shadow-md">
+              <div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
+                <Button asChild className="bg-[#16143A] text-white hover:bg-[#16143A]/90 font-bold">
                   <Link to="/advisor">
                     {t('finderCta.cta')}
                     <ArrowRight size={16} className="rtl:rotate-180" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="bg-card/15 text-[var(--ob-text)] border-[var(--ob-chip-border)] hover:bg-card/25 font-bold">
+                <Button asChild variant="outline" className="bg-transparent text-[#16143A] border-[#16143A]/40 hover:bg-[#16143A]/10 font-bold">
                   <Link to="/plans">{t('nav.plans')}</Link>
                 </Button>
               </div>

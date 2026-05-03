@@ -11,13 +11,15 @@
  *
  * Replace `MOCK_VOUCHERS` with real /api/vouchers data when the catalog wires up.
  */
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowLeft, Gift, Smartphone, Gamepad2, Tv, ShoppingBag, Search,
   TrendingUp, Check, Mail, Phone, Zap, Ticket, Copy, CheckCircle2,
+  Users, X,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -72,11 +74,14 @@ const CAT_META: Record<Voucher['category'], { icon: typeof Gift; en: string; ar:
 
 const CATS: Voucher['category'][] = ['recharge', 'gaming', 'streaming', 'shopping'];
 
+// Brand 3-color rotation across voucher categories so each lane reads
+// distinct: lavender for comms (recharge), coral for hot/exciting (gaming),
+// lime for fresh content (streaming), soft lavender for everyday (shopping).
 const TINTS: Record<Voucher['category'], string> = {
-  recharge:  '#DCCFFF',
-  gaming:    '#C9B4FF',
-  streaming: '#B79EFF',
-  shopping:  '#E5DCFF',
+  recharge:  '#C59AFA',   // brand lavender
+  gaming:    '#FE7151',   // brand coral
+  streaming: '#CFEB74',   // brand lime
+  shopping:  '#E1CDFC',   // brand lavender light
 };
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -108,7 +113,7 @@ function BrandTile({ v }: { v: Voucher }) {
 
 type Delivery = 'topup' | 'code';
 type ContactKind = 'phone' | 'email';
-type FlowStep = 'amount' | 'delivery' | 'contact' | 'otp' | 'pay' | 'success';
+type FlowStep = 'amount' | 'auth' | 'auth-otp' | 'delivery' | 'contact' | 'otp' | 'pay' | 'success';
 
 function generateCode(): string {
   // 16-digit code formatted XXXX-XXXX-XXXX-XXXX (mock — real codes come from backend).
@@ -118,6 +123,7 @@ function generateCode(): string {
 
 export default function VouchersPage() {
   const { lang } = useLang();
+  const { isLoggedIn, loginWithOtp, user } = useAuth();
   const isAr = lang === 'ar';
   const [search, setSearch] = useState('');
   const [activeCat, setActiveCat] = useState<Voucher['category'] | 'all'>('all');
@@ -134,6 +140,117 @@ export default function VouchersPage() {
   const [otpResent, setOtpResent] = useState(false);
   const [issuedCode, setIssuedCode] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
+  // Gift flow — when on, the contact step asks for the recipient's contact
+  // (instead of the buyer's) and the success screen says it's been sent to them.
+  const [isGift, setIsGift] = useState(false);
+  const [giftRecipientName, setGiftRecipientName] = useState('');
+  const [giftSenderName, setGiftSenderName] = useState('');
+  const [giftMessage, setGiftMessage] = useState('');
+  const [showContactPicker, setShowContactPicker] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'stc-pay' | 'apple-pay' | 'visa' | 'mada' | 'tabby' | 'tamara' | null>(null);
+
+  // Mock contacts. Real native picker (Contact Picker API) is Android-Chrome
+  // only and the iOS web app can't see contacts at all — we always show this
+  // list in the demo so the UX flow can be reviewed end-to-end.
+  const MOCK_CONTACTS: { name: string; phone: string }[] = [
+    { name: 'Ahmed Al-Otaibi',     phone: '0501234567' },
+    { name: 'Layla Al-Harbi',      phone: '0552223344' },
+    { name: 'Khalid Al-Qahtani',   phone: '0539988776' },
+    { name: 'Noura Al-Sayed',      phone: '0561112233' },
+    { name: 'Yousef Al-Dosari',    phone: '0508776655' },
+    { name: 'Sara Al-Ghamdi',      phone: '0544455566' },
+    { name: 'Mohammed Al-Subaie',  phone: '0567788990' },
+    { name: 'Reem Al-Faisal',      phone: '0501234999' },
+  ];
+
+  const pickContact = (c: { name: string; phone: string }) => {
+    if (isGift) setGiftRecipientName(c.name);
+    setContactKind('phone');
+    setContactValue(c.phone);
+    setShowContactPicker(false);
+    trackEvent('voucher_contact_picked', { source: 'mock_contacts' });
+  };
+
+  // Track whether the contact value was auto-filled from the buyer's profile
+  // so we can show the small "From your account · tap to edit" hint above the
+  // field. Cleared the moment the user actually edits.
+  const [contactPrefilled, setContactPrefilled] = useState(false);
+
+  // When a logged-in user reaches the contact step for a 16-digit code purchase
+  // for THEMSELVES, pre-fill their phone (or email fallback) from their profile.
+  // Gifts always need recipient contact, top-ups always need the target number.
+  useEffect(() => {
+    if (step !== 'contact') return;
+    if (isGift) return;
+    if (delivery !== 'code') return;
+    if (!isLoggedIn || !user) return;
+    if (user.phone && user.phone !== 'skipped') {
+      setContactKind('phone');
+      setContactValue(user.phone);
+      setContactPrefilled(true);
+    } else if (user.email) {
+      setContactKind('email');
+      setContactValue(user.email);
+      setContactPrefilled(true);
+    }
+  }, [step, isGift, delivery, isLoggedIn, user]);
+
+  // ── Auth-gate state (shown when an unlogged-in user clicks Continue) ──
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [authFirstName, setAuthFirstName] = useState('');
+  const [authLastName, setAuthLastName] = useState('');
+  const [authKind, setAuthKind] = useState<ContactKind>('phone');
+  const [authContact, setAuthContact] = useState('');
+  const [authOtp, setAuthOtp] = useState<string[]>(['', '', '', '']);
+  const authOtpRefs = useRef<Array<HTMLInputElement | null>>([null, null, null, null]);
+  const [pendingNextStep, setPendingNextStep] = useState<FlowStep | null>(null);
+
+  const authNamesValid = authMode === 'signin' || (authFirstName.trim().length >= 2 && authLastName.trim().length >= 2);
+  const authContactValid = authKind === 'phone'
+    ? /^[0-9+\s-]{8,}$/.test(authContact.trim())
+    : /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(authContact.trim());
+  const authOtpComplete = authOtp.every(d => d.length === 1);
+
+  const onAuthOtpChange = (i: number, v: string) => {
+    if (!/^\d?$/.test(v)) return;
+    const n = [...authOtp]; n[i] = v; setAuthOtp(n);
+    if (v && i < 3) authOtpRefs.current[i + 1]?.focus();
+  };
+  const onAuthOtpKey = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !authOtp[i] && i > 0) authOtpRefs.current[i - 1]?.focus();
+  };
+  const onAuthOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const p = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
+    if (!p) return;
+    e.preventDefault();
+    const n = ['', '', '', '']; for (let i = 0; i < p.length; i++) n[i] = p[i];
+    setAuthOtp(n); authOtpRefs.current[Math.min(p.length, 3)]?.focus();
+  };
+  const verifyAuthAndContinue = async () => {
+    try {
+      const fullName = authMode === 'signup'
+        ? `${authFirstName.trim()} ${authLastName.trim()}`.trim()
+        : undefined;
+      await loginWithOtp(authKind, authContact.trim(), fullName);
+      trackEvent('voucher_auth_completed', { brand: picker?.brand });
+      // Clear auth state and continue to whatever step we deferred.
+      setAuthOtp(['', '', '', '']);
+      setStep(pendingNextStep ?? 'contact');
+      setPendingNextStep(null);
+    } catch { /* swallow — show error inline if needed */ }
+  };
+
+  // Gate that takes the user to `target` only if logged in. Otherwise routes
+  // them through the auth form first and remembers `target` for after.
+  const requireAuthThen = (target: FlowStep) => {
+    if (isLoggedIn) {
+      setStep(target);
+      return;
+    }
+    setPendingNextStep(target);
+    setStep('auth');
+    trackEvent('voucher_auth_gate_opened', { brand: picker?.brand, gate_at: target });
+  };
 
   const filtered = useMemo(() => {
     let result = MOCK_VOUCHERS;
@@ -165,6 +282,21 @@ export default function VouchersPage() {
     setOtpResent(false);
     setIssuedCode(null);
     setCodeCopied(false);
+    setIsGift(false);
+    setGiftRecipientName('');
+    // Pre-fill sender name from the logged-in user's profile so they don't
+    // have to retype it every gift; field is editable below.
+    setGiftSenderName(user?.name ?? '');
+    setGiftMessage('');
+    setContactPrefilled(false);
+    setPaymentMethod(null);
+    setAuthMode('signin');
+    setAuthFirstName('');
+    setAuthLastName('');
+    setAuthKind('phone');
+    setAuthContact('');
+    setAuthOtp(['', '', '', '']);
+    setPendingNextStep(null);
     trackEvent('voucher_brand_clicked', { brand: v.brand, category: v.category });
   };
 
@@ -193,6 +325,17 @@ export default function VouchersPage() {
   };
   const otpComplete = otp.every((d) => d.length === 1);
   const sendOtp = () => {
+    // Logged-in users have already verified themselves via the auth gate —
+    // skip the OTP step entirely and go straight to payment. OTP only fires
+    // for guests (which shouldn't happen post-auth-gate, but kept as a fallback).
+    if (isLoggedIn) {
+      trackEvent('voucher_otp_skipped', {
+        brand: picker?.brand,
+        reason: 'logged_in',
+      });
+      setStep('pay');
+      return;
+    }
     setOtpResent(false);
     setOtp(['', '', '', '']);
     setStep('otp');
@@ -218,7 +361,7 @@ export default function VouchersPage() {
   const goToContact = (deliveryChoice: Delivery) => {
     setDelivery(deliveryChoice);
     if (deliveryChoice === 'topup') setContactKind('phone');
-    setStep('contact');
+    requireAuthThen('contact');
   };
 
   const handlePay = () => {
@@ -305,17 +448,18 @@ export default function VouchersPage() {
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8" style={{ scrollbarWidth: 'none' }}>
             {trending.map(v => (
-              <button
+              <div
                 key={`trend-${v.id}`}
-                onClick={() => openPicker(v)}
-                className="shrink-0 w-[150px] rounded-2xl bg-card border border-border ob-card-elev p-2.5 hover:shadow-md transition-all text-left"
+                className="shrink-0 w-[150px] rounded-2xl bg-card border border-border ob-card-elev p-2.5 hover:shadow-md transition-all relative"
               >
-                <BrandTile v={v} />
-                <h3 className="font-bold text-[12.5px] text-foreground mt-2 truncate">{v.brand}</h3>
-                <p className="text-[10.5px] text-foreground/55 truncate mt-0.5">
-                  {CAT_META[v.category][isAr ? 'ar' : 'en']}
-                </p>
-              </button>
+                <button onClick={() => openPicker(v)} className="block w-full text-left">
+                  <BrandTile v={v} />
+                  <h3 className="font-bold text-[12.5px] text-foreground mt-2 truncate">{v.brand}</h3>
+                  <p className="text-[10.5px] text-foreground/55 truncate mt-0.5">
+                    {CAT_META[v.category][isAr ? 'ar' : 'en']}
+                  </p>
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -382,15 +526,16 @@ export default function VouchersPage() {
                   </div>
                   <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8" style={{ scrollbarWidth: 'none' }}>
                     {items.map(v => (
-                      <button
+                      <div
                         key={`${c}-${v.id}`}
-                        onClick={() => openPicker(v)}
-                        className="shrink-0 w-[150px] md:w-[170px] rounded-2xl bg-card border border-border ob-card-elev p-2.5 md:p-3 hover:shadow-md transition-all text-left"
+                        className="shrink-0 w-[150px] md:w-[170px] rounded-2xl bg-card border border-border ob-card-elev p-2.5 md:p-3 hover:shadow-md transition-all relative"
                       >
-                        <BrandTile v={v} />
-                        <h3 className="font-bold text-[12.5px] md:text-[13px] text-foreground mt-2 truncate">{v.brand}</h3>
-                        <p className="text-[10.5px] text-foreground/55 truncate mt-0.5">{v.tagline}</p>
-                      </button>
+                        <button onClick={() => openPicker(v)} className="block w-full text-left">
+                          <BrandTile v={v} />
+                          <h3 className="font-bold text-[12.5px] md:text-[13px] text-foreground mt-2 truncate">{v.brand}</h3>
+                          <p className="text-[10.5px] text-foreground/55 truncate mt-0.5">{v.tagline}</p>
+                        </button>
+                              </div>
                     ))}
                   </div>
                 </div>
@@ -401,15 +546,16 @@ export default function VouchersPage() {
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
               {filtered.map(v => (
-                <button
+                <div
                   key={v.id}
-                  onClick={() => openPicker(v)}
-                  className="flex flex-col rounded-2xl bg-card border border-border ob-card-elev p-3 hover:shadow-lg transition-all text-left"
+                  className="flex flex-col rounded-2xl bg-card border border-border ob-card-elev p-3 hover:shadow-lg transition-all relative"
                 >
-                  <BrandTile v={v} />
-                  <h3 className="font-bold text-[13px] text-foreground mt-2 leading-tight">{v.brand}</h3>
-                  <p className="text-[10.5px] text-foreground/55 truncate mt-0.5">{v.tagline}</p>
-                </button>
+                  <button onClick={() => openPicker(v)} className="flex flex-col text-left">
+                    <BrandTile v={v} />
+                    <h3 className="font-bold text-[13px] text-foreground mt-2 leading-tight">{v.brand}</h3>
+                    <p className="text-[10.5px] text-foreground/55 truncate mt-0.5">{v.tagline}</p>
+                  </button>
+                  </div>
               ))}
             </div>
 
@@ -460,6 +606,49 @@ export default function VouchersPage() {
               {/* ── STEP 1: pick amount ── */}
               {step === 'amount' && (
                 <div className="mt-2">
+                  {/* Two clear options up top: buy for self vs gift it to someone */}
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/55 mb-2">
+                    {isAr ? 'لمن هذا؟' : 'Who is it for?'}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsGift(false)}
+                      className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 transition-all ${
+                        !isGift ? '' : 'border-border bg-card hover:border-foreground/30'
+                      }`}
+                      style={!isGift ? { borderColor: '#16143A', background: 'rgba(197, 154, 250, 0.18)' } : {}}
+                    >
+                      <span
+                        className="w-9 h-9 rounded-lg flex items-center justify-center"
+                        style={{ background: !isGift ? '#C59AFA' : 'rgba(197, 154, 250, 0.20)', color: '#16143A' }}
+                      >
+                        <ShoppingBag size={17} strokeWidth={2.4} />
+                      </span>
+                      <span className="font-heading font-bold text-[13px] text-foreground leading-tight">
+                        {isAr ? 'لي' : 'Buy for myself'}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsGift(true)}
+                      className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 transition-all ${
+                        isGift ? '' : 'border-border bg-card hover:border-foreground/30'
+                      }`}
+                      style={isGift ? { borderColor: '#FE7151', background: 'rgba(254, 113, 81, 0.12)' } : {}}
+                    >
+                      <span
+                        className="w-9 h-9 rounded-lg flex items-center justify-center"
+                        style={{ background: isGift ? '#FE7151' : 'rgba(254, 113, 81, 0.15)', color: isGift ? '#FFFFFF' : '#FE7151' }}
+                      >
+                        <Gift size={17} strokeWidth={2.4} />
+                      </span>
+                      <span className="font-heading font-bold text-[13px] text-foreground leading-tight">
+                        {isAr ? 'هدية لشخص' : 'Gift it to someone'}
+                      </span>
+                    </button>
+                  </div>
+
                   <p className="text-[12px] text-foreground/60 mb-3 font-medium">
                     {isAr ? 'اختر القيمة:' : 'Pick an amount:'}
                   </p>
@@ -503,15 +692,186 @@ export default function VouchersPage() {
                         category: picker.category,
                         amount: pickedAmount,
                       });
-                      // Recharge → pick delivery method. Others → straight to contact (always code).
-                      setStep(isRecharge ? 'delivery' : 'contact');
-                      if (!isRecharge) setDelivery('code');
+                      // Gift purchases ALWAYS require login first — no recipient
+                      // info can be entered until the buyer has a SOOB account.
+                      if (isGift) {
+                        if (!isRecharge) setDelivery('code');
+                        requireAuthThen(isRecharge ? 'delivery' : 'contact');
+                        return;
+                      }
+                      // Self-purchase: recharge picks delivery first (no gate),
+                      // others go straight to contact behind the auth gate.
+                      if (isRecharge) {
+                        setStep('delivery');
+                      } else {
+                        setDelivery('code');
+                        requireAuthThen('contact');
+                      }
                     }}
                     className="w-full mt-5 font-bold text-[14px]"
                   >
                     {pickedAmount === null
                       ? (isAr ? 'اختر قيمة' : 'Pick an amount')
                       : (isAr ? 'متابعة' : 'Continue')}
+                  </Button>
+                </div>
+              )}
+
+              {/* ── AUTH GATE — shown before contact/delivery if not signed in ── */}
+              {step === 'auth' && (
+                <div className="mt-2">
+                  <button
+                    onClick={() => setStep('amount')}
+                    className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3"
+                  >
+                    <ArrowLeft size={12} className="rtl:rotate-180" />
+                    {isAr ? 'رجوع' : 'Back'}
+                  </button>
+                  <h3 className="font-heading font-bold text-lg text-foreground mb-1">
+                    {authMode === 'signin'
+                      ? (isAr ? 'سجّل دخولك للمتابعة' : 'Log in to continue')
+                      : (isAr ? 'أنشئ حسابك للمتابعة' : 'Create your account')}
+                  </h3>
+                  <p className="text-[12px] text-foreground/60 mb-4 leading-snug">
+                    {authMode === 'signin'
+                      ? (isAr ? 'أكمل الشراء بسرعة بحسابك في صوب.' : 'Finish your purchase faster with your SOOB account.')
+                      : (isAr ? 'بضع تفاصيل ثم نُكمل الشراء.' : "A few details and we'll wrap up your purchase.")}
+                  </p>
+
+                  {/* Sign-up only: name fields */}
+                  {authMode === 'signup' && (
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                          {isAr ? 'الاسم الأول' : 'First name'}
+                        </label>
+                        <Input value={authFirstName} onChange={(e) => setAuthFirstName(e.target.value)} placeholder={isAr ? 'محمد' : 'Mohammed'} autoComplete="given-name" className="bg-card" />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                          {isAr ? 'اسم العائلة' : 'Last name'}
+                        </label>
+                        <Input value={authLastName} onChange={(e) => setAuthLastName(e.target.value)} placeholder={isAr ? 'العتيبي' : 'Al-Otaibi'} autoComplete="family-name" className="bg-card" />
+                      </div>
+                    </div>
+                  )}
+
+                  <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                    {authKind === 'phone' ? (isAr ? 'رقم الجوال' : 'Phone number') : (isAr ? 'البريد الإلكتروني' : 'Email')}
+                  </label>
+                  <div className="relative">
+                    {authKind === 'phone'
+                      ? <Phone size={15} className="absolute top-1/2 -translate-y-1/2 left-3 text-foreground/40" />
+                      : <Mail size={15} className="absolute top-1/2 -translate-y-1/2 left-3 text-foreground/40" />}
+                    <Input
+                      type={authKind === 'email' ? 'email' : 'tel'}
+                      inputMode={authKind === 'email' ? 'email' : 'numeric'}
+                      value={authContact}
+                      onChange={(e) => setAuthContact(e.target.value)}
+                      placeholder={authKind === 'email' ? 'you@example.com' : '05xxxxxxxx'}
+                      className={`pl-9 bg-card ${authKind === 'phone' ? 'font-mono' : ''}`}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthKind(authKind === 'phone' ? 'email' : 'phone'); setAuthContact(''); }}
+                    className="inline-flex items-center gap-1.5 mt-2 text-[12px] text-foreground/65 hover:text-foreground"
+                  >
+                    {authKind === 'phone' ? <Mail size={12} /> : <Phone size={12} />}
+                    <span className="underline underline-offset-4">
+                      {authKind === 'phone'
+                        ? (isAr ? 'أو استخدم البريد الإلكتروني' : 'or use email instead')
+                        : (isAr ? 'أو استخدم رقم الجوال' : 'or use phone instead')}
+                    </span>
+                  </button>
+
+                  <Button
+                    size="lg"
+                    disabled={!authNamesValid || !authContactValid}
+                    onClick={() => {
+                      setAuthOtp(['', '', '', '']);
+                      setStep('auth-otp');
+                      setTimeout(() => authOtpRefs.current[0]?.focus(), 0);
+                    }}
+                    className="w-full mt-4 font-bold text-[14px]"
+                  >
+                    {authMode === 'signin'
+                      ? (isAr ? 'تسجيل الدخول' : 'Log in')
+                      : (isAr ? 'متابعة' : 'Continue')}
+                  </Button>
+                  <p className="text-center text-[10.5px] text-foreground/55 mt-2 leading-relaxed px-2">
+                    {isAr
+                      ? 'بالضغط على متابعة فإنك توافق على شروط الاستخدام وسياسة الخصوصية.'
+                      : 'By continuing, you agree to our Terms of Service and Privacy Policy.'}
+                  </p>
+
+                  {/* Sign-in / Sign-up toggle */}
+                  <p className="text-center text-[12px] text-foreground/65 mt-3">
+                    {authMode === 'signin' ? (
+                      <>
+                        {isAr ? 'ليس لديك حساب؟' : "Don't have an account?"}{' '}
+                        <button
+                          type="button"
+                          onClick={() => setAuthMode('signup')}
+                          className="font-bold text-foreground underline underline-offset-4 hover:opacity-80"
+                        >
+                          {isAr ? 'انضم لصوب' : 'Join SOOB'}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {isAr ? 'لديك حساب بالفعل؟' : 'Already have an account?'}{' '}
+                        <button
+                          type="button"
+                          onClick={() => setAuthMode('signin')}
+                          className="font-bold text-foreground underline underline-offset-4 hover:opacity-80"
+                        >
+                          {isAr ? 'تسجيل الدخول' : 'Log in'}
+                        </button>
+                      </>
+                    )}
+                  </p>
+                </div>
+              )}
+
+              {/* ── AUTH OTP — verify the buyer's contact to log them in ── */}
+              {step === 'auth-otp' && (
+                <div className="mt-2 space-y-4">
+                  <button
+                    onClick={() => setStep('auth')}
+                    className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground"
+                  >
+                    <ArrowLeft size={12} className="rtl:rotate-180" />
+                    {isAr ? 'تعديل التفاصيل' : 'Edit details'}
+                  </button>
+                  <p className="text-sm text-foreground/75">
+                    {isAr
+                      ? <>أرسلنا رمزاً إلى <span className="font-mono text-foreground">{authContact}</span></>
+                      : <>We sent a 4-digit code to <span className="font-mono text-foreground">{authContact}</span></>}
+                  </p>
+                  <div className="flex gap-2 justify-center" dir="ltr">
+                    {authOtp.map((d, i) => (
+                      <input
+                        key={i}
+                        ref={(el) => { authOtpRefs.current[i] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={d}
+                        onChange={(e) => onAuthOtpChange(i, e.target.value)}
+                        onKeyDown={(e) => onAuthOtpKey(i, e)}
+                        onPaste={i === 0 ? onAuthOtpPaste : undefined}
+                        className="w-12 h-14 text-center text-xl font-bold font-mono rounded-xl border-2 border-border bg-card focus:border-[var(--ob-cta)] focus:outline-none"
+                      />
+                    ))}
+                  </div>
+                  <Button
+                    size="lg"
+                    disabled={!authOtpComplete}
+                    onClick={verifyAuthAndContinue}
+                    className="w-full font-bold text-[14px]"
+                  >
+                    {isAr ? 'تحقق وتابع' : 'Verify & continue'}
                   </Button>
                 </div>
               )}
@@ -534,7 +894,7 @@ export default function VouchersPage() {
                       onClick={() => goToContact('topup')}
                       className="group flex items-center gap-3 rounded-xl border-2 border-border bg-card hover:border-[var(--ob-cta)] hover:bg-[var(--ob-cta)]/5 p-4 text-left transition-all"
                     >
-                      <div className="w-11 h-11 rounded-xl bg-[#B79EFF] flex items-center justify-center shrink-0">
+                      <div className="w-11 h-11 rounded-xl bg-[#C59AFA] flex items-center justify-center shrink-0">
                         <Zap size={20} className="text-[#16143A]" strokeWidth={2.4} />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -585,35 +945,170 @@ export default function VouchersPage() {
 
                   {delivery === 'topup' ? (
                     <>
-                      <p className="text-[12px] text-foreground/60 mb-3 font-medium">
-                        {isAr ? 'رقم الجوال المراد شحنه:' : 'Mobile number to top up:'}
-                      </p>
+                      {isGift && (
+                        <>
+                          <div className="rounded-xl px-3 py-2.5 mb-3 flex items-start gap-2 border" style={{ background: 'rgba(254, 113, 81, 0.10)', borderColor: 'rgba(254, 113, 81, 0.45)' }}>
+                            <Gift size={14} className="shrink-0 mt-0.5" style={{ color: '#FE7151' }} />
+                            <p className="text-[11.5px] text-foreground/85 leading-snug">
+                              {isAr
+                                ? 'سيتم إضافة الرصيد لرقم المستلم وسنرسل له رسالتك.'
+                                : "We'll top up the recipient's number and send them your message."}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setShowContactPicker(true)}
+                            className="w-full inline-flex items-center gap-2 rounded-xl border-2 border-dashed border-foreground/20 bg-secondary/30 hover:border-[#FE7151]/50 hover:bg-[#FE7151]/5 transition-colors px-3 py-2.5 mb-3"
+                          >
+                            <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#FE7151', color: '#fff' }}>
+                              <Users size={14} strokeWidth={2.5} />
+                            </span>
+                            <span className="flex-1 text-start">
+                              <span className="block font-heading font-bold text-[12.5px] text-foreground leading-tight">
+                                {isAr ? 'اختر من جهات الاتصال' : 'Pick from contacts'}
+                              </span>
+                            </span>
+                            <span className="text-foreground/40 rtl:rotate-180">→</span>
+                          </button>
+
+                          <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                            {isAr ? 'اسم المستلم' : "Recipient's name"}
+                          </label>
+                          <Input
+                            value={giftRecipientName}
+                            onChange={(e) => setGiftRecipientName(e.target.value)}
+                            placeholder={isAr ? 'مثل: أحمد' : 'e.g. Ahmed'}
+                            autoComplete="name"
+                            className="bg-card mb-3"
+                          />
+                        </>
+                      )}
+
+                      {!isGift && (
+                        <>
+                          <p className="text-[12px] text-foreground/60 mb-3 font-medium">
+                            {isAr ? 'رقم الجوال المراد شحنه:' : 'Mobile number to top up:'}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setShowContactPicker(true)}
+                            className="w-full inline-flex items-center gap-2 rounded-xl border-2 border-dashed border-foreground/20 bg-secondary/30 hover:border-[#FE7151]/50 hover:bg-[#FE7151]/5 transition-colors px-3 py-2 mb-3"
+                          >
+                            <Users size={14} style={{ color: '#FE7151' }} />
+                            <span className="text-[12px] font-bold text-foreground">
+                              {isAr ? 'اختر من جهات الاتصال' : 'Pick from contacts'}
+                            </span>
+                            <span className="ms-auto text-foreground/40 rtl:rotate-180">→</span>
+                          </button>
+                        </>
+                      )}
+
+                      {isGift && (
+                        <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                          {isAr ? 'رقم جوال المستلم' : "Recipient's phone"}
+                        </label>
+                      )}
                       <div className="relative">
                         <Phone size={15} className="absolute top-1/2 -translate-y-1/2 left-3 text-foreground/40" />
                         <Input
                           type="tel"
                           inputMode="numeric"
-                          autoFocus
+                          autoFocus={!isGift}
                           value={contactValue}
                           onChange={(e) => setContactValue(e.target.value)}
-                          placeholder="05xxxxxxxx"
+                          placeholder={isGift ? (isAr ? 'جوال المستلم' : "Recipient's phone") : '05xxxxxxxx'}
                           className="pl-9 bg-card font-mono"
                         />
                       </div>
-                      <p className="text-[11px] text-foreground/55 mt-2 leading-snug">
-                        {isAr
-                          ? `سيتم إضافة الرصيد على هذا الرقم خلال ثوانٍ.`
-                          : 'Credit lands on this number within seconds.'}
-                      </p>
+                      {!isGift && (
+                        <p className="text-[11px] text-foreground/55 mt-2 leading-snug">
+                          {isAr
+                            ? `سيتم إضافة الرصيد على هذا الرقم خلال ثوانٍ.`
+                            : 'Credit lands on this number within seconds.'}
+                        </p>
+                      )}
+
+                      {isGift && (
+                        <>
+                          <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 mt-3 uppercase tracking-wider">
+                            {isAr ? 'من (اسمك)' : 'From (your name)'}
+                          </label>
+                          <Input
+                            value={giftSenderName}
+                            onChange={(e) => setGiftSenderName(e.target.value)}
+                            placeholder={isAr ? 'سيظهر للمستلم' : "Shown to the recipient"}
+                            autoComplete="name"
+                            className="bg-card"
+                          />
+
+                          <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 mt-3 uppercase tracking-wider">
+                            {isAr ? 'رسالة شخصية (اختياري)' : 'Personal message (optional)'}
+                          </label>
+                          <textarea
+                            value={giftMessage}
+                            onChange={(e) => setGiftMessage(e.target.value.slice(0, 140))}
+                            placeholder={isAr ? 'كل عام وأنت بخير 🎉' : 'Happy birthday! 🎉'}
+                            rows={2}
+                            className="w-full px-3 py-2 rounded-lg border-2 border-border bg-card text-sm text-foreground resize-none focus:outline-none focus:border-[var(--ob-cta)]"
+                          />
+                          <p className="text-[10px] text-foreground/45 mt-1 text-end font-mono">{giftMessage.length}/140</p>
+                        </>
+                      )}
                     </>
                   ) : (
                     <>
+                      {isGift && (
+                        <>
+                          <div className="rounded-xl px-3 py-2.5 mb-3 flex items-start gap-2 border" style={{ background: 'rgba(254, 113, 81, 0.10)', borderColor: 'rgba(254, 113, 81, 0.45)' }}>
+                            <Gift size={14} className="shrink-0 mt-0.5" style={{ color: '#FE7151' }} />
+                            <p className="text-[11.5px] text-foreground/85 leading-snug">
+                              {isAr
+                                ? 'سنرسل الرمز للمستلم مباشرة. لن يظهر لك الرمز هنا.'
+                                : "We'll send the code straight to the recipient. You won't see the code yourself."}
+                            </p>
+                          </div>
+
+                          {/* Quick-pick from contacts — fills name + phone */}
+                          <button
+                            type="button"
+                            onClick={() => setShowContactPicker(true)}
+                            className="w-full inline-flex items-center gap-2 rounded-xl border-2 border-dashed border-foreground/20 bg-secondary/30 hover:border-[#FE7151]/50 hover:bg-[#FE7151]/5 transition-colors px-3 py-2.5 mb-3"
+                          >
+                            <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#FE7151', color: '#fff' }}>
+                              <Users size={14} strokeWidth={2.5} />
+                            </span>
+                            <span className="flex-1 text-start">
+                              <span className="block font-heading font-bold text-[12.5px] text-foreground leading-tight">
+                                {isAr ? 'اختر من جهات الاتصال' : 'Pick from contacts'}
+                              </span>
+                              <span className="block text-[10.5px] text-foreground/55 mt-0.5">
+                                {isAr ? 'أسرع طريقة لاختيار شخص' : 'Fastest way to pick someone'}
+                              </span>
+                            </span>
+                            <span className="text-foreground/40 rtl:rotate-180">→</span>
+                          </button>
+
+                          <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                            {isAr ? 'اسم المستلم' : "Recipient's name"}
+                          </label>
+                          <Input
+                            value={giftRecipientName}
+                            onChange={(e) => setGiftRecipientName(e.target.value)}
+                            placeholder={isAr ? 'مثل: أحمد' : 'e.g. Ahmed'}
+                            autoComplete="name"
+                            className="bg-card mb-3"
+                          />
+                        </>
+                      )}
                       <p className="text-[12px] text-foreground/60 mb-3 font-medium">
-                        {isAr ? 'إلى أين نرسل الرمز؟' : 'Where should we send the code?'}
+                        {isGift
+                          ? (isAr ? 'إلى أين نرسل الهدية؟' : "Where should we send the gift?")
+                          : (isAr ? 'إلى أين نرسل الرمز؟' : 'Where should we send the code?')}
                       </p>
                       <div className="grid grid-cols-2 gap-2 mb-3">
                         <button
-                          onClick={() => { setContactKind('email'); setContactValue(''); }}
+                          onClick={() => { setContactKind('email'); setContactValue(user?.email && !isGift ? user.email : ''); setContactPrefilled(!!user?.email && !isGift); }}
                           className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all border-2 ${
                             contactKind === 'email'
                               ? 'border-[var(--ob-cta)] bg-[var(--ob-cta)]/10 text-foreground'
@@ -623,7 +1118,7 @@ export default function VouchersPage() {
                           <Mail size={13} /> {isAr ? 'بريد إلكتروني' : 'Email'}
                         </button>
                         <button
-                          onClick={() => { setContactKind('phone'); setContactValue(''); }}
+                          onClick={() => { setContactKind('phone'); setContactValue(user?.phone && user.phone !== 'skipped' && !isGift ? user.phone : ''); setContactPrefilled(!!(user?.phone && user.phone !== 'skipped') && !isGift); }}
                           className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all border-2 ${
                             contactKind === 'phone'
                               ? 'border-[var(--ob-cta)] bg-[var(--ob-cta)]/10 text-foreground'
@@ -644,26 +1139,76 @@ export default function VouchersPage() {
                           inputMode={contactKind === 'email' ? 'email' : 'numeric'}
                           autoFocus
                           value={contactValue}
-                          onChange={(e) => setContactValue(e.target.value)}
-                          placeholder={contactKind === 'email' ? 'you@example.com' : '05xxxxxxxx'}
+                          onChange={(e) => { setContactValue(e.target.value); setContactPrefilled(false); }}
+                          placeholder={
+                            contactKind === 'email'
+                              ? (isGift ? (isAr ? 'إيميل المستلم' : "Recipient's email") : 'you@example.com')
+                              : (isGift ? (isAr ? 'جوال المستلم' : "Recipient's phone") : '05xxxxxxxx')
+                          }
                           className={`pl-9 bg-card ${contactKind === 'phone' ? 'font-mono' : ''}`}
                         />
                       </div>
+                      {contactPrefilled && !isGift && (
+                        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-foreground/65">
+                          <CheckCircle2 size={12} className="shrink-0" style={{ color: '#16143A' }} />
+                          <span>
+                            {isAr ? 'مأخوذ من حسابك. ' : 'From your account. '}
+                            <button
+                              type="button"
+                              onClick={() => { setContactValue(''); setContactPrefilled(false); }}
+                              className="underline underline-offset-4 font-semibold text-foreground hover:opacity-80"
+                            >
+                              {isAr ? 'تعديل' : 'Edit'}
+                            </button>
+                          </span>
+                        </div>
+                      )}
+                      {isGift && (
+                        <>
+                          <div className="mt-3">
+                            <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                              {isAr ? 'من (اسمك)' : 'From (your name)'}
+                            </label>
+                            <Input
+                              value={giftSenderName}
+                              onChange={(e) => setGiftSenderName(e.target.value)}
+                              placeholder={isAr ? 'سيظهر للمستلم' : 'Shown to the recipient'}
+                              autoComplete="name"
+                              className="bg-card"
+                            />
+                          </div>
+                          <div className="mt-3">
+                            <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                              {isAr ? 'رسالة شخصية (اختياري)' : 'Personal message (optional)'}
+                            </label>
+                            <textarea
+                              value={giftMessage}
+                              onChange={(e) => setGiftMessage(e.target.value.slice(0, 140))}
+                              placeholder={isAr ? 'كل عام وأنت بخير 🎉' : 'Happy birthday! 🎉'}
+                              rows={2}
+                              className="w-full px-3 py-2 rounded-lg border-2 border-border bg-card text-sm text-foreground resize-none focus:outline-none focus:border-[var(--ob-cta)]"
+                            />
+                            <p className="text-[10px] text-foreground/45 mt-1 text-end font-mono">{giftMessage.length}/140</p>
+                          </div>
+                        </>
+                      )}
                       <p className="text-[11px] text-foreground/55 mt-2 leading-snug">
-                        {isAr
-                          ? 'سنرسل الرمز فور إتمام الدفع.'
-                          : "We'll send the code as soon as your payment goes through."}
+                        {isGift
+                          ? (isAr ? 'سيتم إرسال الرمز للمستلم فور إتمام الدفع.' : "We'll send the code to the recipient as soon as your payment goes through.")
+                          : (isAr ? 'سنرسل الرمز فور إتمام الدفع.' : "We'll send the code as soon as your payment goes through.")}
                       </p>
                     </>
                   )}
 
                   <Button
                     size="lg"
-                    disabled={!contactValid}
+                    disabled={!contactValid || (isGift && delivery === 'code' && giftRecipientName.trim().length < 2)}
                     onClick={sendOtp}
                     className="w-full mt-4 font-bold text-[14px]"
                   >
-                    {isAr ? 'إرسال رمز التحقق' : 'Send verification code'}
+                    {isLoggedIn
+                      ? (isAr ? 'متابعة للدفع' : 'Continue to payment')
+                      : (isAr ? 'إرسال رمز التحقق' : 'Send verification code')}
                   </Button>
                 </div>
               )}
@@ -745,7 +1290,7 @@ export default function VouchersPage() {
               {step === 'pay' && (
                 <div className="mt-2">
                   <button
-                    onClick={() => setStep('otp')}
+                    onClick={() => setStep(isLoggedIn ? 'contact' : 'otp')}
                     className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3"
                   >
                     <ArrowLeft size={12} className="rtl:rotate-180" />
@@ -785,17 +1330,78 @@ export default function VouchersPage() {
                     </div>
                   </div>
 
+                  <p className="text-[11px] font-semibold text-foreground/70 mb-2 uppercase tracking-wider">
+                    {isAr ? 'طريقة الدفع' : 'Payment method'}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    {([
+                      { id: 'stc-pay',   label: 'STC Pay',    bg: '#4F0D7F', fg: '#FFFFFF' },
+                      { id: 'apple-pay', label: 'Apple Pay',  bg: '#000000', fg: '#FFFFFF' },
+                      { id: 'visa',      label: 'Visa',       bg: '#1A1F71', fg: '#FFFFFF' },
+                      { id: 'mada',      label: 'mada',       bg: '#84BD00', fg: '#16143A' },
+                    ] as const).map(m => {
+                      const sel = paymentMethod === m.id;
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => setPaymentMethod(m.id)}
+                          className={`relative flex items-center justify-center py-3 rounded-xl border-2 transition-all ${
+                            sel ? 'border-[var(--ob-cta)]' : 'border-border hover:border-[var(--ob-cta)]/40'
+                          }`}
+                          style={{ backgroundColor: m.bg, color: m.fg }}
+                        >
+                          {sel && (
+                            <span className="absolute -top-1.5 -end-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--ob-cta)] text-[var(--ob-cta-text)] shadow">
+                              <Check size={11} strokeWidth={3} />
+                            </span>
+                          )}
+                          <span className="font-bold text-[13px]">{m.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Buy now, pay later — Saudi BNPL options */}
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/55 mt-3 mb-1.5">
+                    {isAr ? 'اشترِ الآن وادفع لاحقاً' : 'Buy now, pay later'}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    {([
+                      { id: 'tabby',  label: 'Tabby',  bg: '#3BFFC1', fg: '#16143A', sub: isAr ? '4 دفعات' : '4 payments' },
+                      { id: 'tamara', label: 'Tamara', bg: '#E63B7A', fg: '#FFFFFF', sub: isAr ? 'ادفع لاحقاً' : 'Pay later' },
+                    ] as const).map(m => {
+                      const sel = paymentMethod === m.id;
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => setPaymentMethod(m.id)}
+                          className={`relative flex flex-col items-center justify-center gap-0.5 py-3 rounded-xl border-2 transition-all ${
+                            sel ? 'border-[var(--ob-cta)]' : 'border-border hover:border-[var(--ob-cta)]/40'
+                          }`}
+                          style={{ backgroundColor: m.bg, color: m.fg }}
+                        >
+                          {sel && (
+                            <span className="absolute -top-1.5 -end-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--ob-cta)] text-[var(--ob-cta-text)] shadow">
+                              <Check size={11} strokeWidth={3} />
+                            </span>
+                          )}
+                          <span className="font-bold text-[14px]">{m.label}</span>
+                          <span className="text-[10px] opacity-80">{m.sub}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <Button
                     size="lg"
+                    disabled={!paymentMethod}
                     onClick={handlePay}
                     className="w-full font-bold text-[14px]"
                   >
                     {isAr ? `ادفع ${pickedAmount} ر.س` : `Pay ${pickedAmount} SAR`}
                   </Button>
                   <p className="text-[10.5px] text-foreground/50 text-center mt-3 leading-snug">
-                    {isAr
-                      ? 'الدفع آمن · بطاقة، Apple Pay، أو STC Pay'
-                      : 'Secure payment · card, Apple Pay, or STC Pay'}
+                    {isAr ? 'الدفع آمن ومشفّر.' : 'Secure & encrypted payment.'}
                   </p>
                 </div>
               )}
@@ -807,7 +1413,7 @@ export default function VouchersPage() {
                     <CheckCircle2 size={28} className="text-green-600" strokeWidth={2.2} />
                   </div>
 
-                  {delivery === 'topup' && isRecharge ? (
+                  {delivery === 'topup' && isRecharge && !isGift ? (
                     <>
                       <h3 className="font-heading font-bold text-lg text-foreground">
                         {isAr ? 'تم الشحن بنجاح' : 'Top-up successful'}
@@ -819,6 +1425,51 @@ export default function VouchersPage() {
                       </p>
                       <p className="text-[11.5px] text-foreground/55 mt-3">
                         {isAr ? 'تأكيد العملية أُرسل بالرسالة النصية.' : 'A confirmation SMS was sent to this number.'}
+                      </p>
+                    </>
+                  ) : isGift ? (
+                    <>
+                      <h3 className="font-heading font-bold text-lg text-foreground">
+                        {isAr ? 'هديتك في الطريق! 🎁' : 'Gift on its way! 🎁'}
+                      </h3>
+                      <p className="text-[12.5px] text-foreground/65 mt-1.5">
+                        {picker.brand} · <SarSymbol className="text-[11px]" /> {pickedAmount}
+                      </p>
+                      <div className="rounded-xl bg-secondary/50 border border-border p-4 mt-4 text-left">
+                        <div className="text-[11px] uppercase tracking-wider font-semibold text-foreground/55 mb-1.5">
+                          {isAr ? 'مرسلة إلى' : 'Sent to'}
+                        </div>
+                        <div className="font-heading font-bold text-foreground text-[15px]">
+                          {giftRecipientName || (isAr ? 'المستلم' : 'Recipient')}
+                        </div>
+                        <div className="font-mono text-[12.5px] text-foreground/75 mt-0.5" dir="ltr">
+                          {contactValue}
+                        </div>
+                        {giftSenderName && (
+                          <div className="mt-3 pt-3 border-t border-border/60">
+                            <div className="text-[10.5px] uppercase tracking-wider font-semibold text-foreground/55 mb-1">
+                              {isAr ? 'من' : 'From'}
+                            </div>
+                            <p className="text-[12.5px] text-foreground/85 leading-snug">
+                              {giftSenderName}
+                            </p>
+                          </div>
+                        )}
+                        {giftMessage && (
+                          <div className="mt-3 pt-3 border-t border-border/60">
+                            <div className="text-[10.5px] uppercase tracking-wider font-semibold text-foreground/55 mb-1">
+                              {isAr ? 'رسالتك' : 'Your message'}
+                            </div>
+                            <p className="text-[12.5px] text-foreground/85 italic leading-snug">
+                              "{giftMessage}"
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[11.5px] text-foreground/55 mt-3 leading-snug">
+                        {isAr
+                          ? `سيستلم ${giftRecipientName || 'المستلم'} الرمز عبر ${contactKind === 'email' ? 'البريد الإلكتروني' : 'الرسائل النصية'} خلال دقائق.`
+                          : `${giftRecipientName || 'They'}'ll get the code via ${contactKind === 'email' ? 'email' : 'SMS'} within minutes.`}
                       </p>
                     </>
                   ) : (
@@ -869,6 +1520,42 @@ export default function VouchersPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Contact picker — mock list of phone contacts the buyer can pick from */}
+      <Dialog open={showContactPicker} onOpenChange={setShowContactPicker}>
+        <DialogContent className="max-w-sm p-0 overflow-hidden">
+          <div className="px-4 pt-4 pb-2 flex items-center justify-between border-b border-border">
+            <DialogTitle className="font-heading font-bold text-base flex items-center gap-2">
+              <Users size={16} style={{ color: '#FE7151' }} />
+              {isAr ? 'جهات الاتصال' : 'Contacts'}
+            </DialogTitle>
+            <button onClick={() => setShowContactPicker(false)} className="text-foreground/55 hover:text-foreground p-1 -m-1 rounded">
+              <X size={16} />
+            </button>
+          </div>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {MOCK_CONTACTS.map((c) => (
+              <button
+                key={c.phone}
+                onClick={() => pickContact(c)}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/50 transition-colors text-start border-b border-border/40 last:border-0"
+              >
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-[12px] font-bold text-white"
+                  style={{ background: 'linear-gradient(135deg, #C59AFA 0%, #FE7151 100%)' }}
+                >
+                  {c.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-heading font-semibold text-[13px] text-foreground truncate">{c.name}</div>
+                  <div className="text-[11.5px] text-foreground/55 mt-0.5 font-mono" dir="ltr">{c.phone}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

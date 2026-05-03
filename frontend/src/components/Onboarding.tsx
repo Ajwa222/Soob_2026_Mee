@@ -16,7 +16,7 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Check, CheckCircle2, XCircle, Home, Plane, IdCard, Clock3 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check, CheckCircle2, XCircle, Home, Plane, IdCard, Clock3, MapPin, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLang, SUPPORTED_LANGS, LANG_LABELS, type Lang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -100,24 +100,43 @@ function SceneMatch() {
   );
 }
 
-/** Reusable big option-card button — light surface with dark text, matches intro slides */
+/** Reusable big option-card button — light surface with dark text, matches intro slides.
+ *  `tone` controls the icon-tile color (and a faint left-edge accent) so each
+ *  question's options can read in distinct brand colors instead of all being
+ *  navy on lavender. */
+type OptionTone = 'navy' | 'lavender' | 'lime' | 'coral';
+
+const TONE_STYLES: Record<OptionTone, { bg: string; fg: string; edge: string }> = {
+  navy:     { bg: 'var(--ob-icon)', fg: 'var(--ob-icon-text)', edge: 'rgba(22, 20, 58, 0.18)' },
+  lavender: { bg: '#C59AFA', fg: '#16143A', edge: 'rgba(197, 154, 250, 0.55)' },
+  lime:     { bg: '#CFEB74', fg: '#16143A', edge: 'rgba(207, 235, 116, 0.65)' },
+  coral:    { bg: '#FE7151', fg: '#FFFFFF', edge: 'rgba(254, 113, 81, 0.55)' },
+};
+
 function OptionCard({
   icon,
   title,
   desc,
   onClick,
+  tone = 'navy',
 }: {
   icon: React.ReactNode;
   title: string;
   desc?: string;
   onClick: () => void;
+  tone?: OptionTone;
 }) {
+  const t = TONE_STYLES[tone];
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left rounded-2xl bg-[var(--ob-card)] hover:bg-[var(--ob-card)] active:bg-[var(--ob-card)] backdrop-blur-sm border border-[var(--ob-card-border)] hover:border-[var(--ob-card-border)] transition-all p-3.5 sm:p-4 md:p-5 flex items-start gap-3 sm:gap-4 ob-card-elev"
+      className="group w-full text-left rounded-2xl bg-[var(--ob-card)] hover:bg-[var(--ob-card)] active:bg-[var(--ob-card)] backdrop-blur-sm border border-[var(--ob-card-border)] transition-all p-3.5 sm:p-4 md:p-5 flex items-start gap-3 sm:gap-4 ob-card-elev relative overflow-hidden"
+      style={{ borderLeft: `4px solid ${t.edge}` }}
     >
-      <div className="shrink-0 w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl bg-[var(--ob-icon)] text-[var(--ob-icon-text)] border border-[var(--ob-card-border)] flex items-center justify-center">
+      <div
+        className="shrink-0 w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center border"
+        style={{ background: t.bg, color: t.fg, borderColor: 'var(--ob-card-border)' }}
+      >
         {icon}
       </div>
       <div className="flex-1 min-w-0">
@@ -242,7 +261,7 @@ export const COPY: Record<Lang, CopyDict> = {
     ctaContinue: 'Continue',
     ctaClose: 'Close',
     ctaHome: 'Go to home page',
-    ctaGetTemp: 'Get temporary plan',
+    ctaGetTemp: 'Find closest store to buy temporary SIM',
     quickCheck: 'Quick check',
     aboutStay: 'About your stay',
     howItWorks: 'How it works',
@@ -298,7 +317,7 @@ export const COPY: Record<Lang, CopyDict> = {
     ctaContinue: 'كمّل',
     ctaClose: 'أغلق',
     ctaHome: 'الصفحة الرئيسية',
-    ctaGetTemp: 'خذ باقة مؤقتة',
+    ctaGetTemp: 'ابحث عن أقرب فرع لشراء شريحة مؤقتة',
     quickCheck: '',
     aboutStay: '',
     howItWorks: 'كيف تمشي الأمور',
@@ -354,7 +373,7 @@ export const COPY: Record<Lang, CopyDict> = {
     ctaContinue: 'جاری رکھیں',
     ctaClose: 'بند کریں',
     ctaHome: 'ہوم پیج پر جائیں',
-    ctaGetTemp: 'عارضی پلان حاصل کریں',
+    ctaGetTemp: 'عارضی سم خریدنے کے لیے قریبی اسٹور تلاش کریں',
     quickCheck: 'فوری چیک',
     aboutStay: 'آپ کے قیام کے بارے میں',
     howItWorks: 'یہ کیسے کام کرتا ہے',
@@ -410,7 +429,7 @@ export const COPY: Record<Lang, CopyDict> = {
     ctaContinue: 'जारी रखें',
     ctaClose: 'बंद करें',
     ctaHome: 'होम पेज पर जाएँ',
-    ctaGetTemp: 'अस्थायी प्लान लें',
+    ctaGetTemp: 'अस्थायी सिम के लिए नज़दीकी स्टोर खोजें',
     quickCheck: 'त्वरित जाँच',
     aboutStay: 'आपके प्रवास के बारे में',
     howItWorks: 'यह कैसे काम करता है',
@@ -466,7 +485,7 @@ export const COPY: Record<Lang, CopyDict> = {
     ctaContinue: 'চালিয়ে যান',
     ctaClose: 'বন্ধ করুন',
     ctaHome: 'হোম পেজে যান',
-    ctaGetTemp: 'অস্থায়ী প্ল্যান নিন',
+    ctaGetTemp: 'অস্থায়ী সিম কিনতে নিকটতম দোকান খুঁজুন',
     quickCheck: 'দ্রুত চেক',
     aboutStay: 'আপনার অবস্থান সম্পর্কে',
     howItWorks: 'এটি কীভাবে কাজ করে',
@@ -522,7 +541,7 @@ export const COPY: Record<Lang, CopyDict> = {
     ctaContinue: 'Magpatuloy',
     ctaClose: 'Isara',
     ctaHome: 'Bumalik sa home page',
-    ctaGetTemp: 'Kumuha ng temporary plan',
+    ctaGetTemp: 'Hanapin ang pinakamalapit na store para sa SIM',
     quickCheck: 'Mabilis na pagsusuri',
     aboutStay: 'Tungkol sa iyong pananatili',
     howItWorks: 'Paano ito gumagana',
@@ -557,12 +576,33 @@ const pageToStep: Record<Page, OnboardingStep> = {
 
 export default function Onboarding() {
   const { lang, setLang } = useLang();
-  const { markOnboarded } = useAuth();
+  const { markOnboarded, isLoggedIn, loginWithOtp } = useAuth();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(() => !localStorage.getItem('soob-onboarded'));
   const [page, setPage] = useState<Page>('lang');
   const [answers, setAnswers] = useState<OnboardingAnswers>({});
   const startedAtRef = useRef<number>(Date.now());
+  const [showStores, setShowStores] = useState(false);
+  type StoresStep = 'account' | 'otp' | 'map';
+  const [storesStep, setStoresStep] = useState<StoresStep>('map');
+  const [storeFirstName, setStoreFirstName] = useState('');
+  const [storeLastName, setStoreLastName] = useState('');
+  const [storeKind, setStoreKind] = useState<'phone' | 'email'>('phone');
+  const [storeContact, setStoreContact] = useState('');
+  const [storeOtp, setStoreOtp] = useState<string[]>(['', '', '', '']);
+  const storeOtpRefs = useRef<Array<HTMLInputElement | null>>([null, null, null, null]);
+
+  // Mock map of nearby physical stores where short-term visitors can buy a
+  // visitor SIM. Coordinates are 0–100 percent of a stylized map background.
+  const NEARBY_STORES = [
+    { id: 's1', provider: 'STC',    name: 'STC Olaya Branch',           x: 32, y: 28, distance: '0.8 km', open: '24/7' },
+    { id: 's2', provider: 'Mobily', name: 'Mobily Sahafa',              x: 58, y: 22, distance: '1.4 km', open: '9 AM – 11 PM' },
+    { id: 's3', provider: 'Zain',   name: 'Zain Hittin',                x: 74, y: 38, distance: '2.1 km', open: '10 AM – 10 PM' },
+    { id: 's4', provider: 'STC',    name: 'STC Diplomatic Quarter',     x: 22, y: 62, distance: '2.5 km', open: '8 AM – 12 AM' },
+    { id: 's5', provider: 'Mobily', name: 'Mobily Granada Mall',        x: 68, y: 70, distance: '3.0 km', open: 'Mall hours' },
+    { id: 's6', provider: 'Salam',  name: 'Salam Yasmin Plaza',         x: 44, y: 54, distance: '3.2 km', open: '9 AM – 11 PM' },
+  ];
+  const [pickedStore, setPickedStore] = useState<string | null>(null);
   const completedRef = useRef(false);
 
   useEffect(() => {
@@ -741,8 +781,9 @@ export default function Onboarding() {
               <div
                 key={i}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === idx ? 'w-6 bg-[var(--ob-cta)]' : i < idx ? 'w-1.5 bg-[var(--ob-chip-border)]' : 'w-1.5 bg-[var(--ob-chip)]'
+                  i === idx ? 'w-6' : i < idx ? 'w-1.5 bg-[var(--ob-chip-border)]' : 'w-1.5 bg-[var(--ob-chip)]'
                 }`}
+                style={i === idx ? { background: '#FE7151' } : undefined}
               />
             ))}
           </div>
@@ -750,7 +791,8 @@ export default function Onboarding() {
           <Button
             onClick={next}
             variant="secondary"
-            className="bg-[var(--ob-cta)] text-[var(--ob-cta-text)] hover:bg-[var(--ob-cta-hover)] ob-cta-elev font-medium w-12 h-12 p-0"
+            className="ob-cta-elev font-medium w-12 h-12 p-0 hover:opacity-90"
+            style={{ background: '#FE7151', color: '#FFFFFF' }}
           >
             <ArrowRight size={18} />
           </Button>
@@ -845,12 +887,14 @@ export default function Onboarding() {
           title={t.absherYesTitle}
           desc={t.absherYesDesc}
           onClick={() => pickAbsher('yes')}
+          tone="lime"
         />
         <OptionCard
           icon={<XCircle size={22} />}
           title={t.absherNoTitle}
           desc={t.absherNoDesc}
           onClick={() => pickAbsher('no')}
+          tone="coral"
         />
       </QuestionShell>
     );
@@ -869,14 +913,325 @@ export default function Onboarding() {
           title={t.statusMovingTitle}
           desc={t.statusMovingDesc}
           onClick={() => pickStatus('moving')}
+          tone="lavender"
         />
         <OptionCard
           icon={<Plane size={22} />}
           title={t.statusVisitingTitle}
           desc={t.statusVisitingDesc}
           onClick={() => pickStatus('visiting')}
+          tone="coral"
         />
       </QuestionShell>
+    );
+  }
+
+  // ── Stores map overlay (when "Find closest store" is tapped on the moving page) ──
+  if (page === 'moving' && showStores) {
+    const picked = NEARBY_STORES.find(s => s.id === pickedStore);
+
+    // Account-creation gate: validation + OTP handlers ─────────────────
+    const acctNamesValid = storeFirstName.trim().length >= 2 && storeLastName.trim().length >= 2;
+    const acctContactValid = storeKind === 'phone'
+      ? /^[0-9+\s-]{8,}$/.test(storeContact.trim())
+      : /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(storeContact.trim());
+    const acctOtpComplete = storeOtp.every(d => d.length === 1);
+
+    const onAcctOtpChange = (i: number, v: string) => {
+      if (!/^\d?$/.test(v)) return;
+      const n = [...storeOtp]; n[i] = v; setStoreOtp(n);
+      if (v && i < 3) storeOtpRefs.current[i + 1]?.focus();
+    };
+    const onAcctOtpKey = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Backspace' && !storeOtp[i] && i > 0) storeOtpRefs.current[i - 1]?.focus();
+    };
+    const onAcctOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+      const p = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
+      if (!p) return;
+      e.preventDefault();
+      const n = ['', '', '', '']; for (let i = 0; i < p.length; i++) n[i] = p[i];
+      setStoreOtp(n); storeOtpRefs.current[Math.min(p.length, 3)]?.focus();
+    };
+    const verifyAndContinue = async () => {
+      try {
+        await loginWithOtp(storeKind, storeContact.trim(), `${storeFirstName.trim()} ${storeLastName.trim()}`.trim());
+        trackAnswer('moving', 'store_account_verified', true, 'classic', startedAtRef.current);
+        setStoresStep('map');
+      } catch { /* ignore — show error inline if needed */ }
+    };
+
+    return (
+      <div
+        className="fixed inset-0 z-[300] flex flex-col hero-gradient overflow-hidden"
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          paddingLeft: 'env(safe-area-inset-left)',
+          paddingRight: 'env(safe-area-inset-right)',
+        }}
+      >
+        {/* Header with back arrow */}
+        <div className="relative z-10 w-full max-w-md mx-auto flex items-center gap-2 px-5 pt-4 sm:px-6 sm:pt-6 shrink-0">
+          <button
+            onClick={() => {
+              if (storesStep === 'otp') { setStoresStep('account'); return; }
+              setShowStores(false); setPickedStore(null);
+              setStoresStep('map'); setStoreOtp(['', '', '', '']);
+            }}
+            className="text-[var(--ob-text-soft)] hover:text-[var(--ob-text)] p-2 -ml-2 rounded-lg transition-colors"
+            aria-label="Back"
+          >
+            <ArrowLeft size={20} className={isRtl ? 'rotate-180' : ''} />
+          </button>
+          <div className="flex-1">
+            <h2 className="font-heading font-bold text-[18px] sm:text-[20px] text-[var(--ob-text)] leading-tight">
+              {storesStep === 'account'
+                ? (lang === 'ar' ? 'أنشئ حسابك أولاً' : 'Create your account first')
+                : storesStep === 'otp'
+                  ? (lang === 'ar' ? 'أدخل رمز التحقق' : 'Enter verification code')
+                  : (lang === 'ar' ? 'أقرب الفروع' : 'Nearest stores')}
+            </h2>
+            <p className="text-[12px] text-[var(--ob-text-soft)] leading-tight mt-0.5">
+              {storesStep === 'account'
+                ? (lang === 'ar' ? 'نحتاج تفاصيلك قبل إظهار الفروع.' : 'We need your details before showing stores.')
+                : storesStep === 'otp'
+                  ? <>{lang === 'ar' ? 'أرسلنا رمزاً إلى ' : 'We sent a 4-digit code to '}<span className="font-mono">{storeContact}</span></>
+                  : (lang === 'ar' ? 'اختر فرعاً قريباً منك لشراء شريحة مؤقتة.' : 'Pick a nearby store to buy a visitor SIM.')}
+            </p>
+          </div>
+        </div>
+
+        {/* Account-creation step ─────────────────────────────────────── */}
+        {storesStep === 'account' && (
+          <div className="relative z-10 w-full max-w-md mx-auto flex-1 overflow-y-auto px-5 sm:px-6 pb-5 sm:pb-6 mt-4 space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--ob-text-soft)] mb-1.5 uppercase tracking-wider">
+                  {lang === 'ar' ? 'الاسم الأول' : 'First name'}
+                </label>
+                <input
+                  value={storeFirstName}
+                  onChange={(e) => setStoreFirstName(e.target.value)}
+                  placeholder={lang === 'ar' ? 'محمد' : 'Mohammed'}
+                  className="w-full h-11 px-3 rounded-lg border-2 border-[var(--ob-card-border)] bg-[var(--ob-card)] text-[var(--ob-card-text)] text-sm focus:border-[var(--ob-cta)] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--ob-text-soft)] mb-1.5 uppercase tracking-wider">
+                  {lang === 'ar' ? 'اسم العائلة' : 'Last name'}
+                </label>
+                <input
+                  value={storeLastName}
+                  onChange={(e) => setStoreLastName(e.target.value)}
+                  placeholder={lang === 'ar' ? 'العتيبي' : 'Al-Otaibi'}
+                  className="w-full h-11 px-3 rounded-lg border-2 border-[var(--ob-card-border)] bg-[var(--ob-card)] text-[var(--ob-card-text)] text-sm focus:border-[var(--ob-cta)] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <label className="block text-[11px] font-semibold text-[var(--ob-text-soft)] mb-1.5 uppercase tracking-wider">
+              {storeKind === 'phone' ? (lang === 'ar' ? 'رقم الجوال' : 'Phone number') : (lang === 'ar' ? 'البريد الإلكتروني' : 'Email')}
+            </label>
+            <input
+              type={storeKind === 'email' ? 'email' : 'tel'}
+              inputMode={storeKind === 'email' ? 'email' : 'numeric'}
+              value={storeContact}
+              onChange={(e) => setStoreContact(e.target.value)}
+              placeholder={storeKind === 'email' ? 'you@example.com' : '05xxxxxxxx'}
+              dir="ltr"
+              className={`w-full h-11 px-3 rounded-lg border-2 border-[var(--ob-card-border)] bg-[var(--ob-card)] text-[var(--ob-card-text)] text-sm focus:border-[var(--ob-cta)] focus:outline-none ${storeKind === 'phone' ? 'font-mono' : ''}`}
+            />
+            <button
+              type="button"
+              onClick={() => { setStoreKind(storeKind === 'phone' ? 'email' : 'phone'); setStoreContact(''); }}
+              className="inline-flex items-center gap-1.5 text-[12px] text-[var(--ob-text-soft)] hover:text-[var(--ob-text)] transition-colors"
+            >
+              <span className="underline underline-offset-4">
+                {storeKind === 'phone'
+                  ? (lang === 'ar' ? 'أو استخدم البريد الإلكتروني' : 'or use email instead')
+                  : (lang === 'ar' ? 'أو استخدم رقم الجوال' : 'or use phone instead')}
+              </span>
+            </button>
+
+            <Button
+              size="lg"
+              disabled={!acctNamesValid || !acctContactValid}
+              onClick={() => {
+                setStoresStep('otp');
+                setStoreOtp(['', '', '', '']);
+                setTimeout(() => storeOtpRefs.current[0]?.focus(), 0);
+              }}
+              className="w-full h-12 font-bold ob-cta-elev hover:opacity-90 mt-2"
+              style={{ background: '#CFEB74', color: '#16143A' }}
+            >
+              {lang === 'ar' ? 'إرسال رمز التحقق' : 'Send verification code'}
+            </Button>
+            <p className="text-center text-[10.5px] text-[var(--ob-text-soft)] leading-relaxed px-2">
+              {lang === 'ar'
+                ? 'بالضغط على متابعة فإنك توافق على شروط الاستخدام وسياسة الخصوصية.'
+                : 'By continuing, you agree to our Terms of Service and Privacy Policy.'}
+            </p>
+          </div>
+        )}
+
+        {/* OTP verification step ─────────────────────────────────────── */}
+        {storesStep === 'otp' && (
+          <div className="relative z-10 w-full max-w-md mx-auto flex-1 overflow-y-auto px-5 sm:px-6 pb-5 sm:pb-6 mt-4 space-y-4">
+            <div className="flex gap-2 justify-center" dir="ltr">
+              {storeOtp.map((d, i) => (
+                <input
+                  key={i}
+                  ref={(el) => { storeOtpRefs.current[i] = el; }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={d}
+                  onChange={(e) => onAcctOtpChange(i, e.target.value)}
+                  onKeyDown={(e) => onAcctOtpKey(i, e)}
+                  onPaste={i === 0 ? onAcctOtpPaste : undefined}
+                  className="w-12 h-14 text-center text-xl font-bold font-mono rounded-xl border-2 border-[var(--ob-card-border)] bg-[var(--ob-card)] text-[var(--ob-card-text)] focus:border-[var(--ob-cta)] focus:outline-none"
+                />
+              ))}
+            </div>
+            <Button
+              size="lg"
+              disabled={!acctOtpComplete}
+              onClick={verifyAndContinue}
+              className="w-full h-12 font-bold ob-cta-elev hover:opacity-90"
+              style={{ background: '#CFEB74', color: '#16143A' }}
+            >
+              {lang === 'ar' ? 'تحقق وتابع' : 'Verify & continue'}
+            </Button>
+          </div>
+        )}
+
+        {/* Map step ─────────────────────────────────────────────────── */}
+        {storesStep === 'map' && (
+          <>
+
+        {/* Map */}
+        <div className="relative z-10 w-full max-w-md mx-auto flex-1 overflow-y-auto px-5 sm:px-6 pb-5 sm:pb-6 mt-3">
+          {/* Map preview — small, realistic colors (like Apple Maps / Uber preview cards) */}
+          <div className="rounded-xl overflow-hidden border border-[var(--ob-card-border)] shadow-sm">
+            <div
+              className="relative w-full"
+              style={{ height: 140, background: '#E8EAEC' }}
+            >
+              {/* Park / green area */}
+              <div className="absolute pointer-events-none rounded-md" style={{ left: '8%', top: '55%', width: '22%', height: '32%', background: '#D9E8C9' }} />
+              <div className="absolute pointer-events-none rounded-md" style={{ left: '78%', top: '8%', width: '14%', height: '24%', background: '#D9E8C9' }} />
+              {/* Water ribbon */}
+              <div className="absolute pointer-events-none" style={{ left: '0%', top: '78%', width: '100%', height: '8%', background: '#C7DBEB', opacity: 0.85 }} />
+
+              {/* Road grid — light, like real maps */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                {/* Major roads — white wide */}
+                <line x1="0"  y1="35" x2="100" y2="38" stroke="#FFFFFF" strokeWidth="2.4" />
+                <line x1="0"  y1="65" x2="100" y2="62" stroke="#FFFFFF" strokeWidth="2.4" />
+                <line x1="40" y1="0"  x2="38"  y2="100" stroke="#FFFFFF" strokeWidth="2.4" />
+                <line x1="72" y1="0"  x2="74"  y2="100" stroke="#FFFFFF" strokeWidth="2.4" />
+                {/* Minor roads — thin */}
+                <line x1="0"  y1="20" x2="100" y2="22" stroke="#FFFFFF" strokeWidth="1.0" />
+                <line x1="0"  y1="50" x2="100" y2="48" stroke="#FFFFFF" strokeWidth="1.0" />
+                <line x1="20" y1="0"  x2="20"  y2="100" stroke="#FFFFFF" strokeWidth="1.0" />
+                <line x1="56" y1="0"  x2="58"  y2="100" stroke="#FFFFFF" strokeWidth="1.0" />
+                <line x1="88" y1="0"  x2="90"  y2="100" stroke="#FFFFFF" strokeWidth="1.0" />
+              </svg>
+
+              {/* "You are here" marker — center */}
+              <div className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none" style={{ left: '50%', top: '50%' }}>
+                <div className="relative w-3 h-3">
+                  <div className="absolute inset-0 rounded-full animate-ping" style={{ background: '#1976D2', opacity: 0.45 }} />
+                  <div className="absolute inset-0 rounded-full border-2 border-white" style={{ background: '#1976D2', boxShadow: '0 1px 3px rgba(0,0,0,0.30)' }} />
+                </div>
+              </div>
+
+              {/* Store pins — teardrop style like real map pins */}
+              {NEARBY_STORES.map(store => {
+                const sel = pickedStore === store.id;
+                return (
+                  <button
+                    key={store.id}
+                    type="button"
+                    onClick={() => setPickedStore(store.id)}
+                    className="absolute -translate-x-1/2 -translate-y-full group"
+                    style={{ left: `${store.x}%`, top: `${store.y}%` }}
+                    aria-label={store.name}
+                  >
+                    <svg width={sel ? 22 : 18} height={sel ? 28 : 22} viewBox="0 0 24 32" className="drop-shadow-sm transition-all">
+                      <path
+                        d="M12 0 C5.4 0 0 5.4 0 12 c0 9 12 20 12 20 s12-11 12-20 C24 5.4 18.6 0 12 0z"
+                        fill={sel ? '#FE7151' : '#16143A'}
+                        stroke="#fff"
+                        strokeWidth="1.5"
+                      />
+                      <circle cx="12" cy="12" r="4" fill="#fff" />
+                    </svg>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Stores list */}
+          <div className="mt-4 space-y-2">
+            {NEARBY_STORES.map(store => {
+              const sel = pickedStore === store.id;
+              return (
+                <button
+                  key={store.id}
+                  type="button"
+                  onClick={() => setPickedStore(store.id)}
+                  className={`w-full flex items-center gap-3 rounded-xl border-2 transition-all px-3.5 py-3 text-start ${
+                    sel ? '' : 'border-[var(--ob-card-border)] bg-[var(--ob-card)] hover:border-[var(--ob-cta)]/40'
+                  }`}
+                  style={sel ? { background: 'rgba(254, 113, 81, 0.10)', borderColor: '#FE7151' } : {}}
+                >
+                  <div className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: sel ? '#FE7151' : '#16143A', color: '#fff' }}>
+                    <MapPin size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-heading font-semibold text-[14px] text-[var(--ob-card-text)] leading-tight truncate">
+                      {store.name}
+                    </div>
+                    <div className="text-[11px] text-[var(--ob-card-text-soft)] mt-0.5 inline-flex items-center gap-2">
+                      <span>{store.distance}</span>
+                      <span className="text-[var(--ob-card-text-soft)]/50">·</span>
+                      <span>{store.open}</span>
+                    </div>
+                  </div>
+                  <ArrowRight size={14} className={`shrink-0 text-[var(--ob-card-text-soft)] ${isRtl ? 'rotate-180' : ''}`} />
+                </button>
+              );
+            })}
+          </div>
+
+          {picked && (
+            <div className="mt-4 rounded-xl border-2 px-4 py-3 flex items-center gap-3" style={{ background: 'rgba(254, 113, 81, 0.10)', borderColor: '#FE7151' }}>
+              <Phone size={16} style={{ color: '#16143A' }} />
+              <div className="flex-1 min-w-0">
+                <div className="text-[12px] font-semibold text-[var(--ob-card-text)]">{picked.name}</div>
+                <div className="text-[11px] text-[var(--ob-card-text-soft)]">
+                  {lang === 'ar' ? `${picked.distance} · ${picked.open}` : `${picked.distance} · open ${picked.open}`}
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="font-bold"
+                style={{ background: '#16143A', color: '#FFFFFF' }}
+                onClick={() => {
+                  trackAnswer('moving', 'store_directions', picked.id, 'classic', startedAtRef.current);
+                  // In production this'd open Google Maps with directions; for now keep onboarding intact.
+                }}
+              >
+                {lang === 'ar' ? 'الاتجاهات' : 'Get directions'}
+              </Button>
+            </div>
+          )}
+          </div>
+        </>
+        )}
+      </div>
     );
   }
 
@@ -895,13 +1250,15 @@ export default function Onboarding() {
             </div>
             <Button
               onClick={() => {
-                trackAnswer('moving', 'get_temp_plan', true, 'classic', startedAtRef.current);
-                gotoPage('visiting');
+                trackAnswer('moving', 'find_closest_store', true, 'classic', startedAtRef.current);
+                setStoresStep(isLoggedIn ? 'map' : 'account');
+                setShowStores(true);
               }}
-              className="w-full h-12 sm:h-14 text-[15px] sm:text-base font-semibold bg-[var(--ob-cta)] text-[var(--ob-cta-text)] hover:bg-[var(--ob-cta-hover)] ob-cta-elev"
+              className="w-full h-12 sm:h-14 text-[14px] sm:text-[15px] font-semibold ob-cta-elev hover:opacity-90"
+              style={{ background: '#CFEB74', color: '#16143A' }}
             >
+              <MapPin size={18} className="mr-2" />
               {t.ctaGetTemp}
-              <ArrowRight size={18} className="ml-2" />
             </Button>
           </div>
         }
@@ -1034,7 +1391,8 @@ export default function Onboarding() {
               setVisible(false);
               navigate('/');
             }}
-            className="w-full h-12 sm:h-14 text-[15px] sm:text-base font-semibold bg-[var(--ob-cta)] text-[var(--ob-cta-text)] hover:bg-[var(--ob-cta-hover)] ob-cta-elev"
+            className="w-full h-12 sm:h-14 text-[15px] sm:text-base font-semibold ob-cta-elev hover:opacity-90"
+            style={{ background: '#CFEB74', color: '#16143A' }}
           >
             <Home size={18} className="mr-2" />
             {t.ctaHome}

@@ -69,6 +69,7 @@ export default {
       sms: "رسائل",
       unlimitedSocial: "تواصل لا محدود",
       social: "تواصل",
+      intl: "دقائق دولية",
       perks: "مزايا إضافية",
     },
     compareBar: {

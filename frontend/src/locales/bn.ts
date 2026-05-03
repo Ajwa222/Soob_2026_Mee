@@ -62,6 +62,7 @@ export default {
       sms: "SMS",
       unlimitedSocial: "আনলিমিটেড সোশ্যাল",
       social: "সোশ্যাল",
+      intl: "আন্তর্জাতিক মিনিট",
       perks: "অতিরিক্ত",
     },
     compareBar: {

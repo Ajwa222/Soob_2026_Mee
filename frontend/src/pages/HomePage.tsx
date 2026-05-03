@@ -13,7 +13,7 @@
  */
 import React, { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, ChevronRight, Smartphone, Wifi, Gift } from 'lucide-react';
+import { Sparkles, ArrowRight, ChevronRight, Smartphone, Wifi, Gift, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import WaveLines from '../components/WaveLines';
 import { useLang } from '../context/LanguageContext';
@@ -94,7 +94,7 @@ export default function HomePage() {
         <h2 className="font-heading font-bold text-base md:text-lg text-foreground mb-3">
           {lang === 'ar' ? 'ماذا تبحث عنه؟' : 'What are you looking for?'}
         </h2>
-        {/* 3-up equal grid — all cards share the SAME lavender (#B79EFF)
+        {/* 3-up equal grid — each card gets its own brand color (lavender / lime / coral)
          * brand surface. The wave is anchored to the RIGHT edge as a corner
          * accent, never covering the title or icon area. Eye-friendly. */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
@@ -105,6 +105,8 @@ export default function HomePage() {
               icon: Smartphone,
               title: lang === 'ar' ? 'باقات الجوال' : 'Mobile Plans',
               count: `${plans.length} ${lang === 'ar' ? 'باقة' : 'plans'}`,
+              bg: '#C59AFA',          // brand lavender — signature/primary
+              waveOpacity: 0.32,
             },
             {
               key: 'internet',
@@ -112,6 +114,8 @@ export default function HomePage() {
               icon: Wifi,
               title: lang === 'ar' ? 'إنترنت المنزل' : 'Home Internet',
               count: lang === 'ar' ? '8 مزودين' : '8 providers',
+              bg: '#CFEB74',          // brand lime — fresh/fast vibe
+              waveOpacity: 0.20,
             },
             {
               key: 'vouchers',
@@ -119,6 +123,8 @@ export default function HomePage() {
               icon: Gift,
               title: lang === 'ar' ? 'القسائم' : 'Vouchers',
               count: lang === 'ar' ? '120 نوع' : '120 types',
+              bg: '#FE7151',          // brand coral — warm/gift vibe
+              waveOpacity: 0.22,
             },
           ].map((cat) => {
             const Icon = cat.icon;
@@ -128,7 +134,7 @@ export default function HomePage() {
                 to={cat.href}
                 onClick={() => trackEvent('homepage_quickpick_clicked', { category: cat.key })}
                 className="group relative flex flex-col justify-between overflow-hidden rounded-2xl ob-card-elev hover:shadow-xl transition-all min-h-[120px] sm:min-h-[140px] md:min-h-[160px] p-3 sm:p-4 md:p-5"
-                style={{ backgroundColor: '#B79EFF' }}
+                style={{ backgroundColor: cat.bg }}
               >
                 {/* Wave anchored to the RIGHT — never crosses past 50% width */}
                 <div
@@ -139,7 +145,8 @@ export default function HomePage() {
                     backgroundSize: 'auto 130%',
                     backgroundPosition: 'left center',
                     backgroundRepeat: 'no-repeat',
-                    opacity: 0.32,
+                    opacity: cat.waveOpacity,
+                    mixBlendMode: 'multiply',
                   }}
                 />
                 <Icon size={22} className="relative z-10 text-[#16143A]" strokeWidth={2.2} />
@@ -174,7 +181,7 @@ export default function HomePage() {
               </>
             ) : (
               <>
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-primary">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest" style={{ color: '#FE7151' }}>
                   <Sparkles size={12} />
                   {isPersonalized
                     ? (lang === 'ar' ? 'مقترحة لك' : 'For You')
@@ -213,57 +220,120 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Switch & Save CTA */}
+      {/* Switch & Save CTA — brand lime (saving = success/fresh). */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-10 md:pb-14">
         <Link
           to="/switch"
           onClick={() => trackEvent('homepage_cta_clicked', { cta: 'switch_save' })}
-          className="relative flex items-center gap-4 rounded-2xl p-5 md:p-6 group page-hero overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/10"
+          className="relative flex items-center gap-4 rounded-2xl p-5 md:p-6 group overflow-hidden ob-card-elev transition-all hover:shadow-xl hover:-translate-y-0.5"
+          style={{ background: '#CFEB74' }}
         >
-          <div className="relative z-[2] shrink-0 w-12 h-12 rounded-xl bg-[var(--ob-icon)] text-[var(--ob-icon-text)] flex items-center justify-center group-hover:scale-110 transition-transform">
+          <div
+            className="absolute top-0 bottom-0 right-0 pointer-events-none"
+            style={{
+              width: '40%',
+              maxWidth: '320px',
+              backgroundImage: 'url(/patterns/wave-purple-medium.png)',
+              backgroundSize: 'auto 130%',
+              backgroundPosition: 'right center',
+              backgroundRepeat: 'no-repeat',
+              opacity: 0.20,
+              mixBlendMode: 'multiply',
+            }}
+          />
+          <div className="relative z-[2] shrink-0 w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform" style={{ background: '#16143A', color: '#CFEB74' }}>
             <Sparkles size={20} />
           </div>
           <div className="relative z-[2] flex-1 min-w-0">
-            <h3 className="font-heading font-bold text-base text-[var(--ob-text)]">
+            <h3 className="font-heading font-bold text-base text-[#16143A]">
               {t('switchSave.title')}
             </h3>
-            <p className="text-xs text-[var(--ob-text-soft)] mt-0.5">
+            <p className="text-xs text-[#16143A]/70 mt-0.5">
               {t('switchSave.homeCardDesc')}
             </p>
           </div>
-          <ArrowRight size={18} className="relative z-[2] text-[var(--ob-text-soft)] group-hover:text-[var(--ob-text)] shrink-0 rtl:rotate-180 transition-colors" />
+          <ArrowRight size={18} className="relative z-[2] text-[#16143A] shrink-0 rtl:rotate-180" />
         </Link>
       </div>
 
-      {/* Plan Finder CTA */}
+      {/* Plan Finder CTA — brand coral (popular/featured tool). */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-10 md:pb-14">
         <Link
           to="/advisor"
           onClick={() => trackEvent('homepage_cta_clicked', { cta: 'finder_banner' })}
-          className="relative block overflow-hidden rounded-2xl px-5 py-5 md:px-7 md:py-6 group page-hero hover:shadow-md transition-shadow"
+          className="relative block overflow-hidden rounded-2xl px-5 py-5 md:px-7 md:py-6 group ob-card-elev transition-all hover:shadow-xl hover:-translate-y-0.5"
+          style={{ background: '#FE7151' }}
         >
+          <div
+            className="absolute top-0 bottom-0 right-0 pointer-events-none"
+            style={{
+              width: '40%',
+              maxWidth: '320px',
+              backgroundImage: 'url(/patterns/wave-purple-medium.png)',
+              backgroundSize: 'auto 130%',
+              backgroundPosition: 'right center',
+              backgroundRepeat: 'no-repeat',
+              opacity: 0.22,
+              mixBlendMode: 'multiply',
+            }}
+          />
           <div className="relative z-[2] flex items-center gap-4 md:gap-5">
-            {/* Leading icon — replaces the redundant "30 seconds" pill */}
-            <div className="shrink-0 w-11 h-11 md:w-12 md:h-12 rounded-xl bg-[var(--ob-cta)] text-[var(--ob-cta-text)] flex items-center justify-center ob-cta-elev group-hover:scale-105 transition-transform">
+            <div className="shrink-0 w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform shadow-md" style={{ background: '#16143A', color: '#FE7151' }}>
               <Sparkles size={20} />
             </div>
 
-            {/* Title + subtitle stack */}
             <div className="flex-1 min-w-0">
-              <h2 className="font-heading font-bold text-base md:text-lg text-[var(--ob-text)] leading-tight">
+              <h2 className="font-heading font-bold text-base md:text-lg text-white leading-tight">
                 {t('finderCta.title')}
               </h2>
-              <p className="mt-0.5 text-[var(--ob-text-soft)] text-[13px] md:text-sm leading-snug">
+              <p className="mt-0.5 text-white/85 text-[13px] md:text-sm leading-snug">
                 {t('finderCta.subtitle')}
               </p>
             </div>
 
-            {/* Trailing chevron */}
             <ArrowRight
               size={18}
-              className="shrink-0 text-[var(--ob-text)] rtl:rotate-180 group-hover:translate-x-0.5 transition-transform"
+              className="shrink-0 text-white rtl:rotate-180 group-hover:translate-x-0.5 transition-transform"
             />
           </div>
+        </Link>
+      </div>
+
+      {/* ── Join the SOOB Community ── */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-12 md:pb-16">
+        <Link
+          to="/community"
+          onClick={() => trackEvent('homepage_cta_clicked', { cta: 'community' })}
+          className="relative flex items-center gap-4 overflow-hidden rounded-2xl ob-card-elev p-5 md:p-6 group transition-all hover:shadow-xl hover:-translate-y-0.5"
+          style={{ background: '#C59AFA' }}
+        >
+          <div
+            className="absolute top-0 bottom-0 right-0 pointer-events-none"
+            style={{
+              width: '40%',
+              maxWidth: '300px',
+              backgroundImage: 'url(/patterns/wave-purple-medium.png)',
+              backgroundSize: 'auto 130%',
+              backgroundPosition: 'right center',
+              backgroundRepeat: 'no-repeat',
+              opacity: 0.28,
+              mixBlendMode: 'multiply',
+            }}
+          />
+          <div className="relative z-[2] shrink-0 w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform shadow-md" style={{ background: '#16143A', color: '#FE7151' }}>
+            <Users size={20} />
+          </div>
+          <div className="relative z-[2] flex-1 min-w-0">
+            <h2 className="font-heading font-bold text-base md:text-lg text-[#16143A] leading-tight">
+              {lang === 'ar' ? 'انضم لمجتمع صوب' : 'Join SOOB Community'}
+            </h2>
+            <p className="mt-0.5 text-[#16143A]/75 text-[13px] md:text-sm leading-snug">
+              {lang === 'ar'
+                ? 'عروض حصرية، نصائح، ومحادثات مع المستخدمين.'
+                : 'Exclusive offers, tips, and conversations with other members.'}
+            </p>
+          </div>
+          <ArrowRight size={18} className="relative z-[2] shrink-0 text-[#16143A] rtl:rotate-180 group-hover:translate-x-0.5 transition-transform" />
         </Link>
       </div>
 
@@ -271,3 +341,4 @@ export default function HomePage() {
     </div>
   );
 }
+

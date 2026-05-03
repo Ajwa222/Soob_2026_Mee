@@ -3,14 +3,21 @@
 @import "@abdulrysr/saudi-riyal-new-symbol-font/style.css";
 
 @theme {
-  /* SOOB brand palette — deep navy + lavender + lime */
+  /* SOOB brand palette (from SOOB Identity book):
+   *   Navy     — ink / borders / primary text
+   *   Lavender — primary brand surface (heroes, primary CTAs)
+   *   Lime     — fresh accent (success, savings, "new", fast)
+   *   Coral    — warm accent (popular, hot, hearts/likes, urgency) */
   --color-primary: #16143A;
   --color-primary-light: #3F3A7A;
   --color-primary-dark: #0A0826;
-  --color-accent: #E0FF4F;
-  --color-accent-light: #F0FF99;
-  --color-tertiary: #B79EFF;
-  --color-tertiary-light: #DCCFFF;
+  --color-accent: #CFEB74;            /* brand lime */
+  --color-accent-light: #E5F4A8;
+  --color-tertiary: #C59AFA;          /* brand lavender */
+  --color-tertiary-light: #E1CDFC;
+  --color-coral: #FE7151;             /* brand coral */
+  --color-coral-light: #FF9A82;
+  --color-coral-dark: #E55A3D;
   --color-bg: #FAFAFA;
   --color-surface: #FFFFFF;
   --color-surface-alt: #F4F0FF;
@@ -59,6 +66,159 @@
 
 
 /* ============================================================
+ * SITE-WIDE ATLAS VIBE — applied when <html data-ot="A">
+ * Theme A ("Atlas Vibe") keeps the SOOB navy/lavender/lime palette
+ * and the existing wave patterns BUT swaps the visual language to
+ * the editorial sticker aesthetic:
+ *   - Cream paper bg with dotted-grid texture
+ *   - 2px solid navy borders on cards / buttons / inputs / chips
+ *   - Hard offset "sticker" shadows (no blur)
+ *   - Slightly tighter, more editorial type vibe
+ * Layouts, content, components — all unchanged. Pure skin layer.
+ * ============================================================ */
+[data-ot="A"] {
+  --color-bg: #FAF6E9;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F5F0DF;
+  --color-text-primary: #16143A;
+  --color-text-secondary: rgba(22, 20, 58, 0.72);
+  --color-text-tertiary: rgba(22, 20, 58, 0.55);
+  --color-border: #16143A;
+  --color-footer-bg: #16143A;
+
+  /* Atlas helper tokens (used by the override block below) */
+  --atlas-ink: #16143A;
+  --atlas-shadow-sm: 2px 2px 0 #16143A;
+  --atlas-shadow:    4px 4px 0 #16143A;
+  --atlas-shadow-lg: 6px 6px 0 #16143A;
+}
+
+/* Dotted-grid paper texture across the whole app body */
+[data-ot="A"] body {
+  background-color: var(--color-bg);
+  background-image: radial-gradient(circle, rgba(22, 20, 58, 0.10) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+/* Heavy borders + sticker shadows on every elevated surface ----------
+ * Targets the most common "card" patterns in the app. We use a higher-
+ * specificity selector ([data-ot="A"] ...) to win against the original
+ * Tailwind utility ordering without relying on !important. */
+[data-ot="A"] .ob-card-elev,
+[data-ot="A"] .bg-card,
+[data-ot="A"] [class*="rounded-2xl"][class*="bg-"]:not([class*="bg-transparent"]):not(input):not(button[class*="bg-card"]),
+[data-ot="A"] [class*="rounded-xl"][class*="bg-"]:not([class*="bg-transparent"]):not(input) {
+  border: 2px solid var(--atlas-ink);
+  box-shadow: var(--atlas-shadow);
+  transition: transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s cubic-bezier(.2,.7,.3,1);
+}
+
+[data-ot="A"] .ob-card-elev:hover,
+[data-ot="A"] .bg-card:hover,
+[data-ot="A"] [class*="rounded-2xl"][class*="bg-"]:hover:not(input):not(button) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--atlas-ink);
+}
+
+/* CTA elevation — replace soft glow with hard offset */
+[data-ot="A"] .ob-cta-elev {
+  box-shadow: var(--atlas-shadow);
+  border: 2px solid var(--atlas-ink);
+}
+
+/* Buttons — primary brand buttons get the sticker treatment */
+[data-ot="A"] button[class*="bg-primary"],
+[data-ot="A"] a[class*="bg-primary"],
+[data-ot="A"] button[class*="bg-\\[var\\(--ob-cta\\)\\]"] {
+  border: 2px solid var(--atlas-ink);
+  box-shadow: var(--atlas-shadow-sm);
+}
+[data-ot="A"] button[class*="bg-primary"]:hover,
+[data-ot="A"] a[class*="bg-primary"]:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--atlas-ink);
+}
+
+/* Inputs and search bars */
+[data-ot="A"] input[class*="bg-"],
+[data-ot="A"] textarea[class*="bg-"],
+[data-ot="A"] [class*="bg-input"] {
+  border: 2px solid var(--atlas-ink);
+  box-shadow: var(--atlas-shadow-sm);
+}
+
+/* Navigation bar — heavier border, no backdrop blur veil */
+[data-ot="A"] nav[class*="border-b"],
+[data-ot="A"] div[class*="border-b"][class*="bg-card"] {
+  border-bottom: 2px solid var(--atlas-ink);
+}
+
+/* Sticker rotation on uppercase pill badges (the "EVERYDAY", "FOR YOU"
+ * style eyebrows) — gives the Atlas hand-stuck feel. */
+[data-ot="A"] .atlas-sticker-tag,
+[data-ot="A"] [class*="uppercase"][class*="tracking-wider"][class*="bg-accent"],
+[data-ot="A"] [class*="uppercase"][class*="tracking-widest"][class*="bg-accent"] {
+  transform: rotate(-1.5deg);
+  border: 2px solid var(--atlas-ink);
+  box-shadow: var(--atlas-shadow-sm);
+}
+
+/* Section dashed dividers — apply to <hr> and <Separator> */
+[data-ot="A"] hr,
+[data-ot="A"] [role="separator"] {
+  border: 0;
+  border-top: 2px dashed rgba(22, 20, 58, 0.25);
+  background: transparent !important;
+}
+
+/* Footer — cream paper feel with dashed top border */
+[data-ot="A"] footer.bg-footer-bg {
+  background: var(--color-bg) !important;
+  color: var(--atlas-ink) !important;
+  border-top: 2px dashed var(--atlas-ink);
+}
+[data-ot="A"] footer.bg-footer-bg h4,
+[data-ot="A"] footer.bg-footer-bg p,
+[data-ot="A"] footer.bg-footer-bg a,
+[data-ot="A"] footer.bg-footer-bg span { color: var(--atlas-ink) !important; }
+[data-ot="A"] footer.bg-footer-bg .text-white\/40,
+[data-ot="A"] footer.bg-footer-bg .text-white\/35,
+[data-ot="A"] footer.bg-footer-bg .text-white\/25 { color: rgba(22, 20, 58, 0.65) !important; }
+[data-ot="A"] footer.bg-footer-bg .text-white\/70 { color: rgba(22, 20, 58, 0.85) !important; }
+
+/* Logo swap — show navy logo only when Atlas theme is active */
+.theme-atlas-only   { display: none; }
+.theme-atlas-hidden { display: block; }
+[data-ot="A"] .theme-atlas-only   { display: block; }
+[data-ot="A"] .theme-atlas-hidden { display: none; }
+
+/* Footer social icons — adapt to dark vs Atlas (cream) footer */
+.footer-social-btn {
+  background: rgba(255, 255, 255, 0.08);
+}
+.footer-social-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+.footer-social-icon {
+  color: rgba(255, 255, 255, 0.70);
+}
+.footer-social-btn:hover .footer-social-icon {
+  color: #FFFFFF;
+}
+[data-ot="A"] .footer-social-btn {
+  background: rgba(22, 20, 58, 0.08);
+}
+[data-ot="A"] .footer-social-btn:hover {
+  background: rgba(22, 20, 58, 0.16);
+}
+[data-ot="A"] .footer-social-icon {
+  color: rgba(22, 20, 58, 0.70);
+}
+[data-ot="A"] .footer-social-btn:hover .footer-social-icon {
+  color: #16143A;
+}
+
+/* ============================================================
  * SITE-WIDE DARK THEME — applied when <html data-ot="C">
  * Theme C ("Deep Night") becomes the dark mode for the entire app.
  * Inherits the same brand palette but flips bg/surface/text.
@@ -77,10 +237,13 @@
   --color-primary-light: rgba(255, 255, 255, 0.92);
   --color-primary-dark: rgba(255, 255, 255, 0.80);
   --color-primary-foreground: #16143A;
-  --color-accent: #E0FF4F;
-  --color-accent-light: #F0FF99;
-  --color-tertiary: #B79EFF;
-  --color-tertiary-light: #DCCFFF;
+  --color-accent: #CFEB74;
+  --color-accent-light: #E5F4A8;
+  --color-tertiary: #C59AFA;
+  --color-tertiary-light: #E1CDFC;
+  --color-coral: #FE7151;
+  --color-coral-light: #FF9A82;
+  --color-coral-dark: #E55A3D;
   --color-success: #34D399;
   --color-warning: #FBBF24;
   --color-error: #F87171;
@@ -300,7 +463,7 @@
    * CTAs are a step darker than the bg so they read as actionable
    * without breaking the monochrome palette.
    * --------------------------------------------------------------- */
-  --ob-bg: #B79EFF;
+  --ob-bg: #C59AFA;
   --ob-bg-image: url("/patterns/wave-purple-medium.png");
   --ob-bg-image-opacity: 0.55;
   --ob-bg-image-size: 720px;
@@ -360,10 +523,10 @@
   --ob-icon: #FFFFFF;
   --ob-icon-text: #16143A;
 
-  --ob-cta: #E0FF4F;
+  --ob-cta: #CFEB74;
   --ob-cta-text: #16143A;
-  --ob-cta-hover: #ECFF7A;
-  --ob-cta-shadow: 0 6px 20px -6px rgba(224, 255, 79, 0.35);
+  --ob-cta-hover: #DCEF92;
+  --ob-cta-shadow: 0 6px 20px -6px rgba(207, 235, 116, 0.35);
 
   --ob-bot-bubble: #16143A;
   --ob-user-bubble: #221E55;
@@ -389,7 +552,7 @@
  * absolute positioning below, so we don't need our own position rule. */
 .hero-gradient,
 .hero-gradient-lion {
-  background-color: var(--ob-bg, #B79EFF);
+  background-color: var(--ob-bg, #C59AFA);
 }
 .hero-gradient::before,
 .hero-gradient-lion::before {

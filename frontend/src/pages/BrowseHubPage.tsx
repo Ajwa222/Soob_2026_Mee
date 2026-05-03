@@ -97,7 +97,7 @@ export default function BrowseHubPage() {
           to={featured.href}
           onClick={() => trackEvent('browse_category_clicked', { category: featured.key })}
           className="group relative flex flex-col justify-between overflow-hidden rounded-2xl ob-card-elev hover:shadow-xl transition-all min-h-[200px] md:min-h-[240px] p-6 md:p-8"
-          style={{ backgroundColor: '#B79EFF' }}
+          style={{ backgroundColor: '#C59AFA' }}
         >
           {/* Wave anchored to the RIGHT edge as a corner accent — never
            * crosses past the title area. Matches the homepage cards. */}
@@ -131,32 +131,48 @@ export default function BrowseHubPage() {
           </div>
         </Link>
 
-        {/* Sub-grid: Internet + Vouchers */}
+        {/* Sub-grid: Internet + Vouchers — each on its own brand color */}
         <div className="grid grid-cols-2 gap-3 md:gap-4">
           {subs.map((cat) => {
             const Icon = cat.icon;
+            const tint = cat.key === 'internet'
+              ? { bg: '#CFEB74', wave: 0.18 }      // lime — fresh / fast (fiber)
+              : { bg: '#FE7151', wave: 0.20 };      // coral — warm / gift
             return (
               <Link
                 key={cat.key}
                 to={cat.href}
                 onClick={() => trackEvent('browse_category_clicked', { category: cat.key })}
-                className="group flex flex-col rounded-2xl bg-card border border-border ob-card-elev hover:shadow-lg transition-all p-5"
+                className="group relative flex flex-col overflow-hidden rounded-2xl ob-card-elev hover:shadow-lg transition-all p-5"
+                style={{ backgroundColor: tint.bg }}
               >
-                <Icon size={22} className="text-foreground/70" strokeWidth={2.2} />
-                <h3 className="font-heading font-bold text-base md:text-lg text-foreground leading-tight mt-3">
+                <div
+                  className="absolute top-0 bottom-0 right-0 pointer-events-none"
+                  style={{
+                    width: '55%',
+                    backgroundImage: 'url(/patterns/wave-purple-medium.png)',
+                    backgroundSize: 'auto 130%',
+                    backgroundPosition: 'left center',
+                    backgroundRepeat: 'no-repeat',
+                    opacity: tint.wave,
+                    mixBlendMode: 'multiply',
+                  }}
+                />
+                <Icon size={22} className="relative z-10 text-[#16143A]" strokeWidth={2.2} />
+                <h3 className="relative z-10 font-heading font-bold text-base md:text-lg text-[#16143A] leading-tight mt-3">
                   {cat.title[isAr ? 'ar' : 'en']}
                 </h3>
-                <p className="text-foreground/60 text-[12px] mt-1 leading-snug flex-1">
+                <p className="relative z-10 text-[#16143A]/75 text-[12px] mt-1 leading-snug flex-1">
                   {cat.tagline[isAr ? 'ar' : 'en']}
                 </p>
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-[10.5px] font-mono uppercase tracking-wider text-foreground/55">
-                    <strong className="text-foreground/80">{cat.count}</strong>{' '}
+                <div className="relative z-10 mt-3 flex items-center justify-between">
+                  <span className="text-[10.5px] font-mono uppercase tracking-wider text-[#16143A]/65">
+                    <strong className="text-[#16143A]">{cat.count}</strong>{' '}
                     {cat.countLabel[isAr ? 'ar' : 'en']}
                   </span>
                   <ArrowRight
                     size={16}
-                    className="text-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all rtl:rotate-180"
+                    className="text-[#16143A] group-hover:translate-x-0.5 transition-all rtl:rotate-180"
                   />
                 </div>
               </Link>

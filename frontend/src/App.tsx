@@ -8,7 +8,7 @@
  *  - Renders global UI: Navigation bar, Footer, CompareBar (sticky bottom), Onboarding modal, PhoneGate
  *  - Includes utility components: ScrollToTop (resets scroll on navigation) and AnalyticsTracker (page views + titles)
  */
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { trackPageView, registerSuperProperty } from './lib/analytics';
 import { LanguageProvider, useLang } from './context/LanguageContext';
@@ -20,6 +20,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import CompareBar from './components/CompareBar';
+import SupportButton from './components/SupportButton';
 import Onboarding from './components/Onboarding';
 import OnboardingChat from './components/OnboardingChat';
 import PhoneGate from './components/PhoneGate';
@@ -91,15 +92,17 @@ if (typeof window !== 'undefined') {
 
 /**
  * SOOB site-wide visual themes.
+ *   A — Atlas Vibe:      cream paper + dotted grid + heavy borders + sticker shadows
  *   B — Lavender Burst:  light, lavender hero + lime accents (default)
  *   C — Deep Night:      dark, navy field + white ink + lavender accents
  *
- * URL override: ?ot=B|C. Persists to localStorage.
+ * URL override: ?ot=A|B|C. Persists to localStorage.
  * Applied to <html data-ot="..."> so every page reskins.
  */
-type OnboardingThemeId = 'B' | 'C';
+type OnboardingThemeId = 'A' | 'B' | 'C';
 
 const ONBOARDING_THEME_LABELS: Record<OnboardingThemeId, string> = {
+  A: 'A · Atlas',
   B: 'B · Light',
   C: 'C · Dark',
 };
@@ -108,12 +111,12 @@ function pickOnboardingTheme(): OnboardingThemeId {
   if (typeof window === 'undefined') return 'B';
   const raw = new URLSearchParams(window.location.search).get('ot') ?? '';
   const cleaned = raw.trim().replace(/['"`]/g, '').toUpperCase();
-  if (cleaned === 'B' || cleaned === 'C') {
+  if (cleaned === 'A' || cleaned === 'B' || cleaned === 'C') {
     localStorage.setItem('soob-onboarding-theme', cleaned);
     return cleaned;
   }
   const stored = localStorage.getItem('soob-onboarding-theme');
-  if (stored === 'B' || stored === 'C') return stored;
+  if (stored === 'A' || stored === 'B' || stored === 'C') return stored;
   return 'B';
 }
 
@@ -151,7 +154,19 @@ function ChromeGate({ children }: { children: React.ReactNode }) {
 function VariantDevBadge() {
   const isDev = import.meta.env.DEV;
   const hasDebugParam = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1';
+  const [expanded, setExpanded] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('soob-dev-badge-expanded') === '1';
+  });
   if (!isDev && !hasDebugParam) return null;
+
+  const toggleExpanded = () => {
+    setExpanded((prev) => {
+      const next = !prev;
+      try { localStorage.setItem('soob-dev-badge-expanded', next ? '1' : '0'); } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   const currentVariant = localStorage.getItem('soob-onboarding-variant') ?? '?';
   const config = (currentVariant === 'A' || currentVariant === 'B' || currentVariant === 'C' || currentVariant === 'D')
@@ -195,31 +210,86 @@ function VariantDevBadge() {
     window.location.reload();
   };
 
+  // ── Collapsed: tiny chip pinned to the bottom-right showing the active flow + theme ──
+  if (!expanded) {
+    return (
+      <button
+        type="button"
+        onClick={toggleExpanded}
+        title="Open dev panel"
+        style={{
+          position: 'fixed',
+          // Bottom-left so it doesn't collide with the floating support FAB
+          // (bottom-right). Lifted above the mobile bottom-tab nav.
+          bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+          left: 12,
+          zIndex: 99999,
+          background: 'rgba(10,10,20,0.88)',
+          color: '#CFEB74',
+          border: '1px solid rgba(207,235,116,0.45)',
+          borderRadius: 999,
+          padding: '4px 10px',
+          fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.04em',
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+          backdropFilter: 'blur(6px)',
+        }}
+      >
+        DEV {currentVariant}·{currentTheme}
+      </button>
+    );
+  }
+
   return (
     <div
       style={{
         position: 'fixed',
-        bottom: 12,
-        right: 12,
+        // Bottom-left so the expanded panel doesn't cover the support FAB.
+        bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
+        left: 12,
         zIndex: 99999,
         background: 'rgba(10,10,20,0.92)',
-        color: '#E0FF4F',
-        borderRadius: 12,
-        padding: '10px 12px',
+        color: '#CFEB74',
+        borderRadius: 10,
+        padding: '6px 8px 8px',
         fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-        fontSize: 11,
-        lineHeight: 1.4,
+        fontSize: 10,
+        lineHeight: 1.3,
         boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
         backdropFilter: 'blur(6px)',
-        maxWidth: 280,
+        maxWidth: 230,
         display: 'flex',
         flexDirection: 'column',
-        gap: 8,
+        gap: 5,
       }}
     >
+      {/* Header with collapse */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontWeight: 700, fontSize: 9, letterSpacing: '0.05em', opacity: 0.7 }}>DEV</span>
+        <button
+          type="button"
+          onClick={toggleExpanded}
+          title="Collapse"
+          style={{
+            background: 'transparent',
+            color: '#CFEB74',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 14,
+            lineHeight: 1,
+            padding: '0 2px',
+            opacity: 0.7,
+          }}
+        >
+          ×
+        </button>
+      </div>
       <div>
-        <div style={{ fontWeight: 700, marginBottom: 4 }}>
-          Flow: {currentVariant} {config ? `· ${config.kind}${config.autoGuide ? ' · auto-guide' : ''}` : ''}
+        <div style={{ fontWeight: 700, marginBottom: 3, fontSize: 10 }}>
+          Flow: {currentVariant} {config ? `· ${config.kind}${config.autoGuide ? ' · auto' : ''}` : ''}
         </div>
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {(['A', 'B', 'C', 'D'] as OnboardingVariantId[]).map((v) => (
@@ -228,15 +298,16 @@ function VariantDevBadge() {
               onClick={() => switchVariant(v)}
               title={variantLabels[v]}
               style={{
-                background: currentVariant === v ? '#E0FF4F' : 'transparent',
-                color: currentVariant === v ? '#0A0A14' : '#E0FF4F',
-                border: '1px solid #E0FF4F',
-                borderRadius: 6,
-                padding: '3px 8px',
-                fontSize: 11,
+                background: currentVariant === v ? '#CFEB74' : 'transparent',
+                color: currentVariant === v ? '#0A0A14' : '#CFEB74',
+                border: '1px solid #CFEB74',
+                borderRadius: 5,
+                padding: '2px 6px',
+                fontSize: 10,
                 fontFamily: 'inherit',
                 fontWeight: 700,
                 cursor: 'pointer',
+                minWidth: 22,
               }}
             >
               {v}
@@ -244,26 +315,27 @@ function VariantDevBadge() {
           ))}
         </div>
       </div>
-      <div style={{ borderTop: '1px solid rgba(224,255,79,0.2)', paddingTop: 6 }}>
-        <div style={{ fontWeight: 700, marginBottom: 4 }}>
+      <div style={{ borderTop: '1px solid rgba(224,255,79,0.18)', paddingTop: 5 }}>
+        <div style={{ fontWeight: 700, marginBottom: 3, fontSize: 10 }}>
           Theme: {currentTheme} · {ONBOARDING_THEME_LABELS[currentTheme].split(' · ')[1]}
         </div>
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {(['B', 'C'] as OnboardingThemeId[]).map((t) => (
+          {(['A', 'B', 'C'] as OnboardingThemeId[]).map((t) => (
             <button
               key={t}
               onClick={() => switchTheme(t)}
               title={ONBOARDING_THEME_LABELS[t]}
               style={{
-                background: currentTheme === t ? '#B79EFF' : 'transparent',
-                color: currentTheme === t ? '#0A0A14' : '#B79EFF',
-                border: '1px solid #B79EFF',
-                borderRadius: 6,
-                padding: '3px 8px',
-                fontSize: 11,
+                background: currentTheme === t ? '#C59AFA' : 'transparent',
+                color: currentTheme === t ? '#0A0A14' : '#C59AFA',
+                border: '1px solid #C59AFA',
+                borderRadius: 5,
+                padding: '2px 6px',
+                fontSize: 10,
                 fontFamily: 'inherit',
                 fontWeight: 700,
                 cursor: 'pointer',
+                minWidth: 22,
               }}
             >
               {t}
@@ -271,34 +343,34 @@ function VariantDevBadge() {
           ))}
         </div>
       </div>
-      <div style={{ borderTop: '1px solid rgba(224,255,79,0.2)', paddingTop: 6, display: 'flex', gap: 4 }}>
+      <div style={{ borderTop: '1px solid rgba(224,255,79,0.18)', paddingTop: 5, display: 'flex', gap: 4 }}>
         <button
           onClick={skipOnboarding}
           style={{
             flex: 1,
             background: 'transparent',
-            color: '#E0FF4F',
-            border: '1px solid #E0FF4F',
-            borderRadius: 6,
-            padding: '3px 8px',
-            fontSize: 10,
+            color: '#CFEB74',
+            border: '1px solid rgba(207,235,116,0.55)',
+            borderRadius: 5,
+            padding: '2px 6px',
+            fontSize: 9.5,
             fontFamily: 'inherit',
             fontWeight: 700,
             cursor: 'pointer',
           }}
         >
-          Skip onboarding
+          Skip
         </button>
         <button
           onClick={replayOnboarding}
           style={{
             flex: 1,
             background: 'transparent',
-            color: '#E0FF4F',
-            border: '1px solid #E0FF4F',
-            borderRadius: 6,
-            padding: '3px 8px',
-            fontSize: 10,
+            color: '#CFEB74',
+            border: '1px solid rgba(207,235,116,0.55)',
+            borderRadius: 5,
+            padding: '2px 6px',
+            fontSize: 9.5,
             fontFamily: 'inherit',
             fontWeight: 700,
             cursor: 'pointer',
@@ -313,9 +385,13 @@ function VariantDevBadge() {
 
 // ── Lazy-loaded page components (each becomes a separate JS chunk) ──
 const HomePage = lazy(() => import('./pages/HomePage'));
+const HomeAtlasPage = lazy(() => import('./pages/HomeAtlasPage'));
 const PlansPage = lazy(() => import('./pages/PlansPage'));
 const PlanDetailPage = lazy(() => import('./pages/PlanDetailPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const OrdersPage = lazy(() => import('./pages/OrdersPage'));
+const SavedPlansPage = lazy(() => import('./pages/SavedPlansPage'));
+const OrdersVariations = lazy(() => import('./pages/OrdersVariations'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage'));
 const AdvisorPage = lazy(() => import('./pages/AdvisorPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
@@ -402,6 +478,7 @@ function App() {
                 {/* Main pages */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/home" element={<HomePage />} />
+                <Route path="/home-atlas" element={<HomeAtlasPage />} />
                 <Route path="/plans" element={<ExplorePage />} />
                 <Route path="/browse" element={<BrowseHubPage />} />
                 <Route path="/browse-variants" element={<BrowseHubVariations />} />
@@ -417,6 +494,9 @@ function App() {
                 <Route path="/compare" element={<ComparePage />} />
                 <Route path="/switch" element={<SwitchSavePage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/saved" element={<SavedPlansPage />} />
+                <Route path="/orders-variants" element={<OrdersVariations />} />
                 <Route path="/about" element={<AboutPage />} />
 
                 {/* Legacy redirects — old URLs that now point elsewhere */}
@@ -434,6 +514,7 @@ function App() {
             </main>
             <ChromeGate><Footer /></ChromeGate>
             <ChromeGate><CompareBar /></ChromeGate>
+            <ChromeGate><SupportButton /></ChromeGate>
           </div>
           <OnboardingVariant />
           <VariantDevBadge />

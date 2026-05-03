@@ -69,6 +69,7 @@ export default {
       sms: "SMS",
       unlimitedSocial: "Unlimited Social",
       social: "Social",
+      intl: "Intl mins",
       perks: "Extras",
     },
     compareBar: {

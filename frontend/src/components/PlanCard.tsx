@@ -8,7 +8,8 @@
  * Each card links to /plan/:id for full details.
  */
 import React from 'react';
-import { Wifi, Phone, MessageSquare, Share2, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle, Bookmark, Users } from 'lucide-react';
+import { Wifi, Phone, MessageSquare, Globe, Plus, Check, ThumbsUp, ThumbsDown, MessageCircle, Bookmark, Users } from 'lucide-react';
+import SocialIcons from './SocialIcons';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -95,10 +96,10 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
           {plan.planName}
         </h3>
 
-        {/* Price */}
+        {/* Price — coral on the number for visual pop (warm/eye-catching). */}
         <div className={`plan-price ${compact ? 'mt-1' : 'mt-2'} flex items-baseline gap-1`}>
           <SarSymbol className="text-sm font-medium text-muted-foreground" />
-          <span className={`${compact ? 'text-lg' : 'text-2xl sm:text-3xl'} font-heading font-extrabold text-foreground tracking-tight`}>
+          <span className={`${compact ? 'text-lg' : 'text-2xl sm:text-3xl'} font-heading font-extrabold tracking-tight`} style={{ color: '#FE7151' }}>
             {plan.priceSAR}
           </span>
           <span className="text-sm text-muted-foreground">{getBillingLabel(plan.contractTerms, t)}</span>
@@ -109,19 +110,35 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
         {/* Key metrics */}
         {(() => {
           const hasSocial = isValidValue(plan.socialMediaData) && plan.socialMediaData !== '-';
-          const metrics = [
-            { icon: Wifi, value: isValidValue(plan.dataGB) ? (plan.dataGB === 'Unlimited' ? t('detail.unlimited') : `${plan.dataGB} GB`) : '—', label: t('planCard.data') },
-            { icon: Phone, value: isValidValue(plan.localCallMinutes) ? (plan.localCallMinutes === 'Unlimited' ? t('detail.unlimited') : `${plan.localCallMinutes}`) : '—', label: t('planCard.mins') },
-            { icon: MessageSquare, value: isValidValue(plan.sms) && plan.sms !== '-' ? (plan.sms === 'Unlimited' ? t('detail.unlimited') : plan.sms) : '—', label: t('planCard.sms') },
-            ...(hasSocial ? [{ icon: Share2, value: plan.socialMediaData === 'Unlimited' ? t('detail.unlimited') : (/gb/i.test(plan.socialMediaData) ? plan.socialMediaData : `${plan.socialMediaData} GB`), label: t('planCard.social') }] : []),
+          const hasIntl = isValidValue(plan.internationalCallMinutes) && plan.internationalCallMinutes !== '-' && plan.internationalCallMinutes !== '0';
+          type Metric = {
+            key: string;
+            icon?: React.ComponentType<{ size?: number; className?: string }>;
+            customIcon?: React.ReactNode;
+            value: string;
+            label: string;
+          };
+          const metrics: Metric[] = [
+            { key: 'data', icon: Wifi, value: isValidValue(plan.dataGB) ? (plan.dataGB === 'Unlimited' ? t('detail.unlimited') : `${plan.dataGB} GB`) : '—', label: t('planCard.data') },
+            { key: 'mins', icon: Phone, value: isValidValue(plan.localCallMinutes) ? (plan.localCallMinutes === 'Unlimited' ? t('detail.unlimited') : `${plan.localCallMinutes}`) : '—', label: t('planCard.mins') },
+            { key: 'sms', icon: MessageSquare, value: isValidValue(plan.sms) && plan.sms !== '-' ? (plan.sms === 'Unlimited' ? t('detail.unlimited') : plan.sms) : '—', label: t('planCard.sms') },
+            ...(hasSocial ? [{
+              key: 'social',
+              customIcon: <SocialIcons size={compact ? 11 : 13} max={4} />,
+              value: plan.socialMediaData === 'Unlimited' ? t('detail.unlimited') : (/gb/i.test(plan.socialMediaData) ? plan.socialMediaData : `${plan.socialMediaData} GB`),
+              label: t('planCard.social'),
+            }] : []),
+            ...(hasIntl ? [{ key: 'intl', icon: Globe, value: plan.internationalCallMinutes === 'Unlimited' ? t('detail.unlimited') : plan.internationalCallMinutes, label: t('planCard.intl') }] : []),
           ];
+          // 3 metrics → 3 cols, 4 → 2 cols (2x2), 5 → 3 cols (2 rows of 3, last cell empty).
+          const colsClass = metrics.length === 3 ? 'grid-cols-3' : metrics.length === 4 ? 'grid-cols-2' : 'grid-cols-3';
           return (
-            <div className={`grid ${hasSocial ? 'grid-cols-2' : 'grid-cols-3'} gap-2 text-sm`}>
-              {metrics.map(({ icon: Icon, value, label }) => (
-                <div key={label} className={`flex flex-col items-center gap-1 ${compact ? 'py-1.5' : 'py-2.5'} px-1 rounded-xl bg-muted/50 dark:bg-muted/30 transition-colors`}>
-                  <Icon size={compact ? 12 : 14} className="text-primary" />
-                  <p className={`font-bold text-foreground ${compact ? 'text-[12px]' : 'text-[13px]'} leading-tight text-center`}>{value}</p>
-                  <p className="text-[11px] text-muted-foreground">{label}</p>
+            <div className={`grid ${colsClass} gap-2 text-sm`}>
+              {metrics.map((m) => (
+                <div key={m.key} className={`flex flex-col items-center gap-1 ${compact ? 'py-1.5' : 'py-2.5'} px-1 rounded-xl bg-muted/50 dark:bg-muted/30 transition-colors`}>
+                  {m.customIcon ?? (m.icon && <m.icon size={compact ? 12 : 14} className="text-primary" />)}
+                  <p className={`font-bold text-foreground ${compact ? 'text-[12px]' : 'text-[13px]'} leading-tight text-center break-words`}>{m.value}</p>
+                  <p className="text-[11px] text-muted-foreground text-center">{m.label}</p>
                 </div>
               ))}
             </div>
@@ -158,18 +175,25 @@ const PlanCard = React.memo(function PlanCard({ plan, style, compact, selected =
         <div className="flex-1" />
       </CardContent>
 
-      <CardFooter className={`gap-2 ${compact ? 'px-3.5 pb-2 pt-0' : 'px-5 pb-5'}`}>
-        <Button variant="secondary" size={compact ? 'sm' : 'default'} className={`flex-1 rounded-xl ${compact ? 'text-xs font-medium py-1' : 'font-semibold'}`} asChild>
-          <Link to={`/plan/${plan.id}${source ? `?source=${source}` : ''}`} onClick={() => { trackEvent('plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR, source }); onViewPlan?.(); }}>{t('planCard.viewDetails')}</Link>
+      <CardFooter className={`flex-nowrap gap-2 ${compact ? 'px-3.5 pb-2 pt-0' : 'px-5 pb-5'}`}>
+        <Button variant="secondary" size={compact ? 'sm' : 'default'} className={`flex-1 min-w-0 rounded-xl ${compact ? 'text-xs font-medium py-1' : 'font-semibold'}`} asChild>
+          <Link
+            to={`/plan/${plan.id}${source ? `?source=${source}` : ''}`}
+            onClick={() => { trackEvent('plan_card_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, price: plan.priceSAR, source }); onViewPlan?.(); }}
+            className="truncate"
+          >
+            {t('planCard.viewDetails')}
+          </Link>
         </Button>
         <Button
           variant={selected ? 'default' : 'outline'}
           size={compact ? 'sm' : 'default'}
           onClick={(e) => { e.preventDefault(); onToggleCompare?.(plan); }}
-          className={`rounded-xl ${compact ? 'text-xs font-medium py-1' : 'font-semibold'} ${selected ? 'shadow-md shadow-primary/20' : 'text-primary border-primary/30 hover:bg-primary/10'}`}
+          className={`shrink-0 rounded-xl px-3 ${compact ? 'text-xs font-medium py-1' : 'font-semibold'} ${selected ? 'shadow-md shadow-primary/20' : 'text-primary border-primary/30 hover:bg-primary/10'}`}
+          aria-label={selected ? t('planCard.selected') : t('planCard.compare')}
         >
           {selected ? <Check size={compact ? 13 : 15} /> : <Plus size={compact ? 13 : 15} />}
-          {selected ? t('planCard.selected') : t('planCard.compare')}
+          <span className="hidden min-[420px]:inline truncate">{selected ? t('planCard.selected') : t('planCard.compare')}</span>
         </Button>
       </CardFooter>
     </Card>

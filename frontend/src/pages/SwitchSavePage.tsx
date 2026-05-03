@@ -311,8 +311,8 @@ export default function SwitchSavePage() {
               </div>
 
               {results.length > 0 && (
-                <div className="flex items-center justify-center gap-3 bg-success/10 border border-success/20 rounded-xl px-4 py-2.5">
-                  <BadgeCheck size={18} className="text-success shrink-0" />
+                <div className="flex items-center justify-center gap-3 rounded-xl px-4 py-2.5" style={{ background: 'rgba(207, 235, 116, 0.22)', border: '1px solid rgba(207, 235, 116, 0.55)' }}>
+                  <BadgeCheck size={18} className="shrink-0" style={{ color: '#16143A' }} />
                   <p className="text-sm font-bold text-foreground">
                     {isAr ? `وفّر لين ${maxSaving} ريال/شهر` : `Save up to ${maxSaving} SAR/mo`}
                     <span className="text-muted-foreground font-normal"> · {isAr ? `${yearlySaving} ريال/سنة` : `${yearlySaving} SAR/yr`}</span>
@@ -334,7 +334,7 @@ export default function SwitchSavePage() {
                       className="relative shrink-0 snap-center flex flex-col w-[75%] max-w-[280px]"
                       onClick={() => trackEvent('switch_save_plan_clicked', { plan_id: plan.id, plan_name: plan.planName, provider: plan.provider, saving: Math.round((currentPrice - plan.priceSAR) * 100) / 100, position: idx + 1 })}
                     >
-                      <div className="absolute -top-3 start-3 z-10 bg-success text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
+                      <div className="absolute -top-3 start-3 z-10 text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm" style={{ background: '#CFEB74', color: '#16143A' }}>
                         -{Math.round((currentPrice - plan.priceSAR) * 100) / 100} SAR
                       </div>
                       <ConnectedPlanCard plan={plan} compact style={{ height: '100%' }} />

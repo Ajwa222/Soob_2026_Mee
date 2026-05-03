@@ -778,30 +778,38 @@ export default function PlansPage() {
           </div>
         </div>
 
-        {/* ========= FINDER CTA BANNER ========= */}
-        <div className="mt-16 relative overflow-hidden rounded-3xl p-8 md:p-12 text-center page-hero grain">
-          <WaveLines />
-          <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
-          <div className="absolute bottom-0 start-0 w-32 h-32 rounded-full bg-accent/[0.06] translate-y-1/3 -translate-x-1/3 blob-alt" />
-          <div className="relative z-10">
-            <Badge variant="secondary" className="gap-2 px-3 py-1 bg-secondary text-secondary-foreground border-0 text-xs font-semibold mb-4">
-              <Sparkles size={12} />
-              {t('home.just30Seconds')}
-            </Badge>
-            <h3 className="font-heading font-normal text-2xl md:text-3xl text-foreground tracking-tight">
+        {/* ========= FINDER CTA — coral, compact (matches homepage Smart Advisor card) ========= */}
+        <Link
+          to="/advisor"
+          className="mt-8 relative flex items-center gap-4 overflow-hidden rounded-2xl px-5 py-5 md:px-7 md:py-6 group ob-card-elev transition-all hover:shadow-xl hover:-translate-y-0.5"
+          style={{ background: '#FE7151' }}
+        >
+          <div
+            className="absolute top-0 bottom-0 right-0 pointer-events-none"
+            style={{
+              width: '40%',
+              maxWidth: '320px',
+              backgroundImage: 'url(/patterns/wave-purple-medium.png)',
+              backgroundSize: 'auto 130%',
+              backgroundPosition: 'right center',
+              backgroundRepeat: 'no-repeat',
+              opacity: 0.22,
+              mixBlendMode: 'multiply',
+            }}
+          />
+          <div className="relative z-[2] shrink-0 w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-md" style={{ background: '#16143A', color: '#FE7151' }}>
+            <Sparkles size={20} />
+          </div>
+          <div className="relative z-[2] flex-1 min-w-0">
+            <h3 className="font-heading font-bold text-base md:text-lg text-white leading-tight">
               {t('finderCta.title')}
             </h3>
-            <p className="text-foreground/50 mt-2 text-sm max-w-md mx-auto">
+            <p className="mt-0.5 text-white/85 text-[13px] md:text-sm leading-snug">
               {t('finderCta.subtitle')}
             </p>
-            <Button asChild className="mt-6 px-6 py-3 h-auto rounded-xl bg-card text-foreground font-bold text-sm hover:bg-white/90 shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300">
-              <Link to="/advisor">
-                {t('finderCta.cta')}
-                <ArrowRight size={16} className="rtl:rotate-180" />
-              </Link>
-            </Button>
           </div>
-        </div>
+          <ArrowRight size={18} className="relative z-[2] shrink-0 text-white rtl:rotate-180 group-hover:translate-x-0.5 transition-transform" />
+        </Link>
       </div>
       </div>
 

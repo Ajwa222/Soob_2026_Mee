@@ -282,9 +282,13 @@ function GuideStepUI({ stepIndex, steps, answers, setAnswers, onSubmit, t }: {
           <span className="text-[11px] text-muted-foreground font-medium">{stepIndicator}</span>
           <div className="flex gap-1">
             {Array.from({ length: totalSteps }).map((_, i) => (
-              <div key={i} className={`h-1 rounded-full transition-all duration-300 ${
-                i <= stepIndex ? 'w-5 bg-primary' : 'w-2 bg-border'
-              }`} />
+              <div
+                key={i}
+                className={`h-1 rounded-full transition-all duration-300 ${
+                  i <= stepIndex ? 'w-5' : 'w-2 bg-border'
+                }`}
+                style={i <= stepIndex ? { background: '#C59AFA' } : undefined}
+              />
             ))}
           </div>
         </div>
@@ -652,10 +656,11 @@ export default function AdvisorPage() {
             <div className="grid grid-cols-2 gap-3 max-w-[85%] md:max-w-[75%]">
               <button
                 onClick={() => handleQuickAction('guide')}
-                className="group flex flex-col items-center gap-2.5 rounded-2xl border-2 border-border bg-background p-5 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+                className="group flex flex-col items-center gap-2.5 rounded-2xl border-2 border-border bg-background p-5 text-center transition-all hover:shadow-lg cursor-pointer"
+                style={{ }}
               >
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
-                  <HelpCircle size={20} className="text-primary" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ background: 'rgba(197, 154, 250, 0.18)' }}>
+                  <HelpCircle size={20} style={{ color: '#16143A' }} />
                 </div>
                 <span className="font-medium text-sm text-foreground">{t('advisor.quickGuide')}</span>
                 <span className="text-[11px] text-muted-foreground leading-relaxed">
@@ -665,10 +670,10 @@ export default function AdvisorPage() {
 
               <button
                 onClick={() => handleQuickAction('direct')}
-                className="group flex flex-col items-center gap-2.5 rounded-2xl border-2 border-border bg-background p-5 text-center transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+                className="group flex flex-col items-center gap-2.5 rounded-2xl border-2 border-border bg-background p-5 text-center transition-all hover:shadow-lg cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
-                  <MessageSquareText size={20} className="text-primary" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ background: 'rgba(207, 235, 116, 0.30)' }}>
+                  <MessageSquareText size={20} style={{ color: '#16143A' }} />
                 </div>
                 <span className="font-medium text-sm text-foreground">{t('advisor.quickDirect')}</span>
                 <span className="text-[11px] text-muted-foreground leading-relaxed">

@@ -7,6 +7,7 @@
  * Also includes a search bar for keyword filtering across plan names and providers.
  */
 import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import {
   ChevronRight, GraduationCap, Globe2, Wifi, Phone,
@@ -38,10 +39,12 @@ const PRICE_MAX = 1000;
 const CARD_FULL_HEIGHT: React.CSSProperties = { height: '100%' };
 const MAX_PLANS_PER_CATEGORY = 15;
 
+// SOOB brand 3-color: prepaid → lime (fresh), postpaid → lavender (signature),
+// data-only → coral (premium/different). Replaces the old generic green/purple/orange.
 const TYPE_COLORS: Record<string, { active: string; bg: string; ring: string }> = {
-  Prepaid:     { active: '#059669', bg: '#10B98118', ring: '#10B98140' },
-  Postpaid:    { active: '#9333EA', bg: '#A855F718', ring: '#A855F740' },
-  'Data-only': { active: '#D97706', bg: '#F59E0B18', ring: '#F59E0B40' },
+  Prepaid:     { active: '#16143A', bg: 'rgba(207, 235, 116, 0.30)', ring: 'rgba(207, 235, 116, 0.55)' },
+  Postpaid:    { active: '#16143A', bg: 'rgba(197, 154, 250, 0.25)', ring: 'rgba(197, 154, 250, 0.55)' },
+  'Data-only': { active: '#FE7151', bg: 'rgba(254, 113, 81, 0.15)',  ring: 'rgba(254, 113, 81, 0.45)' },
 };
 
 interface CategoryDef {
@@ -198,12 +201,97 @@ function PlanRow({ id, plans, label, icon: Icon, description }: {
   );
 }
 
+// Persona-driven smart-search prompts. Each prompt has a category-key it
+// triggers when the user picks it. The `match` function also runs against
+// free-text search input — if any keyword fires, that filter is applied.
+type PersonaPrompt = {
+  id: string;
+  emoji: string;
+  en: string;
+  ar: string;
+  enDesc: string;               // longer description that explains the persona
+  arDesc: string;
+  category: string;             // matches CATEGORIES[].key
+  keywords: string[];           // free-text keywords that trigger this persona
+};
+
+const PERSONAS: PersonaPrompt[] = [
+  { id: 'student',    emoji: '🎓', en: 'Student on a budget',                category: 'students',
+    enDesc: 'Affordable plans under 120 SAR with at least 5 GB of data — perfect for university WiFi backup.',
+    ar: 'طالب بميزانية محدودة',
+    arDesc: 'باقات اقتصادية أقل من 120 ر.س مع 5 جيجا أو أكثر — مثالية كبديل لواي فاي الجامعة.',
+    keywords: ['student', 'school', 'university', 'طالب', 'جامعة'] },
+
+  { id: 'wfh',        emoji: '💻', en: 'Work from home',                     category: 'unlimited',
+    enDesc: 'Unlimited or high-data plans so video calls, downloads, and cloud apps never stutter.',
+    ar: 'العمل من المنزل',
+    arDesc: 'باقات لا محدودة أو ببيانات عالية لاجتماعات الفيديو والتطبيقات السحابية بدون انقطاع.',
+    keywords: ['work', 'home', 'office', 'unlimited', 'wfh', 'remote', 'بيانات', 'منزل', 'مكتب'] },
+
+  { id: 'expat',      emoji: '🌍', en: 'I call abroad often',                category: 'expats',
+    enDesc: 'Plans with international minutes or roaming bundles to stay in touch with family overseas.',
+    ar: 'أتصل دولياً كثيراً',
+    arDesc: 'باقات تشمل دقائق دولية أو تجوال للتواصل مع الأهل في الخارج.',
+    keywords: ['international', 'abroad', 'overseas', 'expat', 'roam', 'دولية', 'الخارج', 'تجوال'] },
+
+  { id: 'gamer',      emoji: '🎮', en: 'Gamer needing 5G',                   category: 'gamers',
+    enDesc: '5G-ready plans with 50+ GB so latency stays low and data lasts a full session.',
+    ar: 'لاعب يحتاج 5G',
+    arDesc: 'باقات تدعم 5G مع 50 جيجا أو أكثر لمستوى تأخير منخفض وبيانات تكفي جلسة كاملة.',
+    keywords: ['gamer', 'gaming', 'game', '5g', 'fast', 'ألعاب', 'سرعة'] },
+
+  { id: 'social',     emoji: '📱', en: 'Heavy social media user',            category: 'unlimited',
+    enDesc: 'Unlimited data so streaming TikTok, Instagram, and Snapchat all day never throttles.',
+    ar: 'مستخدم نشط للسوشل ميديا',
+    arDesc: 'بيانات لا محدودة لمشاهدة تيك توك وانستقرام وسناب طوال اليوم بدون توقّف.',
+    keywords: ['social', 'instagram', 'tiktok', 'snapchat', 'whatsapp', 'سوشل', 'تواصل'] },
+
+  { id: 'budget',     emoji: '💰', en: 'I want the cheapest plan',           category: 'budget',
+    enDesc: 'Plans under 85 SAR — minimum spend, just basics for calls, SMS, and a little data.',
+    ar: 'أبحث عن أرخص باقة',
+    arDesc: 'باقات أقل من 85 ر.س — أدنى إنفاق للمكالمات والرسائل وقليل من البيانات.',
+    keywords: ['budget', 'cheap', 'low cost', 'affordable', 'رخيص', 'اقتصادي', 'اقتصادية'] },
+
+  { id: 'datasim',    emoji: '📲', en: 'Data-only SIM',                      category: 'dataOnly',
+    enDesc: 'No calls or SMS — pure data for tablets, hotspots, IoT devices, or a second SIM.',
+    ar: 'شريحة بيانات فقط',
+    arDesc: 'بدون مكالمات أو رسائل — بيانات فقط للأجهزة اللوحية أو الهوت سبوت أو شريحة ثانية.',
+    keywords: ['data-only', 'data only', 'tablet', 'hotspot', 'router', 'بيانات فقط', 'هوت سبوت'] },
+
+  { id: 'callsLot',   emoji: '☎️',  en: 'I make a lot of local calls',        category: 'localCalls',
+    enDesc: 'Plans with 500+ local minutes for people who still talk more than they scroll.',
+    ar: 'أتصل محلياً كثيراً',
+    arDesc: 'باقات تشمل 500 دقيقة محلية أو أكثر لمن يتحدّث أكثر من تصفّحه.',
+    keywords: ['call', 'calling', 'minutes', 'mins', 'اتصال', 'مكالمات', 'دقائق'] },
+];
+
 export default function ExplorePage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { plans: PLANS_DATA } = usePlans();
 
   /* ---- filter state ---- */
   const [search, setSearch] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [searchRect, setSearchRect] = useState<{ top: number; left: number; width: number } | null>(null);
+
+  // Recompute the dropdown position any time it opens or the viewport changes.
+  useEffect(() => {
+    if (!searchFocused) return;
+    const recompute = () => {
+      const el = searchInputRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setSearchRect({ top: r.bottom + 8, left: r.left, width: r.width });
+    };
+    recompute();
+    window.addEventListener('resize', recompute);
+    window.addEventListener('scroll', recompute, true);
+    return () => {
+      window.removeEventListener('resize', recompute);
+      window.removeEventListener('scroll', recompute, true);
+    };
+  }, [searchFocused]);
   const [selectedCarriers, setSelectedCarriers] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState([0, PRICE_MAX]);
@@ -236,9 +324,38 @@ export default function ExplorePage() {
     setActiveCategory(null);
   }, []);
 
-  const hasActiveFilters = search || selectedCarriers.length > 0 || selectedTypes.length > 0 ||
+  // Free-text `search` is intentionally excluded — it doesn't filter; it's a
+  // smart-prompt input that activates a category via applySmartFilter().
+  const hasActiveFilters = selectedCarriers.length > 0 || selectedTypes.length > 0 ||
     priceRange[0] > 0 || priceRange[1] < PRICE_MAX ||
     dataFilter !== 'any' || localCallsFilter !== 'any' || intlCallsFilter !== null || socialFilter !== null || fiveGFilter || activeCategory !== null;
+
+  // Smart filter: pick a persona prompt OR run keyword match against free text.
+  // Resets prior filters then activates the persona's category so the user
+  // sees only matching plans immediately.
+  const applySmartFilter = useCallback((text: string, persona?: PersonaPrompt) => {
+    const matched = persona ?? PERSONAS.find(p => {
+      const lower = text.trim().toLowerCase();
+      if (!lower) return false;
+      return p.keywords.some(k => lower.includes(k.toLowerCase()));
+    });
+    // Always reflect the input
+    setSearch(persona ? (lang === 'ar' ? persona.ar : persona.en) : text);
+    if (matched) {
+      // Reset orthogonal filters before applying the persona's category
+      setSelectedCarriers([]);
+      setSelectedTypes([]);
+      setPriceRange([0, PRICE_MAX]);
+      setDataFilter('any');
+      setLocalCallsFilter('any');
+      setIntlCallsFilter(null);
+      setSocialFilter(null);
+      setFiveGFilter(false);
+      setActiveCategory(matched.category);
+      trackEvent('smart_search_applied', { persona: matched.id, source: persona ? 'pick' : 'typed' });
+    }
+    setSearchFocused(false);
+  }, [lang]);
 
   const dataOptions = [
     { key: 'any', label: t('browse.anyData') },
@@ -259,17 +376,15 @@ export default function ExplorePage() {
     { key: 'yes', label: t('explore.yes') },
   ];
 
-  /* ---- apply global filters then split into categories ---- */
+  /* ---- apply global filters then split into categories ----
+   *  Note: free-text `search` is NOT applied here as a name filter on purpose.
+   *  The search box is a smart-search prompt — typing populates the dropdown
+   *  with persona suggestions; selecting one (or pressing Enter) calls
+   *  applySmartFilter() which sets `activeCategory`. We don't narrow by plan
+   *  name because that gives confusing results (e.g. typing "plan" matched
+   *  every card). Use the carrier chips to filter by carrier name instead. */
   const categoryData = useMemo(() => {
     let base = [...PLANS_DATA];
-
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      base = base.filter(p =>
-        p.planName.toLowerCase().includes(q) ||
-        p.provider.toLowerCase().includes(q)
-      );
-    }
     if (selectedCarriers.length > 0) {
       base = base.filter(p => selectedCarriers.includes(p.provider));
     }
@@ -324,7 +439,7 @@ export default function ExplorePage() {
       const plans = base.filter(cat.filter).slice(0, MAX_PLANS_PER_CATEGORY);
       return { ...cat, plans };
     });
-  }, [PLANS_DATA, search, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, fiveGFilter, CATEGORIES]);
+  }, [PLANS_DATA, selectedCarriers, selectedTypes, priceRange, dataFilter, localCallsFilter, intlCallsFilter, socialFilter, fiveGFilter, CATEGORIES]);
 
   const visibleCategories = activeCategory
     ? categoryData.filter(c => c.key === activeCategory)
@@ -565,14 +680,18 @@ export default function ExplorePage() {
 
           {/* Search + mobile filter toggle */}
           <div className="flex items-start gap-3 mt-4">
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 relative">
               <div className="relative">
                 <Search size={18} className="absolute top-1/2 -translate-y-1/2 start-4 text-foreground/50 z-10" />
                 <Input
+                  ref={searchInputRef}
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder={t('browse.searchPlaceholder')}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') applySmartFilter(search); }}
+                  placeholder={lang === 'ar' ? 'مثل: أنا طالب وأبحث عن باقة اقتصادية…' : "Try: I'm a student looking for a budget plan…"}
                   className="w-full ps-11 pe-4 py-3 h-auto rounded-xl bg-card border-border text-sm text-foreground
                     placeholder:text-foreground/40 focus-visible:ring-primary/30 focus-visible:border-primary shadow-sm"
                 />
@@ -760,29 +879,38 @@ export default function ExplorePage() {
             </div>
           </div>
 
-          {/* ========= FINDER CTA BANNER ========= */}
-          <div className="mt-16 relative overflow-hidden rounded-3xl p-8 md:p-12 text-center page-hero grain">
-            <WaveLines />
-            <div className="absolute top-0 end-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/3 translate-x-1/3 blob" />
-            <div className="relative z-10">
-              <Badge variant="secondary" className="gap-2 px-3 py-1 bg-secondary text-secondary-foreground border-0 text-xs font-semibold mb-4">
-                <Sparkles size={12} />
-                {t('home.just30Seconds')}
-              </Badge>
-              <h3 className="font-heading font-normal text-2xl md:text-3xl text-foreground tracking-tight">
+          {/* ========= FINDER CTA — coral, compact ========= */}
+          <Link
+            to="/advisor"
+            className="mt-8 relative flex items-center gap-4 overflow-hidden rounded-2xl px-5 py-5 md:px-7 md:py-6 group ob-card-elev transition-all hover:shadow-xl hover:-translate-y-0.5"
+            style={{ background: '#FE7151' }}
+          >
+            <div
+              className="absolute top-0 bottom-0 right-0 pointer-events-none"
+              style={{
+                width: '40%',
+                maxWidth: '320px',
+                backgroundImage: 'url(/patterns/wave-purple-medium.png)',
+                backgroundSize: 'auto 130%',
+                backgroundPosition: 'right center',
+                backgroundRepeat: 'no-repeat',
+                opacity: 0.22,
+                mixBlendMode: 'multiply',
+              }}
+            />
+            <div className="relative z-[2] shrink-0 w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-md" style={{ background: '#16143A', color: '#FE7151' }}>
+              <Sparkles size={20} />
+            </div>
+            <div className="relative z-[2] flex-1 min-w-0">
+              <h3 className="font-heading font-bold text-base md:text-lg text-white leading-tight">
                 {t('finderCta.title')}
               </h3>
-              <p className="text-foreground/50 mt-2 text-sm max-w-md mx-auto">
+              <p className="mt-0.5 text-white/85 text-[13px] md:text-sm leading-snug">
                 {t('finderCta.subtitle')}
               </p>
-              <Button asChild className="mt-6 px-6 py-3 h-auto rounded-xl bg-card text-foreground font-bold text-sm hover:bg-white/90 shadow-lg shadow-black/10 glow-primary hover:shadow-xl transition-all duration-300">
-                <Link to="/advisor">
-                  {t('finderCta.cta')}
-                  <ArrowRight size={16} className="rtl:rotate-180" />
-                </Link>
-              </Button>
             </div>
-          </div>
+            <ArrowRight size={18} className="relative z-[2] shrink-0 text-white rtl:rotate-180 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
         </div>
       </div>
 
@@ -811,6 +939,66 @@ export default function ExplorePage() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* ── Smart-search dropdown (portal so it escapes any overflow:hidden parent) ── */}
+      {searchFocused && searchRect && createPortal(
+        <div
+          className="fixed z-[200] rounded-xl border border-border/60 shadow-xl overflow-hidden backdrop-blur-md"
+          style={{
+            top: searchRect.top,
+            left: searchRect.left,
+            width: searchRect.width,
+            maxHeight: 'calc(100vh - 180px)',
+            background: 'rgba(var(--card-rgb, 255 255 255) / 0.78)',
+            backgroundColor: 'color-mix(in srgb, var(--color-card) 78%, transparent)',
+          }}
+        >
+          <div className="px-3 pt-2 pb-1.5 flex items-center gap-1.5 border-b border-border/40">
+            <Sparkles size={11} style={{ color: '#FE7151' }} />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/60">
+              {lang === 'ar' ? 'اختر ما يصفك' : 'Pick what describes you'}
+            </span>
+          </div>
+          <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 240px)' }}>
+            {PERSONAS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applySmartFilter('', p)}
+                className="w-full flex items-start gap-2.5 px-3 py-2 text-start hover:bg-secondary/40 transition-colors border-b border-border/25 last:border-0"
+              >
+                <span className="text-[15px] shrink-0 mt-0.5">{p.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-heading font-bold text-[12.5px] text-foreground leading-tight">
+                    {lang === 'ar' ? p.ar : p.en}
+                  </div>
+                  <div className="text-[10.5px] text-foreground/55 mt-0.5 leading-snug line-clamp-2">
+                    {lang === 'ar' ? p.arDesc : p.enDesc}
+                  </div>
+                </div>
+                <ArrowRight size={12} className="shrink-0 mt-1 text-foreground/30 rtl:rotate-180" />
+              </button>
+            ))}
+          </div>
+          {search.trim() && (
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => applySmartFilter(search)}
+              className="w-full flex items-center gap-2 px-3 py-2 border-t border-border/40 hover:bg-secondary/40 transition-colors"
+              style={{ background: 'rgba(254, 113, 81, 0.10)' }}
+            >
+              <Sparkles size={12} style={{ color: '#FE7151' }} />
+              <span className="flex-1 text-[11.5px] text-foreground text-start">
+                {lang === 'ar' ? `بحث ذكي: "${search}"` : `Smart-search: "${search}"`}
+              </span>
+              <ArrowRight size={12} className="shrink-0 text-foreground/40 rtl:rotate-180" />
+            </button>
+          )}
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

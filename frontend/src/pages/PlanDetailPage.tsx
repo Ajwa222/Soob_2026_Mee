@@ -82,7 +82,8 @@ export default function PlanDetailPage() {
   const [authStep, setAuthStep] = useState<AuthStep>('choose');
   const [authKind, setAuthKind] = useState<'phone' | 'email'>('phone');
   const [authContact, setAuthContact] = useState('');
-  const [authName, setAuthName] = useState('');
+  const [authFirstName, setAuthFirstName] = useState('');
+  const [authLastName, setAuthLastName] = useState('');
   const [authOtp, setAuthOtp] = useState<string[]>(['', '', '', '']);
   const authOtpRefs = useRef<Array<HTMLInputElement | null>>([null, null, null, null]);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -92,7 +93,8 @@ export default function PlanDetailPage() {
     setAuthStep('choose');
     setAuthKind('phone');
     setAuthContact('');
-    setAuthName('');
+    setAuthFirstName('');
+    setAuthLastName('');
     setAuthOtp(['', '', '', '']);
     setAuthError(null);
   };
@@ -104,7 +106,9 @@ export default function PlanDetailPage() {
     return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
   })();
   const authOtpComplete = authOtp.every((d) => d.length === 1);
-  const authNameValid = authMode === 'signin' || authName.trim().length >= 2;
+  const authNameValid =
+    authMode === 'signin' ||
+    (authFirstName.trim().length >= 2 && authLastName.trim().length >= 2);
 
   const handleAuthOtpChange = (i: number, v: string) => {
     if (!/^\d?$/.test(v)) return;
@@ -166,7 +170,10 @@ export default function PlanDetailPage() {
   const handleOtpVerifyAndBuy = async () => {
     setAuthError(null);
     try {
-      await loginWithOtp(authKind, authContact.trim(), authName.trim() || undefined);
+      const fullName = authMode === 'signup'
+        ? `${authFirstName.trim()} ${authLastName.trim()}`.trim()
+        : undefined;
+      await loginWithOtp(authKind, authContact.trim(), fullName);
       proceedAfterAuth();
     } catch {
       setAuthError('Verification failed. Try again.');
@@ -198,6 +205,36 @@ export default function PlanDetailPage() {
   const [pickedNumber, setPickedNumber] = useState<string | null>(null);
   const [simType, setSimType] = useState<SimType | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [discountInput, setDiscountInput] = useState('');
+  const [discountApplied, setDiscountApplied] = useState<{ code: string; percent: number } | null>(null);
+  const [discountError, setDiscountError] = useState<string | null>(null);
+
+  // Mock promo codes — replace with backend validation when wired up.
+  const PROMO_CODES: Record<string, number> = {
+    SOOB10: 10,
+    WELCOME20: 20,
+    FRIEND15: 15,
+  };
+
+  const applyDiscount = () => {
+    const code = discountInput.trim().toUpperCase();
+    if (!code) return;
+    const percent = PROMO_CODES[code];
+    if (percent) {
+      setDiscountApplied({ code, percent });
+      setDiscountError(null);
+      trackEvent('plan_purchase_discount_applied', { plan_id: plan?.id, code, percent });
+    } else {
+      setDiscountApplied(null);
+      setDiscountError(lang === 'ar' ? 'رمز الخصم غير صالح' : 'Invalid discount code');
+    }
+  };
+
+  const removeDiscount = () => {
+    setDiscountApplied(null);
+    setDiscountInput('');
+    setDiscountError(null);
+  };
 
   const generateNumbers = (count = 6): string[] => {
     const prefixes = ['050', '055', '054', '056', '058'];
@@ -224,6 +261,9 @@ export default function PlanDetailPage() {
     setPickedNumber(null);
     setSimType(null);
     setPaymentMethod(null);
+    setDiscountInput('');
+    setDiscountApplied(null);
+    setDiscountError(null);
   };
 
   const startPurchase = () => {
@@ -386,18 +426,22 @@ export default function PlanDetailPage() {
               {plan.planName}
             </h1>
             <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={isLoggedIn ? toggleLike : loginWithGoogle}
-                aria-label="Like this plan"
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 h-8 text-xs font-semibold transition-colors ${
-                  user && reaction.likedBy.includes(user.uid)
-                    ? 'bg-green-500/15 text-green-600 ring-1 ring-green-500/30'
-                    : 'bg-muted text-muted-foreground hover:bg-green-500/10 hover:text-green-600'
-                }`}
-              >
-                <ThumbsUp size={14} />
-                <span className="tabular-nums">{Math.max(0, reaction.likes)}</span>
-              </button>
+              {(() => {
+                const isLiked = user ? reaction.likedBy.includes(user.uid) : false;
+                return (
+                  <button
+                    onClick={isLoggedIn ? toggleLike : loginWithGoogle}
+                    aria-label="Like this plan"
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 h-8 text-xs font-semibold transition-colors ${
+                      isLiked ? '' : 'bg-muted text-muted-foreground hover:bg-[rgba(254,113,81,0.10)] hover:text-[#FE7151]'
+                    }`}
+                    style={isLiked ? { background: 'rgba(254, 113, 81, 0.15)', color: '#FE7151', boxShadow: '0 0 0 1px rgba(254, 113, 81, 0.35) inset' } : undefined}
+                  >
+                    <ThumbsUp size={14} />
+                    <span className="tabular-nums">{Math.max(0, reaction.likes)}</span>
+                  </button>
+                );
+              })()}
               <button
                 onClick={isLoggedIn ? toggleDislike : loginWithGoogle}
                 aria-label="Dislike this plan"
@@ -443,11 +487,11 @@ export default function PlanDetailPage() {
           const todayCount = 2 + (seed % 12);            // 2–13
           const avatars = ['A', 'N', 'M', 'S', 'K'];
           const avatarTints = [
-            'bg-[#B79EFF] text-[#16143A]',
-            'bg-[#E0FF4F] text-[#16143A]',
+            'bg-[#C59AFA] text-[#16143A]',
+            'bg-[#CFEB74] text-[#16143A]',
+            'bg-[#FE7151] text-white',
             'bg-[#16143A] text-white',
             'bg-[#9B7DEE] text-[#16143A]',
-            'bg-[#FFE8B8] text-[#16143A]',
           ];
           return (
             <Card className="ob-card-elev overflow-hidden mb-5">
@@ -519,12 +563,12 @@ export default function PlanDetailPage() {
 
         {/* ========= TRANSPARENCY (variation 3) ========= */}
         <div className="mt-5 flex flex-col gap-3">
-          {/* What you get — green */}
-          <Card className="ob-card-elev overflow-hidden border-l-4 border-l-green-500/70">
+          {/* What you get — brand lime (success, included) */}
+          <Card className="ob-card-elev overflow-hidden border-l-4" style={{ borderLeftColor: '#CFEB74' }}>
             <CardContent className="p-5">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-full bg-green-500/15 flex items-center justify-center">
-                  <CheckCircle2 size={16} className="text-green-600" />
+                <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(207, 235, 116, 0.30)' }}>
+                  <CheckCircle2 size={16} style={{ color: '#16143A' }} />
                 </div>
                 <h3 className="font-heading font-bold text-sm text-foreground">
                   {lang === 'ar' ? 'ما تحصل عليه' : 'What you get'}
@@ -533,7 +577,7 @@ export default function PlanDetailPage() {
               <ul className="space-y-2 text-[13px] text-foreground/85 leading-relaxed">
                 {/* Data — handle Unlimited / GB / MB cleanly */}
                 <li className="flex gap-2">
-                  <span className="text-green-600 shrink-0 mt-0.5">✓</span>
+                  <span className="shrink-0 mt-0.5" style={{ color: '#16143A' }}>✓</span>
                   <span>
                     <strong>
                       {plan.dataGB === 'Unlimited'
@@ -547,7 +591,7 @@ export default function PlanDetailPage() {
                 {/* Local mins — handle Unlimited */}
                 {isValidValue(plan.localCallMinutes) && (
                   <li className="flex gap-2">
-                    <span className="text-green-600 shrink-0 mt-0.5">✓</span>
+                    <span className="shrink-0 mt-0.5" style={{ color: '#16143A' }}>✓</span>
                     <span>
                       <strong>
                         {plan.localCallMinutes === 'Unlimited'
@@ -564,7 +608,7 @@ export default function PlanDetailPage() {
                 {/* International mins */}
                 {isValidValue(plan.internationalCallMinutes) && (
                   <li className="flex gap-2">
-                    <span className="text-green-600 shrink-0 mt-0.5">✓</span>
+                    <span className="shrink-0 mt-0.5" style={{ color: '#16143A' }}>✓</span>
                     <span>
                       <strong>{plan.internationalCallMinutes}</strong>{' '}
                       {lang === 'ar' ? 'دقائق دولية' : 'international minutes'}
@@ -572,22 +616,47 @@ export default function PlanDetailPage() {
                   </li>
                 )}
 
-                {/* Social apps */}
+                {/* Social apps — show brand icons + names so it's instantly clear which platforms are covered */}
                 {isValidValue(plan.socialMediaData) && (
                   <li className="flex gap-2">
-                    <span className="text-green-600 shrink-0 mt-0.5">✓</span>
-                    <span>
-                      {lang === 'ar' ? 'تطبيقات تواصل مجانية: ' : 'Free social apps: '}
-                      <strong>WhatsApp, Instagram, TikTok, Snapchat</strong>{' '}
-                      {lang === 'ar' ? '(لا تُحسب من باقتك)' : "(don't count against your data)"}
-                    </span>
+                    <span className="shrink-0 mt-0.5" style={{ color: '#16143A' }}>✓</span>
+                    <div className="min-w-0">
+                      <div>
+                        {lang === 'ar' ? 'تطبيقات تواصل مجانية' : 'Free social apps'}{' '}
+                        <span className="text-foreground/60">
+                          {lang === 'ar' ? '(لا تُحسب من باقتك)' : "(don't count against your data)"}
+                        </span>
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {[
+                          { name: 'WhatsApp',  bg: '#25D366', initial: 'W' },
+                          { name: 'Instagram', bg: '#E4405F', initial: 'I' },
+                          { name: 'TikTok',    bg: '#000000', initial: 'T' },
+                          { name: 'Snapchat',  bg: '#FFFC00', initial: 'S', fg: '#16143A' },
+                          { name: 'X',         bg: '#000000', initial: '𝕏' },
+                        ].map(p => (
+                          <span
+                            key={p.name}
+                            className="inline-flex items-center gap-1.5 rounded-full pe-2.5 ps-1 py-0.5 border border-border bg-card"
+                          >
+                            <span
+                              className="w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold"
+                              style={{ background: p.bg, color: p.fg ?? '#fff' }}
+                            >
+                              {p.initial}
+                            </span>
+                            <span className="text-[12px] font-semibold text-foreground">{p.name}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </li>
                 )}
 
                 {/* Contract / validity — pulled from spec table */}
                 {isValidValue(plan.contractTerms) && (
                   <li className="flex gap-2">
-                    <span className="text-green-600 shrink-0 mt-0.5">✓</span>
+                    <span className="shrink-0 mt-0.5" style={{ color: '#16143A' }}>✓</span>
                     <span>
                       <strong>{plan.contractTerms}</strong>{' '}
                       {lang === 'ar' ? 'مدة العقد / الصلاحية' : 'contract / validity'}
@@ -598,7 +667,7 @@ export default function PlanDetailPage() {
                 {/* Special features */}
                 {hasFeatures && (
                   <li className="flex gap-2">
-                    <span className="text-green-600 shrink-0 mt-0.5">✓</span>
+                    <span className="shrink-0 mt-0.5" style={{ color: '#16143A' }}>✓</span>
                     <span>{plan.specialFeatures}</span>
                   </li>
                 )}
@@ -606,12 +675,12 @@ export default function PlanDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Before you buy — 3 things to know — blue */}
-          <Card className="ob-card-elev overflow-hidden border-l-4 border-l-blue-500/70">
+          {/* Before you buy — brand coral (warning, attention) */}
+          <Card className="ob-card-elev overflow-hidden border-l-4" style={{ borderLeftColor: '#FE7151' }}>
             <CardContent className="p-5">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-full bg-blue-500/15 flex items-center justify-center">
-                  <Info size={16} className="text-blue-600" />
+                <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(254, 113, 81, 0.18)' }}>
+                  <Info size={16} style={{ color: '#FE7151' }} />
                 </div>
                 <h3 className="font-heading font-bold text-sm text-foreground">
                   {lang === 'ar' ? 'قبل الشراء — 3 أشياء يجب معرفتها' : 'Before you buy — 3 things to know'}
@@ -928,46 +997,43 @@ export default function PlanDetailPage() {
           {/* ── STEP 1 ── Variant A: clean log-in form, sign-up as a small link, Google at the bottom */}
           {authStep === 'choose' && (
             <div className="mt-1">
-              {/* Name field — sign-up mode only (revealed when user clicks the link below) */}
+              {/* Name fields — sign-up mode only (revealed when user clicks the link below) */}
               {authMode === 'signup' && (
-                <div className="mb-3">
-                  <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
-                    {lang === 'ar' ? 'الاسم' : 'Name'}
-                  </label>
-                  <Input
-                    value={authName}
-                    onChange={(e) => setAuthName(e.target.value)}
-                    placeholder={lang === 'ar' ? 'اسمك' : 'Your name'}
-                    className="bg-card"
-                  />
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                      {lang === 'ar' ? 'الاسم الأول' : 'First name'}
+                    </label>
+                    <Input
+                      value={authFirstName}
+                      onChange={(e) => setAuthFirstName(e.target.value)}
+                      placeholder={lang === 'ar' ? 'محمد' : 'Mohammed'}
+                      autoComplete="given-name"
+                      className="bg-card"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                      {lang === 'ar' ? 'اسم العائلة' : 'Last name'}
+                    </label>
+                    <Input
+                      value={authLastName}
+                      onChange={(e) => setAuthLastName(e.target.value)}
+                      placeholder={lang === 'ar' ? 'العتيبي' : 'Al-Otaibi'}
+                      autoComplete="family-name"
+                      className="bg-card"
+                    />
+                  </div>
                 </div>
               )}
 
-              {/* Phone / Email switch */}
-              <div className="grid grid-cols-2 gap-2 mb-2">
-                <button
-                  onClick={() => { setAuthKind('phone'); setAuthContact(''); }}
-                  className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all border-2 ${
-                    authKind === 'phone'
-                      ? 'border-[var(--ob-cta)] bg-[var(--ob-cta)]/10 text-foreground'
-                      : 'border-border bg-card text-foreground/65'
-                  }`}
-                >
-                  <Phone size={13} /> {lang === 'ar' ? 'جوال' : 'Phone'}
-                </button>
-                <button
-                  onClick={() => { setAuthKind('email'); setAuthContact(''); }}
-                  className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all border-2 ${
-                    authKind === 'email'
-                      ? 'border-[var(--ob-cta)] bg-[var(--ob-cta)]/10 text-foreground'
-                      : 'border-border bg-card text-foreground/65'
-                  }`}
-                >
-                  <Mail size={13} /> {lang === 'ar' ? 'إيميل' : 'Email'}
-                </button>
-              </div>
-
-              <div className="relative mb-3">
+              {/* Single contact field — default phone, with inline "or use email" link below */}
+              <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                {authKind === 'phone'
+                  ? (lang === 'ar' ? 'رقم الجوال' : 'Phone number')
+                  : (lang === 'ar' ? 'البريد الإلكتروني' : 'Email')}
+              </label>
+              <div className="relative mb-2">
                 {authKind === 'phone'
                   ? <Phone size={15} className="absolute top-1/2 -translate-y-1/2 left-3 text-foreground/40" />
                   : <Mail size={15} className="absolute top-1/2 -translate-y-1/2 left-3 text-foreground/40" />}
@@ -980,6 +1046,21 @@ export default function PlanDetailPage() {
                   className={`pl-9 bg-card ${authKind === 'phone' ? 'font-mono' : ''}`}
                 />
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthKind(authKind === 'phone' ? 'email' : 'phone');
+                  setAuthContact('');
+                }}
+                className="inline-flex items-center gap-1.5 mb-3 text-[12px] text-foreground/65 hover:text-foreground transition-colors"
+              >
+                {authKind === 'phone' ? <Mail size={12} /> : <Phone size={12} />}
+                <span className="underline underline-offset-4">
+                  {authKind === 'phone'
+                    ? (lang === 'ar' ? 'أو استخدم البريد الإلكتروني' : 'or use email instead')
+                    : (lang === 'ar' ? 'أو استخدم رقم الجوال' : 'or use phone instead')}
+                </span>
+              </button>
 
               <Button
                 size="lg"
@@ -991,8 +1072,28 @@ export default function PlanDetailPage() {
                 }}
                 className="w-full font-bold text-[14px]"
               >
-                {lang === 'ar' ? 'إرسال رمز التحقق' : 'Send verification code'}
+                {lang === 'ar' ? 'متابعة' : 'Continue'}
               </Button>
+
+              {/* Terms & Conditions disclaimer */}
+              <p className="text-center text-[10.5px] text-foreground/55 mt-2.5 leading-relaxed px-2">
+                {lang === 'ar' ? (
+                  <>
+                    بالمتابعة، فإنك توافق على{' '}
+                    <Link to="/terms" className="underline underline-offset-2 hover:text-foreground">شروط الاستخدام</Link>
+                    {' '}و
+                    {' '}
+                    <Link to="/privacy" className="underline underline-offset-2 hover:text-foreground">سياسة الخصوصية</Link>.
+                  </>
+                ) : (
+                  <>
+                    By continuing, you agree to our{' '}
+                    <Link to="/terms" className="underline underline-offset-2 hover:text-foreground">Terms of Service</Link>
+                    {' '}and{' '}
+                    <Link to="/privacy" className="underline underline-offset-2 hover:text-foreground">Privacy Policy</Link>.
+                  </>
+                )}
+              </p>
 
               {/* Sign-up / Log-in toggle link — small, secondary */}
               <p className="text-center text-[12px] text-foreground/65 mt-3">
@@ -1163,7 +1264,7 @@ export default function PlanDetailPage() {
                   onClick={() => { setPurchasePath('new'); setPurchaseStep('identity'); }}
                   className="group flex items-center gap-3 rounded-xl border-2 border-border bg-card hover:border-[var(--ob-cta)] hover:bg-[var(--ob-cta)]/5 p-4 text-left transition-all"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-[#B79EFF] flex items-center justify-center shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-[#C59AFA] flex items-center justify-center shrink-0">
                     <Plus size={20} className="text-[#16143A]" strokeWidth={2.4} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1542,7 +1643,7 @@ export default function PlanDetailPage() {
                     simType === 'esim' ? 'border-[var(--ob-cta)] bg-[var(--ob-cta)]/10' : 'border-border bg-card hover:border-[var(--ob-cta)]/40'
                   }`}
                 >
-                  <div className="w-11 h-11 rounded-xl bg-[#B79EFF] flex items-center justify-center shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-[#C59AFA] flex items-center justify-center shrink-0">
                     <Zap size={20} className="text-[#16143A]" strokeWidth={2.4} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1617,10 +1718,70 @@ export default function PlanDetailPage() {
                   <span>{lang === 'ar' ? 'الشريحة' : 'SIM'}</span>
                   <span className="text-foreground/80">{simType === 'esim' ? 'eSIM' : 'Physical SIM'}</span>
                 </div>
+                {discountApplied && (
+                  <div className="flex justify-between items-center text-[12px] mt-2" style={{ color: '#16143A' }}>
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="font-mono font-semibold px-1.5 py-0.5 rounded" style={{ background: '#CFEB74', color: '#16143A' }}>{discountApplied.code}</span>
+                      <span className="text-foreground/60">({lang === 'ar' ? `خصم ${discountApplied.percent}%` : `${discountApplied.percent}% off`})</span>
+                    </span>
+                    <span className="font-bold" style={{ color: '#16143A' }}>−<SarSymbol className="text-[11px] opacity-70" /> {((plan.priceSAR * discountApplied.percent) / 100).toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="border-t border-border mt-3 pt-3 flex justify-between items-baseline">
                   <span className="text-[12px] font-semibold text-foreground/80">{lang === 'ar' ? 'الإجمالي' : 'Total'}</span>
-                  <span className="font-heading font-bold text-xl text-foreground"><SarSymbol className="text-xs text-muted-foreground" /> {plan.priceSAR}</span>
+                  <span className="font-heading font-bold text-xl text-foreground">
+                    <SarSymbol className="text-xs text-muted-foreground" /> {(plan.priceSAR * (1 - (discountApplied?.percent ?? 0) / 100)).toFixed(2)}
+                  </span>
                 </div>
+              </div>
+
+              {/* Discount code */}
+              <div className="mb-4">
+                <p className="text-[11px] font-semibold text-foreground/70 mb-2 uppercase tracking-wider">
+                  {lang === 'ar' ? 'رمز الخصم' : 'Discount code'}
+                </p>
+                {discountApplied ? (
+                  <div className="flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 border" style={{ background: 'rgba(207, 235, 116, 0.18)', borderColor: 'rgba(207, 235, 116, 0.55)' }}>
+                    <span className="inline-flex items-center gap-2 text-sm">
+                      <Check size={14} strokeWidth={3} style={{ color: '#16143A' }} />
+                      <span className="font-mono font-semibold text-foreground">{discountApplied.code}</span>
+                      <span className="text-foreground/60 text-[12px]">{lang === 'ar' ? `تم تطبيق خصم ${discountApplied.percent}%` : `${discountApplied.percent}% applied`}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={removeDiscount}
+                      className="text-[11px] text-foreground/60 hover:text-foreground underline"
+                    >
+                      {lang === 'ar' ? 'إزالة' : 'Remove'}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-stretch gap-2">
+                      <Input
+                        value={discountInput}
+                        onChange={(e) => { setDiscountInput(e.target.value); if (discountError) setDiscountError(null); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyDiscount(); } }}
+                        placeholder={lang === 'ar' ? 'أدخل الرمز' : 'Enter code'}
+                        className="h-10 text-sm font-mono uppercase tracking-wider"
+                        autoCapitalize="characters"
+                        autoCorrect="off"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={applyDiscount}
+                        disabled={!discountInput.trim()}
+                        className="h-10 px-4 text-[13px] font-semibold shrink-0"
+                      >
+                        {lang === 'ar' ? 'تطبيق' : 'Apply'}
+                      </Button>
+                    </div>
+                    {discountError && (
+                      <p className="text-[11px] text-destructive mt-1.5">{discountError}</p>
+                    )}
+                  </>
+                )}
               </div>
 
               <p className="text-[11px] font-semibold text-foreground/70 mb-2 uppercase tracking-wider">
@@ -1628,10 +1789,10 @@ export default function PlanDetailPage() {
               </p>
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {([
-                  { id: 'apple-pay', label: 'Apple Pay',  bg: '#000000', fg: '#FFFFFF' },
-                  { id: 'mada',      label: 'mada',       bg: '#84BD00', fg: '#16143A' },
                   { id: 'stc-pay',   label: 'STC Pay',    bg: '#4F0D7F', fg: '#FFFFFF' },
-                  { id: 'visa',      label: 'Visa / Card', bg: '#1A1F71', fg: '#FFFFFF' },
+                  { id: 'apple-pay', label: 'Apple Pay',  bg: '#000000', fg: '#FFFFFF' },
+                  { id: 'visa',      label: 'Visa',       bg: '#1A1F71', fg: '#FFFFFF' },
+                  { id: 'mada',      label: 'mada',       bg: '#84BD00', fg: '#16143A' },
                 ] as const).map((m) => {
                   const sel = paymentMethod === m.id;
                   return (
@@ -1659,17 +1820,24 @@ export default function PlanDetailPage() {
                 size="lg"
                 disabled={!paymentMethod}
                 onClick={() => {
+                  const finalPrice = +(plan.priceSAR * (1 - (discountApplied?.percent ?? 0) / 100)).toFixed(2);
                   trackEvent('plan_purchase_paid', {
                     plan_id: plan.id,
                     path: purchasePath,
                     sim: simType,
                     method: paymentMethod,
+                    discount_code: discountApplied?.code ?? null,
+                    discount_percent: discountApplied?.percent ?? 0,
+                    final_price: finalPrice,
                   });
                   setPurchaseStep('success');
                 }}
                 className="w-full font-bold text-[14px]"
               >
-                {lang === 'ar' ? `ادفع ${plan.priceSAR} ر.س` : `Pay ${plan.priceSAR} SAR`}
+                {(() => {
+                  const finalPrice = (plan.priceSAR * (1 - (discountApplied?.percent ?? 0) / 100)).toFixed(2);
+                  return lang === 'ar' ? `ادفع ${finalPrice} ر.س` : `Pay ${finalPrice} SAR`;
+                })()}
               </Button>
               <p className="text-[10.5px] text-foreground/50 text-center mt-3 leading-snug">
                 {lang === 'ar' ? 'الدفع آمن ومشفّر.' : 'Secure & encrypted payment.'}

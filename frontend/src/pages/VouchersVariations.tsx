@@ -58,7 +58,7 @@ function BrandTile({ v, large = false }: { v: Voucher; large?: boolean }) {
   const tints: Record<Voucher['category'], string> = {
     recharge:  '#DCCFFF',
     gaming:    '#C9B4FF',
-    streaming: '#B79EFF',
+    streaming: '#C59AFA',
     shopping:  '#E5DCFF',
   };
   return (
@@ -280,14 +280,14 @@ export default function VouchersVariations() {
             <Link
               to="#"
               className="group relative flex flex-col md:flex-row gap-4 md:gap-6 overflow-hidden rounded-2xl ob-card-elev hover:shadow-xl transition-all min-h-[180px] p-5 md:p-6"
-              style={{ backgroundColor: '#B79EFF' }}
+              style={{ backgroundColor: '#C59AFA' }}
             >
               <div
                 className="absolute top-0 bottom-0 right-0 pointer-events-none"
                 style={{ width: '55%', backgroundImage: 'url(/patterns/wave-purple-medium.png)', backgroundSize: 'auto 130%', backgroundPosition: 'left center', backgroundRepeat: 'no-repeat', opacity: 0.32 }}
               />
               <div className="relative z-10 flex-1 flex flex-col justify-between">
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#16143A] text-[#E0FF4F] text-[10px] font-bold uppercase tracking-wider w-fit">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#16143A] text-[#CFEB74] text-[10px] font-bold uppercase tracking-wider w-fit">
                   <Sparkles size={11} /> {isAr ? 'الأكثر شعبية هذا الأسبوع' : 'Most popular this week'}
                 </div>
                 <div>
@@ -333,7 +333,7 @@ export default function VouchersVariations() {
                   const count = MOCK.filter(v => v.category === c).length;
                   return (
                     <Link key={c} to="#" className="group flex items-center gap-3 rounded-xl bg-card border border-border ob-card-elev p-3 hover:shadow-md transition-all">
-                      <div className="w-10 h-10 rounded-lg bg-[#B79EFF]/15 flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-[#C59AFA]/15 flex items-center justify-center shrink-0">
                         <Icon size={18} className="text-[#16143A]" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -396,7 +396,7 @@ export default function VouchersVariations() {
               {MOCK.map(v => (
                 <article key={v.id} className="relative rounded-2xl bg-card border border-border ob-card-elev p-3 hover:shadow-md transition-all">
                   {v.popular && (
-                    <span className="absolute -top-1.5 -end-1.5 z-10 inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#16143A] text-[#E0FF4F] text-[10px] shadow-sm">
+                    <span className="absolute -top-1.5 -end-1.5 z-10 inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#16143A] text-[#CFEB74] text-[10px] shadow-sm">
                       🔥
                     </span>
                   )}
@@ -434,14 +434,14 @@ export default function VouchersVariations() {
             <Link
               to="#"
               className="group relative flex items-center gap-4 md:gap-6 overflow-hidden rounded-2xl ob-card-elev hover:shadow-xl transition-all min-h-[140px] md:min-h-[160px] p-5 md:p-6"
-              style={{ backgroundColor: '#B79EFF' }}
+              style={{ backgroundColor: '#C59AFA' }}
             >
               <div
                 className="absolute top-0 bottom-0 right-0 pointer-events-none"
                 style={{ width: '55%', backgroundImage: 'url(/patterns/wave-purple-medium.png)', backgroundSize: 'auto 130%', backgroundPosition: 'left center', backgroundRepeat: 'no-repeat', opacity: 0.32 }}
               />
               <div className="relative z-10 flex-1">
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#16143A] text-[#E0FF4F] text-[9.5px] font-bold uppercase tracking-wider mb-2 w-fit">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#16143A] text-[#CFEB74] text-[9.5px] font-bold uppercase tracking-wider mb-2 w-fit">
                   <Sparkles size={10} /> {isAr ? 'اختيار الأسبوع' : 'Pick of the week'}
                 </div>
                 <h3 className="font-heading font-bold text-xl md:text-2xl text-[#16143A] leading-tight">
