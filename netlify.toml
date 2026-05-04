@@ -1,0 +1,15 @@
+# Netlify deploy config — SOOB frontend (Vite + React Router SPA).
+# Connect this repo on netlify.com → Add new site → Import an existing project,
+# pick the GitHub repo, and Netlify will pick up these settings automatically.
+
+[build]
+  base    = "frontend"
+  command = "npm install && npm run build"
+  publish = "dist"
+
+# Single-page-app fallback so client-side routes (e.g. /profile, /orders,
+# /plan/123) resolve to index.html instead of returning 404.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
