@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { trackEvent } from '../lib/analytics';
@@ -145,15 +144,21 @@ export default function SupportButton() {
 
   return (
     <>
-      {/* Floating button — always visible for all users (no auth gate) */}
+      {/* Floating button — always visible. Acts as both opener (when closed)
+       * and minimize (when open). Mirrors Intercom / Crisp / Zendesk widgets. */}
       <button
         type="button"
-        onClick={() => { setOpen(true); reset(); trackEvent('support_fab_clicked'); }}
+        onClick={() => {
+          if (open) { setOpen(false); return; }
+          setOpen(true);
+          reset();
+          trackEvent('support_fab_clicked');
+        }}
         aria-label={isAr ? 'الدعم' : 'Support'}
         title={isAr ? 'الدعم' : 'Support'}
-        className="fixed z-[150] inline-flex items-center justify-center rounded-full shadow-xl hover:scale-105 transition-transform"
+        className="fixed z-[160] inline-flex items-center justify-center rounded-full shadow-xl hover:scale-105 transition-transform"
         style={{
-          background: '#FE7151',
+          background: open ? '#16143A' : '#FE7151',
           color: '#FFFFFF',
           width: 52,
           height: 52,
@@ -161,24 +166,37 @@ export default function SupportButton() {
           ...(isAr ? { left: 16 } : { right: 16 }),
         }}
       >
-        {/* Stylized support-agent glyph — headset + mic, instantly readable */}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          {/* Headband arc */}
-          <path d="M4 13a8 8 0 0 1 16 0" />
-          {/* Left ear-cup */}
-          <rect x="2" y="13" width="4" height="6" rx="1.5" fill="currentColor" stroke="none" />
-          {/* Right ear-cup */}
-          <rect x="18" y="13" width="4" height="6" rx="1.5" fill="currentColor" stroke="none" />
-          {/* Mic boom */}
-          <path d="M6 19v1a3 3 0 0 0 3 3h2" />
-          {/* Mic capsule */}
-          <circle cx="12" cy="22" r="1.2" fill="currentColor" stroke="none" />
-        </svg>
+        {open ? (
+          /* Minimize chevron when panel is showing */
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        ) : (
+          /* Stylized support-agent glyph — headset + mic, instantly readable */
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 13a8 8 0 0 1 16 0" />
+            <rect x="2" y="13" width="4" height="6" rx="1.5" fill="currentColor" stroke="none" />
+            <rect x="18" y="13" width="4" height="6" rx="1.5" fill="currentColor" stroke="none" />
+            <path d="M6 19v1a3 3 0 0 0 3 3h2" />
+            <circle cx="12" cy="22" r="1.2" fill="currentColor" stroke="none" />
+          </svg>
+        )}
       </button>
 
-      {/* Modal — chooser / chat / ticket / success */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden h-[560px] max-h-[88vh] flex flex-col">
+      {/* Docked support panel — anchored to the bottom-right corner, NOT a
+       * centered modal. Slides up from the FAB; minimize button collapses it
+       * back. Doesn't dim the page behind it. */}
+      {open && (
+        <div
+          className="fixed z-[155] flex flex-col rounded-2xl shadow-2xl border border-border bg-card overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-150"
+          style={{
+            // Anchor to the FAB's corner with a small gap above the button.
+            bottom: 'calc(80px + 60px + env(safe-area-inset-bottom, 0px))',
+            ...(isAr ? { left: 16 } : { right: 16 }),
+            width: 'min(92vw, 380px)',
+            height: 'min(560px, calc(100vh - 220px))',
+          }}
+        ><div className="flex flex-col h-full w-full">
           {/* Header — adapts to view */}
           <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card shrink-0">
             {view !== 'chooser' && view !== 'ticket-success' && (
@@ -390,8 +408,9 @@ export default function SupportButton() {
               </Button>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+        </div>
+      )}
     </>
   );
 }

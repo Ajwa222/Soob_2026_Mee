@@ -1,8 +1,13 @@
 /**
- * Bookmark context — lets users save/unsave plans to their Firestore profile.
+ * Bookmark context — lets users save/unsave any purchaseable item to their
+ * Firestore profile. Bookmarks are typed (plans, vouchers, fiber, …) so
+ * different surfaces can share one inbox.
  *
- * Bookmarks are stored in the Firestore `users/{uid}.bookmarks` array.
- * For logged-out users, requestBookmark() queues the plan ID in localStorage
+ * Storage shape (Firestore `users/{uid}.bookmarks`):
+ *   [{ kind: 'plan',    id: '15' },
+ *    { kind: 'voucher', id: 'apple-store' }, ...]
+ *
+ * For logged-out users, requestBookmark() queues the item in localStorage
  * and applies it automatically after the next sign-in.
  *
  * Optimistic updates: UI toggles immediately, Firestore write is fire-and-forget.
@@ -11,30 +16,60 @@ import { createContext, useContext, useState, useCallback, useEffect, useRef, us
 import { getFirebaseDb } from '../lib/firebase';
 import { useAuth } from './AuthContext';
 
-// localStorage key for bookmarks queued before login
 const PENDING_KEY = 'soob-pending-bookmark';
 
+export type BookmarkKind = 'plan' | 'voucher' | 'fiber';
+export interface BookmarkItem {
+  kind: BookmarkKind;
+  id: string;
+}
+
 interface BookmarkContextValue {
-  bookmarkedIds: number[];                         // Plan IDs the user has bookmarked
-  toggleBookmark: (planId: number) => void;        // Add or remove a bookmark (auth required)
-  isBookmarked: (planId: number) => boolean;       // Check if a plan is bookmarked
-  /** Queue a bookmark that will be saved after login. Returns false if user is not logged in. */
-  requestBookmark: (planId: number) => boolean;
-  loading: boolean;                                // True while fetching bookmarks from Firestore
+  bookmarks: BookmarkItem[];
+  /** All bookmarked plan IDs as numbers (for the legacy plans surface). */
+  bookmarkedPlanIds: number[];
+  /** Toggle a bookmark. Auth required. */
+  toggleBookmark: (item: BookmarkItem) => void;
+  /** Check if an item is bookmarked. Accepts string or number ids for convenience. */
+  isBookmarked: (kind: BookmarkKind, id: string | number) => boolean;
+  /** Try to bookmark; if not logged in, queues for after-login and returns false. */
+  requestBookmark: (item: BookmarkItem) => boolean;
+  loading: boolean;
 }
 
 const BookmarkContext = createContext<BookmarkContextValue | null>(null);
 
+/** Migrate legacy data: numeric arrays were plan-only. */
+function normalize(raw: unknown): BookmarkItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((entry) => {
+      if (typeof entry === 'number') return { kind: 'plan' as const, id: String(entry) };
+      if (typeof entry === 'string') return { kind: 'plan' as const, id: entry };
+      if (entry && typeof entry === 'object' && 'kind' in entry && 'id' in entry) {
+        const e = entry as { kind: unknown; id: unknown };
+        if (typeof e.kind === 'string' && (typeof e.id === 'string' || typeof e.id === 'number')) {
+          return { kind: e.kind as BookmarkKind, id: String(e.id) };
+        }
+      }
+      return null;
+    })
+    .filter((x): x is BookmarkItem => x !== null);
+}
+
+function sameItem(a: BookmarkItem, b: BookmarkItem) {
+  return a.kind === b.kind && a.id === b.id;
+}
+
 export function BookmarkProvider({ children }: { children: ReactNode }) {
   const { user, isLoggedIn } = useAuth();
-  const [bookmarkedIds, setBookmarkedIds] = useState<number[]>([]);
+  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [loading, setLoading] = useState(false);
   const fetched = useRef(false);
 
-  // Fetch bookmarks from Firestore when user logs in, then apply any pending bookmark
   useEffect(() => {
     if (!isLoggedIn || !user?.uid) {
-      setBookmarkedIds([]);
+      setBookmarks([]);
       fetched.current = false;
       return;
     }
@@ -49,24 +84,35 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
         const snap = await getDoc(doc(db, 'users', user.uid));
         if (cancelled) return;
 
-        let ids: number[] = [];
+        let items: BookmarkItem[] = [];
         if (snap.exists()) {
-          const data = snap.data();
-          ids = Array.isArray(data.bookmarks) ? data.bookmarks : [];
+          items = normalize(snap.data().bookmarks);
         }
 
-        // Apply pending bookmark from before login
+        // Apply pending bookmark queued before login
         const pendingRaw = localStorage.getItem(PENDING_KEY);
         if (pendingRaw) {
           localStorage.removeItem(PENDING_KEY);
-          const pendingId = Number(pendingRaw);
-          if (pendingId && !ids.includes(pendingId)) {
-            ids = [...ids, pendingId];
-            setDoc(doc(db, 'users', user.uid), { bookmarks: ids }, { merge: true }).catch(() => {});
+          try {
+            const pending = JSON.parse(pendingRaw) as BookmarkItem;
+            if (pending?.kind && pending?.id && !items.some(b => sameItem(b, pending))) {
+              items = [...items, pending];
+              setDoc(doc(db, 'users', user.uid), { bookmarks: items }, { merge: true }).catch(() => {});
+            }
+          } catch {
+            // Legacy pending bookmark stored as a bare plan-id number string
+            const planId = Number(pendingRaw);
+            if (planId) {
+              const item: BookmarkItem = { kind: 'plan', id: String(planId) };
+              if (!items.some(b => sameItem(b, item))) {
+                items = [...items, item];
+                setDoc(doc(db, 'users', user.uid), { bookmarks: items }, { merge: true }).catch(() => {});
+              }
+            }
           }
         }
 
-        setBookmarkedIds(ids);
+        setBookmarks(items);
         fetched.current = true;
       } catch (err) {
         if (import.meta.env.DEV) console.warn('Failed to fetch bookmarks:', err);
@@ -78,15 +124,14 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, [isLoggedIn, user?.uid]);
 
-  const toggleBookmark = useCallback((planId: number) => {
+  const toggleBookmark = useCallback((item: BookmarkItem) => {
     if (!user) return;
+    const norm: BookmarkItem = { kind: item.kind, id: String(item.id) };
 
-    setBookmarkedIds(prev => {
-      const next = prev.includes(planId)
-        ? prev.filter(id => id !== planId)
-        : [...prev, planId];
+    setBookmarks(prev => {
+      const exists = prev.some(b => sameItem(b, norm));
+      const next = exists ? prev.filter(b => !sameItem(b, norm)) : [...prev, norm];
 
-      // Fire-and-forget Firestore write
       (async () => {
         try {
           const db = await getFirebaseDb();
@@ -101,23 +146,29 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
     });
   }, [user]);
 
-  const isBookmarked = useCallback((planId: number) => {
-    return bookmarkedIds.includes(planId);
-  }, [bookmarkedIds]);
+  const isBookmarked = useCallback((kind: BookmarkKind, id: string | number) => {
+    const idStr = String(id);
+    return bookmarks.some(b => b.kind === kind && b.id === idStr);
+  }, [bookmarks]);
 
-  const requestBookmark = useCallback((planId: number): boolean => {
+  const requestBookmark = useCallback((item: BookmarkItem): boolean => {
+    const norm: BookmarkItem = { kind: item.kind, id: String(item.id) };
     if (isLoggedIn && user) {
-      toggleBookmark(planId);
+      toggleBookmark(norm);
       return true;
     }
-    // Store pending bookmark for after login
-    localStorage.setItem(PENDING_KEY, String(planId));
+    localStorage.setItem(PENDING_KEY, JSON.stringify(norm));
     return false;
   }, [isLoggedIn, user, toggleBookmark]);
 
+  const bookmarkedPlanIds = useMemo(
+    () => bookmarks.filter(b => b.kind === 'plan').map(b => Number(b.id)).filter(n => !Number.isNaN(n)),
+    [bookmarks],
+  );
+
   const value = useMemo(() => ({
-    bookmarkedIds, toggleBookmark, isBookmarked, requestBookmark, loading,
-  }), [bookmarkedIds, toggleBookmark, isBookmarked, requestBookmark, loading]);
+    bookmarks, bookmarkedPlanIds, toggleBookmark, isBookmarked, requestBookmark, loading,
+  }), [bookmarks, bookmarkedPlanIds, toggleBookmark, isBookmarked, requestBookmark, loading]);
 
   return (
     <BookmarkContext.Provider value={value}>
@@ -126,10 +177,6 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * Hook to access bookmark state and actions.
- * Must be used within a BookmarkProvider — throws if not.
- */
 export function useBookmarks() {
   const ctx = useContext(BookmarkContext);
   if (!ctx) throw new Error('useBookmarks must be used within BookmarkProvider');

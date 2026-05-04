@@ -24,6 +24,7 @@ interface AuthContextValue {
   loginWithGoogle: () => Promise<void>;
   loginWithOtp: (kind: 'phone' | 'email', value: string, name?: string) => Promise<void>;
   updatePhone: (phone: string) => Promise<void>;
+  updateProfile: (updates: { name?: string; email?: string; phone?: string | null; photoURL?: string | null }) => Promise<void>;
   logout: () => Promise<void>;
   markOnboarded: () => void;       // Marks the user as onboarded (skips onboarding modal)
 }
@@ -102,6 +103,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       if (import.meta.env.DEV) console.error('Phone update failed:', error);
       throw error;
+    }
+  }, [user]);
+
+  // Update profile fields (name / email / phone). Persists locally for all
+  // providers; for Google users also persists email + phone to Firestore.
+  const updateProfile = useCallback(async (updates: { name?: string; email?: string; phone?: string | null; photoURL?: string | null }) => {
+    if (!user) return;
+    const merged: SOOBUser = {
+      ...user,
+      name: updates.name !== undefined ? updates.name : user.name,
+      email: updates.email !== undefined ? updates.email : user.email,
+      phone: updates.phone !== undefined ? updates.phone : user.phone,
+      photoURL: updates.photoURL !== undefined ? updates.photoURL : user.photoURL,
+    };
+    setUser(merged);
+    localStorage.setItem('soob-user', JSON.stringify(merged));
+    if (user.provider === 'google') {
+      try {
+        const db = await getFirebaseDb();
+        const { doc, setDoc } = await import('firebase/firestore');
+        await setDoc(
+          doc(db, 'users', user.uid),
+          { name: merged.name, email: merged.email, phone: merged.phone ?? null, photoURL: merged.photoURL ?? null },
+          { merge: true },
+        );
+      } catch (error) {
+        if (import.meta.env.DEV) console.error('Profile update (Firestore) failed:', error);
+      }
     }
   }, [user]);
 
@@ -199,6 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loginWithGoogle,
       loginWithOtp,
       updatePhone,
+      updateProfile,
       logout,
       markOnboarded,
     }}>

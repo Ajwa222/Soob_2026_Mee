@@ -13,13 +13,15 @@
  */
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Gift, Smartphone, Gamepad2, Tv, ShoppingBag, Search,
   TrendingUp, Check, Mail, Phone, Zap, Ticket, Copy, CheckCircle2,
-  Users, X,
+  Users, X, Bookmark,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { useBookmarks } from '../context/BookmarkContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -32,7 +34,7 @@ import {
 import SarSymbol from '../components/SarSymbol';
 import { trackEvent } from '../lib/analytics';
 
-interface Voucher {
+export interface Voucher {
   id: string;
   brand: string;
   category: 'recharge' | 'gaming' | 'streaming' | 'shopping';
@@ -41,7 +43,7 @@ interface Voucher {
   tagline?: string;
 }
 
-const MOCK_VOUCHERS: Voucher[] = [
+export const MOCK_VOUCHERS: Voucher[] = [
   { id: 'stc-recharge',     brand: 'STC',           category: 'recharge', denominations: [10, 20, 50, 100, 200], tagline: 'Mobile credit · all numbers' },
   { id: 'mobily-recharge',  brand: 'Mobily',        category: 'recharge', denominations: [10, 20, 50, 100, 200], tagline: 'Mobile credit · all numbers' },
   { id: 'zain-recharge',    brand: 'Zain',          category: 'recharge', denominations: [10, 20, 50, 100, 200], tagline: 'Mobile credit · all numbers' },
@@ -84,10 +86,36 @@ const TINTS: Record<Voucher['category'], string> = {
   shopping:  '#E1CDFC',   // brand lavender light
 };
 
+// Bookmark toggle overlay for voucher cards. Click stops propagation so the
+// underlying tile button doesn't fire and open the denomination picker.
+function VoucherBookmarkBtn({ v }: { v: Voucher }) {
+  const { isBookmarked, requestBookmark } = useBookmarks();
+  const navigate = useNavigate();
+  const bookmarked = isBookmarked('voucher', v.id);
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!requestBookmark({ kind: 'voucher', id: v.id })) navigate('/profile');
+      }}
+      aria-label={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+      className={`absolute top-2 end-2 z-20 w-7 h-7 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${
+        bookmarked
+          ? 'bg-[#FE7151] text-white shadow-md'
+          : 'bg-white/85 hover:bg-white text-foreground/55 hover:text-[#FE7151]'
+      }`}
+    >
+      <Bookmark size={13} fill={bookmarked ? 'currentColor' : 'none'} strokeWidth={2.4} />
+    </button>
+  );
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // Brand tile — same SOOB lavender + right-side wave treatment everywhere
 // ───────────────────────────────────────────────────────────────────────────
-function BrandTile({ v }: { v: Voucher }) {
+export function BrandTile({ v }: { v: Voucher }) {
   return (
     <div
       className="aspect-[16/10] w-full rounded-xl flex items-center justify-center relative overflow-hidden"
@@ -127,6 +155,10 @@ export default function VouchersPage() {
   const isAr = lang === 'ar';
   const [search, setSearch] = useState('');
   const [activeCat, setActiveCat] = useState<Voucher['category'] | 'all'>('all');
+  // Page-level intent: are we shopping for ourselves or buying a gift?
+  // When set to 'gift', every voucher tap opens the picker pre-set to gift
+  // mode so users don't have to flip the toggle inside the modal.
+  const [pageMode, setPageMode] = useState<'self' | 'gift'>('self');
 
   // ─── Purchase flow state ───
   const [picker, setPicker] = useState<Voucher | null>(null);
@@ -282,7 +314,7 @@ export default function VouchersPage() {
     setOtpResent(false);
     setIssuedCode(null);
     setCodeCopied(false);
-    setIsGift(false);
+    setIsGift(pageMode === 'gift');
     setGiftRecipientName('');
     // Pre-fill sender name from the logged-in user's profile so they don't
     // have to retype it every gift; field is editable below.
@@ -419,7 +451,9 @@ export default function VouchersPage() {
                 {isAr ? 'القسائم الرقمية' : 'Digital Vouchers'}
               </h1>
               <p className="text-foreground/55 text-[11px] md:text-xs leading-tight">
-                {isAr ? 'رمز فوري · بدون عمولة' : 'Instant code · no fees'}
+                {isAr
+                  ? 'اشترِ لنفسك أو أرسلها هدية في 30 ثانية'
+                  : 'Buy for yourself or send as a gift in 30 seconds'}
               </p>
             </div>
           </div>
@@ -427,6 +461,47 @@ export default function VouchersPage() {
       </section>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-5 md:pt-6 pb-16 md:pb-24 flex flex-col gap-5">
+        {/* Page-level mode toggle: shopping for myself OR sending a gift */}
+        <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-secondary/60 border border-border">
+          <button
+            type="button"
+            onClick={() => setPageMode('self')}
+            className={`relative inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-bold transition-all ${
+              pageMode === 'self' ? 'shadow-md' : 'text-foreground/60 hover:text-foreground'
+            }`}
+            style={pageMode === 'self' ? { background: '#16143A', color: '#FFFFFF' } : {}}
+          >
+            <ShoppingBag size={14} strokeWidth={2.4} />
+            <span>{isAr ? 'لي' : 'For me'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setPageMode('gift')}
+            className={`relative inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-bold transition-all ${
+              pageMode === 'gift' ? 'shadow-md' : 'text-foreground/60 hover:text-foreground'
+            }`}
+            style={pageMode === 'gift' ? { background: '#FE7151', color: '#FFFFFF' } : {}}
+          >
+            <Gift size={14} strokeWidth={2.4} />
+            <span>{isAr ? 'إرسال هدية' : 'Send a gift'}</span>
+          </button>
+        </div>
+
+        {/* Subtle hint when gift mode is on — confirms intent before tapping a card */}
+        {pageMode === 'gift' && (
+          <div
+            className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 -mt-2"
+            style={{ background: 'rgba(254, 113, 81, 0.10)', border: '1px solid rgba(254, 113, 81, 0.30)' }}
+          >
+            <Gift size={14} style={{ color: '#FE7151' }} className="shrink-0" />
+            <p className="text-[12px] text-foreground/85 leading-snug">
+              {isAr
+                ? 'اضغط على أي قسيمة وسنرسل الرمز للمستلم مباشرة.'
+                : "Tap any voucher and we'll send the code straight to the recipient."}
+            </p>
+          </div>
+        )}
+
         {/* Search */}
         <div className="relative">
           <Search size={16} className="absolute top-1/2 -translate-y-1/2 left-3 text-foreground/40" />
@@ -452,12 +527,14 @@ export default function VouchersPage() {
                 key={`trend-${v.id}`}
                 className="shrink-0 w-[150px] rounded-2xl bg-card border border-border ob-card-elev p-2.5 hover:shadow-md transition-all relative"
               >
+                <VoucherBookmarkBtn v={v} />
                 <button onClick={() => openPicker(v)} className="block w-full text-left">
                   <BrandTile v={v} />
                   <h3 className="font-bold text-[12.5px] text-foreground mt-2 truncate">{v.brand}</h3>
                   <p className="text-[10.5px] text-foreground/55 truncate mt-0.5">
                     {CAT_META[v.category][isAr ? 'ar' : 'en']}
                   </p>
+                  <PriceStrip denominations={v.denominations} isAr={isAr} />
                 </button>
               </div>
             ))}
@@ -530,10 +607,12 @@ export default function VouchersPage() {
                         key={`${c}-${v.id}`}
                         className="shrink-0 w-[150px] md:w-[170px] rounded-2xl bg-card border border-border ob-card-elev p-2.5 md:p-3 hover:shadow-md transition-all relative"
                       >
+                        <VoucherBookmarkBtn v={v} />
                         <button onClick={() => openPicker(v)} className="block w-full text-left">
                           <BrandTile v={v} />
                           <h3 className="font-bold text-[12.5px] md:text-[13px] text-foreground mt-2 truncate">{v.brand}</h3>
                           <p className="text-[10.5px] text-foreground/55 truncate mt-0.5">{v.tagline}</p>
+                          <PriceStrip denominations={v.denominations} isAr={isAr} />
                         </button>
                               </div>
                     ))}
@@ -550,10 +629,12 @@ export default function VouchersPage() {
                   key={v.id}
                   className="flex flex-col rounded-2xl bg-card border border-border ob-card-elev p-3 hover:shadow-lg transition-all relative"
                 >
+                  <VoucherBookmarkBtn v={v} />
                   <button onClick={() => openPicker(v)} className="flex flex-col text-left">
                     <BrandTile v={v} />
                     <h3 className="font-bold text-[13px] text-foreground mt-2 leading-tight">{v.brand}</h3>
                     <p className="text-[10.5px] text-foreground/55 truncate mt-0.5">{v.tagline}</p>
+                    <PriceStrip denominations={v.denominations} isAr={isAr} />
                   </button>
                   </div>
               ))}
@@ -1555,6 +1636,25 @@ export default function VouchersPage() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+/** Compact strip of available denominations on a voucher card. */
+export function PriceStrip({ denominations, isAr }: { denominations: number[]; isAr: boolean }) {
+  return (
+    <div className="mt-1.5 flex items-center gap-1 flex-wrap">
+      {denominations.map((d) => (
+        <span
+          key={d}
+          className="text-[12px] font-mono font-bold tabular-nums px-1.5 py-0.5 rounded-md bg-secondary border border-border/60 text-foreground/85 leading-tight"
+        >
+          {d}
+        </span>
+      ))}
+      <span className="text-[10px] uppercase tracking-wider font-mono text-foreground/55 ms-0.5 font-bold">
+        {isAr ? 'ر.س' : 'SAR'}
+      </span>
     </div>
   );
 }

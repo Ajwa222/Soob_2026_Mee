@@ -1,31 +1,39 @@
 /**
- * Saved Plans ("/saved") — the user's bookmarked telecom plans, accessible
- * from the profile screen. Plans are presented in a horizontal scrolling
- * row (with mouse-drag scroll on desktop) so users can swipe through them
- * the same way they do across the rest of the SOOB site.
+ * Bookmarks ("/saved") — anything the user has bookmarked: telecom plans,
+ * vouchers, etc. Auth-gated; redirects to /profile if not logged in.
  *
- * Auth-gated: redirects to /profile if the user isn't logged in.
+ * Plans are rendered with the existing ConnectedPlanCard.
+ * Vouchers are rendered with a compact tile that opens /vouchers on click.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bookmark, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Bookmark, ChevronLeft, ChevronRight, Smartphone, Gift } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useBookmarks } from '../context/BookmarkContext';
 import { usePlans } from '../context/PlansContext';
 import { ConnectedPlanCard } from '../components/PlanCard';
 import { Button } from '@/components/ui/button';
+import { MOCK_VOUCHERS, BrandTile, PriceStrip } from './VouchersPage';
 
 export default function SavedPlansPage() {
   const { lang } = useLang();
   const isAr = lang === 'ar';
   const { isLoggedIn, loading } = useAuth();
-  const { bookmarkedIds } = useBookmarks();
+  const { bookmarks, toggleBookmark } = useBookmarks();
   const { plans } = usePlans();
   const navigate = useNavigate();
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const planScrollRef = useRef<HTMLDivElement>(null);
 
-  const bookmarkedPlans = plans.filter(p => bookmarkedIds.includes(p.id));
+  const bookmarkedPlans = useMemo(
+    () => plans.filter(p => bookmarks.some(b => b.kind === 'plan' && b.id === String(p.id))),
+    [plans, bookmarks],
+  );
+  const bookmarkedVouchers = useMemo(
+    () => MOCK_VOUCHERS.filter(v => bookmarks.some(b => b.kind === 'voucher' && b.id === v.id)),
+    [bookmarks],
+  );
+  const totalCount = bookmarkedPlans.length + bookmarkedVouchers.length;
 
   useEffect(() => {
     if (!loading && !isLoggedIn) {
@@ -33,8 +41,8 @@ export default function SavedPlansPage() {
     }
   }, [loading, isLoggedIn, navigate]);
 
-  const scroll = (dir: 'left' | 'right') => {
-    const el = scrollRef.current;
+  const scrollPlans = (dir: 'left' | 'right') => {
+    const el = planScrollRef.current;
     if (!el) return;
     const firstCard = el.querySelector<HTMLElement>(':scope > div');
     const cw = (firstCard?.offsetWidth ?? 280) + 12;
@@ -67,74 +75,124 @@ export default function SavedPlansPage() {
             </div>
             <div>
               <h1 className="font-heading font-bold text-lg md:text-xl text-foreground tracking-tight leading-tight">
-                {isAr ? 'الباقات المحفوظة' : 'Saved Plans'}
+                {isAr ? 'المفضلة' : 'Bookmarks'}
               </h1>
               <p className="text-foreground/55 text-[11px] md:text-xs leading-tight">
-                {bookmarkedPlans.length > 0
+                {totalCount > 0
                   ? (isAr
-                      ? `${bookmarkedPlans.length} باقة جاهزة للمراجعة`
-                      : `${bookmarkedPlans.length} plan${bookmarkedPlans.length === 1 ? '' : 's'} ready to review`)
-                  : (isAr ? 'لا يوجد باقات محفوظة بعد' : 'No saved plans yet')}
+                      ? `${totalCount} عنصر محفوظ`
+                      : `${totalCount} item${totalCount === 1 ? '' : 's'} saved for later`)
+                  : (isAr ? 'لا يوجد محفوظات بعد' : 'Nothing saved yet')}
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {bookmarkedPlans.length === 0 ? (
+      {totalCount === 0 ? (
         <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-16 text-center">
           <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
             <Bookmark size={28} className="text-muted-foreground" />
           </div>
           <h3 className="font-heading font-bold text-lg text-foreground">
-            {isAr ? 'لا يوجد باقات محفوظة' : 'No saved plans yet'}
+            {isAr ? 'لا يوجد محفوظات' : 'No bookmarks yet'}
           </h3>
           <p className="text-muted-foreground mt-1.5 text-sm max-w-sm mx-auto">
             {isAr
-              ? 'استخدم رمز العلامة المرجعية على أي بطاقة لحفظها هنا للرجوع إليها لاحقاً.'
-              : 'Tap the bookmark icon on any plan card to save it here for later.'}
+              ? 'استخدم رمز العلامة المرجعية على أي بطاقة باقة أو قسيمة لحفظها هنا للرجوع إليها لاحقاً.'
+              : 'Tap the bookmark icon on any plan or voucher card to save it here for later.'}
           </p>
-          <Button asChild className="mt-5">
-            <Link to="/plans">{isAr ? 'تصفّح الباقات' : 'Browse plans'}</Link>
-          </Button>
+          <div className="mt-5 flex justify-center gap-2">
+            <Button asChild variant="default">
+              <Link to="/plans">{isAr ? 'تصفّح الباقات' : 'Browse plans'}</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/vouchers">{isAr ? 'القسائم' : 'Vouchers'}</Link>
+            </Button>
+          </div>
         </div>
       ) : (
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-12 relative">
-          {/* Desktop scroll arrows */}
-          <button
-            onClick={() => scroll('left')}
-            aria-label="Scroll left"
-            className="hidden md:flex absolute start-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-card border-2 border-border ob-card-elev items-center justify-center text-foreground/70 hover:text-foreground hover:scale-110 transition-transform"
-          >
-            <ChevronLeft size={18} className="rtl:rotate-180" />
-          </button>
-          <button
-            onClick={() => scroll('right')}
-            aria-label="Scroll right"
-            className="hidden md:flex absolute end-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-card border-2 border-border ob-card-elev items-center justify-center text-foreground/70 hover:text-foreground hover:scale-110 transition-transform"
-          >
-            <ChevronRight size={18} className="rtl:rotate-180" />
-          </button>
-
-          {/* Horizontal scroller — same UX as homepage trending row */}
-          <div
-            ref={scrollRef}
-            className="flex gap-3 md:gap-4 overflow-x-auto pb-3 snap-x snap-mandatory -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 scroll-smooth"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {bookmarkedPlans.map(plan => (
-              <div
-                key={plan.id}
-                className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px] snap-start"
-              >
-                <ConnectedPlanCard plan={plan} compact style={{ height: '100%' }} source="saved" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-12 space-y-8">
+          {/* Plans section */}
+          {bookmarkedPlans.length > 0 && (
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <Smartphone size={16} className="text-foreground/70" />
+                <h2 className="font-heading font-bold text-sm md:text-base text-foreground">
+                  {isAr ? 'الباقات' : 'Plans'}
+                </h2>
+                <span className="text-[10.5px] font-mono uppercase tracking-wider text-foreground/50 ms-1">
+                  {bookmarkedPlans.length}
+                </span>
               </div>
-            ))}
-          </div>
+              <div className="relative">
+                {/* Desktop scroll arrows */}
+                <button
+                  onClick={() => scrollPlans('left')}
+                  aria-label="Scroll left"
+                  className="hidden md:flex absolute start-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-card border-2 border-border ob-card-elev items-center justify-center text-foreground/70 hover:text-foreground hover:scale-110 transition-transform"
+                >
+                  <ChevronLeft size={18} className="rtl:rotate-180" />
+                </button>
+                <button
+                  onClick={() => scrollPlans('right')}
+                  aria-label="Scroll right"
+                  className="hidden md:flex absolute end-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-card border-2 border-border ob-card-elev items-center justify-center text-foreground/70 hover:text-foreground hover:scale-110 transition-transform"
+                >
+                  <ChevronRight size={18} className="rtl:rotate-180" />
+                </button>
+                <div
+                  ref={planScrollRef}
+                  className="flex gap-3 md:gap-4 overflow-x-auto pb-3 snap-x snap-mandatory -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 scroll-smooth"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {bookmarkedPlans.map(plan => (
+                    <div key={plan.id} className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px] snap-start">
+                      <ConnectedPlanCard plan={plan} compact style={{ height: '100%' }} source="bookmarks" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
 
-          <p className="mt-3 text-[11px] text-foreground/45 text-center">
-            {isAr ? '← اسحب للتنقل بين الباقات →' : '← Swipe to browse →'}
-          </p>
+          {/* Vouchers section */}
+          {bookmarkedVouchers.length > 0 && (
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <Gift size={16} className="text-foreground/70" />
+                <h2 className="font-heading font-bold text-sm md:text-base text-foreground">
+                  {isAr ? 'القسائم' : 'Vouchers'}
+                </h2>
+                <span className="text-[10.5px] font-mono uppercase tracking-wider text-foreground/50 ms-1">
+                  {bookmarkedVouchers.length}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+                {bookmarkedVouchers.map(v => (
+                  <div
+                    key={v.id}
+                    className="flex flex-col rounded-2xl bg-card border border-border ob-card-elev p-3 hover:shadow-lg transition-all relative"
+                  >
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleBookmark({ kind: 'voucher', id: v.id }); }}
+                      aria-label={isAr ? 'إزالة من المفضلة' : 'Remove bookmark'}
+                      className="absolute top-2 end-2 z-20 w-7 h-7 rounded-full bg-[#FE7151] text-white shadow-md flex items-center justify-center"
+                    >
+                      <Bookmark size={13} fill="currentColor" strokeWidth={2.4} />
+                    </button>
+                    <Link to="/vouchers" className="flex flex-col text-start">
+                      <BrandTile v={v} />
+                      <h3 className="font-bold text-[13px] text-foreground mt-2 leading-tight">{v.brand}</h3>
+                      <p className="text-[10.5px] text-foreground/55 truncate mt-0.5">{v.tagline}</p>
+                      <PriceStrip denominations={v.denominations} isAr={isAr} />
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       )}
     </div>

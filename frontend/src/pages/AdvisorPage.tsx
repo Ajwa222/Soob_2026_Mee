@@ -11,7 +11,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Send, Loader2,
-  Bot, ArrowLeft,
+  Bot, ArrowLeft, ArrowRight,
   HelpCircle, MessageSquareText,
   Wifi, Phone, Globe, Share2,
   ChevronRight,
@@ -651,33 +651,66 @@ export default function AdvisorPage() {
             </div>
           </div>
 
-          {/* Quick-action cards — shown until user picks one (hidden entirely in autoGuide variants) */}
+          {/* Quick-action cards — designed to read as buttons: brand-coloured
+           * fill, drop shadow, arrow CTA on the right. Hidden entirely in
+           * autoGuide variants. */}
           {!started && !loading && !autoGuide && (
-            <div className="grid grid-cols-2 gap-3 max-w-[85%] md:max-w-[75%]">
+            <div className="space-y-2.5 max-w-[85%] md:max-w-[75%]">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/55 px-1 mb-1">
+                {lang === 'ar' ? 'اختر طريقة البدء' : 'Pick how to start'}
+              </p>
+
               <button
                 onClick={() => handleQuickAction('guide')}
-                className="group flex flex-col items-center gap-2.5 rounded-2xl border-2 border-border bg-background p-5 text-center transition-all hover:shadow-lg cursor-pointer"
-                style={{ }}
+                className="group w-full flex items-center gap-3 rounded-2xl p-4 ob-card-elev transition-all hover:shadow-xl hover:-translate-y-0.5"
+                style={{ background: '#C59AFA' }}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ background: 'rgba(197, 154, 250, 0.18)' }}>
-                  <HelpCircle size={20} style={{ color: '#16143A' }} />
-                </div>
-                <span className="font-medium text-sm text-foreground">{t('advisor.quickGuide')}</span>
-                <span className="text-[11px] text-muted-foreground leading-relaxed">
-                  {t('advisor.quickGuideDesc')}
+                <span
+                  className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
+                  style={{ background: '#16143A', color: '#C59AFA' }}
+                >
+                  <HelpCircle size={20} strokeWidth={2.4} />
+                </span>
+                <span className="flex-1 text-start min-w-0">
+                  <span className="block font-heading font-bold text-[14px] leading-tight" style={{ color: '#16143A' }}>
+                    {t('advisor.quickGuide')}
+                  </span>
+                  <span className="block text-[11.5px] mt-0.5 leading-snug" style={{ color: 'rgba(22,20,58,0.70)' }}>
+                    {t('advisor.quickGuideDesc')}
+                  </span>
+                </span>
+                <span
+                  className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full transition-transform group-hover:translate-x-0.5"
+                  style={{ background: '#16143A', color: '#FFFFFF' }}
+                >
+                  <ArrowRight size={15} strokeWidth={2.6} className="rtl:rotate-180" />
                 </span>
               </button>
 
               <button
                 onClick={() => handleQuickAction('direct')}
-                className="group flex flex-col items-center gap-2.5 rounded-2xl border-2 border-border bg-background p-5 text-center transition-all hover:shadow-lg cursor-pointer"
+                className="group w-full flex items-center gap-3 rounded-2xl p-4 ob-card-elev transition-all hover:shadow-xl hover:-translate-y-0.5"
+                style={{ background: '#CFEB74' }}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ background: 'rgba(207, 235, 116, 0.30)' }}>
-                  <MessageSquareText size={20} style={{ color: '#16143A' }} />
-                </div>
-                <span className="font-medium text-sm text-foreground">{t('advisor.quickDirect')}</span>
-                <span className="text-[11px] text-muted-foreground leading-relaxed">
-                  {t('advisor.quickDirectDesc')}
+                <span
+                  className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
+                  style={{ background: '#16143A', color: '#CFEB74' }}
+                >
+                  <MessageSquareText size={20} strokeWidth={2.4} />
+                </span>
+                <span className="flex-1 text-start min-w-0">
+                  <span className="block font-heading font-bold text-[14px] leading-tight" style={{ color: '#16143A' }}>
+                    {t('advisor.quickDirect')}
+                  </span>
+                  <span className="block text-[11.5px] mt-0.5 leading-snug" style={{ color: 'rgba(22,20,58,0.70)' }}>
+                    {t('advisor.quickDirectDesc')}
+                  </span>
+                </span>
+                <span
+                  className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full transition-transform group-hover:translate-x-0.5"
+                  style={{ background: '#16143A', color: '#FFFFFF' }}
+                >
+                  <ArrowRight size={15} strokeWidth={2.6} className="rtl:rotate-180" />
                 </span>
               </button>
             </div>

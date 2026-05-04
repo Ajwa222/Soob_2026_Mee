@@ -18,7 +18,8 @@ import {
   Zap, ArrowLeft, ArrowRight, Plane, Bookmark, TrendingDown,
   ThumbsUp, ThumbsDown, Send, Trash2, MessageCircle, LogIn,
   CheckCircle2, Info, XCircle, Mail, RefreshCw, CreditCard,
-  Smartphone, FileText, Calendar, ArrowRightLeft,
+  Smartphone, FileText, Calendar, ArrowRightLeft, Truck, Crosshair, Map,
+  MapPin as MapPinIcon,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -184,8 +185,9 @@ export default function PlanDetailPage() {
   type PurchasePath = 'new' | 'port';
   type PurchaseStep =
     | 'choose-path'
+    | 'contact-phone'                                // collect Saudi mobile up-front (new-number flow)
     | 'identity' | 'identity-otp' | 'pick-number'   // new-number flow
-    | 'port-number' | 'port-otp'                     // port flow
+    | 'port-number' | 'port-otp' | 'port-contact'   // port flow
     | 'sim-type' | 'payment' | 'success';
   type SimType = 'sim' | 'esim';
   type PaymentMethod = 'apple-pay' | 'mada' | 'stc-pay' | 'visa';
@@ -193,6 +195,14 @@ export default function PlanDetailPage() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [purchaseStep, setPurchaseStep] = useState<PurchaseStep>('choose-path');
   const [purchasePath, setPurchasePath] = useState<PurchasePath | null>(null);
+  const [contactPhone, setContactPhone] = useState('');
+  const contactPhoneValid = /^05\d{8}$/.test(contactPhone.trim());
+  const [portContactPhone, setPortContactPhone] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  // Pinned location on the mock delivery map (percent of width/height)
+  const [deliveryPin, setDeliveryPin] = useState<{ x: number; y: number } | null>(null);
+  const [deliveryMapOpen, setDeliveryMapOpen] = useState(false);
   const [idNumber, setIdNumber] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [existingNumber, setExistingNumber] = useState('');
@@ -251,6 +261,12 @@ export default function PlanDetailPage() {
   const resetPurchase = () => {
     setPurchaseStep('choose-path');
     setPurchasePath(null);
+    setContactPhone('');
+    setPortContactPhone('');
+    setDeliveryCity('');
+    setDeliveryAddress('');
+    setDeliveryPin(null);
+    setDeliveryMapOpen(false);
     setIdNumber('');
     setBirthDate('');
     setExistingNumber('');
@@ -302,6 +318,9 @@ export default function PlanDetailPage() {
   const idNumberValid = /^[12]\d{9}$/.test(idNumber.trim()); // Saudi National ID / Iqama: 10 digits starting 1 or 2
   const birthDateValid = !!birthDate;
   const existingNumberValid = /^05\d{8}$/.test(existingNumber.trim());
+  const portContactPhoneFormatValid = /^05\d{8}$/.test(portContactPhone.trim());
+  const portContactPhoneIsSameAsPorted = portContactPhone.trim().length > 0 && portContactPhone.trim() === existingNumber.trim();
+  const portContactPhoneValid = portContactPhoneFormatValid && !portContactPhoneIsSameAsPorted;
 
   // Cheaper-alternative finder — same logic as Switch & Save, in-page modal.
   const [showCheaperModal, setShowCheaperModal] = useState(false);
@@ -455,11 +474,11 @@ export default function PlanDetailPage() {
                 <span className="tabular-nums">{Math.max(0, reaction.dislikes)}</span>
               </button>
               <button
-                onClick={() => { if (!requestBookmark(plan.id)) navigate('/profile'); }}
-                className={`p-2 rounded-xl transition-colors ${isBookmarked(plan.id) ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
-                aria-label={isBookmarked(plan.id) ? t('bookmark.remove') : t('bookmark.add')}
+                onClick={() => { if (!requestBookmark({ kind: 'plan', id: String(plan.id) })) navigate('/profile'); }}
+                className={`p-2 rounded-xl transition-colors ${isBookmarked('plan', plan.id) ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
+                aria-label={isBookmarked('plan', plan.id) ? t('bookmark.remove') : t('bookmark.add')}
               >
-                <Bookmark size={20} fill={isBookmarked(plan.id) ? 'currentColor' : 'none'} />
+                <Bookmark size={20} fill={isBookmarked('plan', plan.id) ? 'currentColor' : 'none'} />
               </button>
             </div>
           </div>
@@ -1227,7 +1246,7 @@ export default function PlanDetailPage() {
 
       {/* ========= IN-PLATFORM PURCHASE FLOW ========= */}
       <Dialog open={showPurchaseModal} onOpenChange={(open) => { if (!open) setShowPurchaseModal(false); }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md sm:max-w-lg w-[calc(100vw-1.5rem)] sm:w-full max-h-[calc(100dvh-2rem)] overflow-y-auto p-4 sm:p-5">
           {/* Header — plan summary always visible */}
           <DialogHeader>
             <div className="flex items-center justify-between gap-3 mb-1">
@@ -1243,11 +1262,17 @@ export default function PlanDetailPage() {
               {/* Step indicator */}
               <span className="shrink-0 text-[10px] font-mono uppercase tracking-wider text-foreground/55 bg-secondary px-2 py-1 rounded-full">
                 {(() => {
-                  const stepIndex: Record<PurchaseStep, number> = {
-                    'choose-path': 1, 'identity': 2, 'identity-otp': 3, 'pick-number': 4, 'sim-type': 5, 'payment': 6, 'success': 7,
+                  const newFlow: Partial<Record<PurchaseStep, number>> = {
+                    'choose-path': 1, 'contact-phone': 2, 'identity': 3, 'identity-otp': 4, 'pick-number': 5, 'sim-type': 6, 'payment': 7,
                   };
-                  const total = purchasePath === 'port' ? 5 : 6; // port skips pick-number
-                  return purchaseStep === 'success' ? '✓' : `${stepIndex[purchaseStep]} / ${total}`;
+                  const portFlow: Partial<Record<PurchaseStep, number>> = {
+                    'choose-path': 1, 'port-number': 2, 'port-otp': 3, 'port-contact': 4, 'sim-type': 5, 'payment': 6,
+                  };
+                  if (purchaseStep === 'success') return '✓';
+                  const indices = purchasePath === 'port' ? portFlow : newFlow;
+                  const total = purchasePath === 'port' ? 6 : 7;
+                  const idx = indices[purchaseStep] ?? 1;
+                  return `${idx} / ${total}`;
                 })()}
               </span>
             </div>
@@ -1261,7 +1286,7 @@ export default function PlanDetailPage() {
               </p>
               <div className="flex flex-col gap-2.5">
                 <button
-                  onClick={() => { setPurchasePath('new'); setPurchaseStep('identity'); }}
+                  onClick={() => { setPurchasePath('new'); setPurchaseStep('contact-phone'); }}
                   className="group flex items-center gap-3 rounded-xl border-2 border-border bg-card hover:border-[var(--ob-cta)] hover:bg-[var(--ob-cta)]/5 p-4 text-left transition-all"
                 >
                   <div className="w-11 h-11 rounded-xl bg-[#C59AFA] flex items-center justify-center shrink-0">
@@ -1299,10 +1324,70 @@ export default function PlanDetailPage() {
             </div>
           )}
 
-          {/* ── STEP 2: ID + birthday (+ existing number if port) ── */}
-          {purchaseStep === 'identity' && (
+          {/* ── STEP 2: Saudi mobile number (verifies user owns the line) ── */}
+          {purchaseStep === 'contact-phone' && (
             <div className="mt-2">
               <button onClick={() => setPurchaseStep('choose-path')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
+                <ArrowLeft size={12} className="rtl:rotate-180" />
+                {lang === 'ar' ? 'رجوع' : 'Back'}
+              </button>
+
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center">
+                  <Phone size={16} className="text-foreground/70" />
+                </div>
+                <div>
+                  <h3 className="font-heading font-bold text-base text-foreground leading-tight">
+                    {lang === 'ar' ? 'رقم جوالك السعودي' : 'Your Saudi mobile number'}
+                  </h3>
+                  <p className="text-[11.5px] text-foreground/60 mt-0.5 leading-snug">
+                    {lang === 'ar'
+                      ? 'سنرسل رمز تحقق هنا — جزء من تأكيد الهوية.'
+                      : 'We’ll send a verification code here — part of identity check.'}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                  {lang === 'ar' ? 'رقم الجوال' : 'Mobile number'}
+                </label>
+                <div className="flex items-stretch rounded-md border border-input bg-card overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:border-ring" dir="ltr">
+                  <span className="flex items-center gap-1.5 bg-secondary border-e border-border px-3 font-mono font-bold text-[13px] text-foreground/85 select-none">
+                    🇸🇦 +966
+                  </span>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value.replace(/\D/g, ''))}
+                    placeholder="05xxxxxxxx"
+                    className="flex-1 border-0 rounded-none bg-transparent font-mono focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+                  />
+                </div>
+                <p className="text-[10.5px] text-foreground/50 mt-1">
+                  {lang === 'ar'
+                    ? 'الأرقام السعودية فقط · 10 أرقام تبدأ بـ 05'
+                    : 'Saudi numbers only · 10 digits starting with 05'}
+                </p>
+              </div>
+
+              <Button
+                size="lg"
+                disabled={!contactPhoneValid}
+                onClick={() => setPurchaseStep('identity')}
+                className="w-full mt-4 font-bold text-[14px]"
+              >
+                {lang === 'ar' ? 'متابعة' : 'Continue'}
+              </Button>
+            </div>
+          )}
+
+          {/* ── STEP 3: ID + birthday (+ existing number if port) ── */}
+          {purchaseStep === 'identity' && (
+            <div className="mt-2">
+              <button onClick={() => setPurchaseStep('contact-phone')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
                 <ArrowLeft size={12} className="rtl:rotate-180" />
                 {lang === 'ar' ? 'رجوع' : 'Back'}
               </button>
@@ -1319,6 +1404,19 @@ export default function PlanDetailPage() {
                     {lang === 'ar' ? 'مطلوب من هيئة الاتصالات.' : 'Required by the Communications Commission (CST).'}
                   </p>
                 </div>
+              </div>
+
+              {/* Locked Saudi number summary — entered in the previous step */}
+              <div className="mb-3 flex items-center gap-2 rounded-xl border border-border bg-secondary/30 px-3 py-2.5">
+                <Phone size={13} className="text-foreground/45 shrink-0" />
+                <span className="flex-1 min-w-0 truncate font-mono text-[12.5px] text-foreground/85" dir="ltr">+966 {contactPhone}</span>
+                <button
+                  type="button"
+                  onClick={() => setPurchaseStep('contact-phone')}
+                  className="text-[11px] font-bold text-[#FE7151] hover:opacity-80 underline underline-offset-4 shrink-0"
+                >
+                  {lang === 'ar' ? 'تغيير' : 'Change'}
+                </button>
               </div>
 
               <div className="flex flex-col gap-3">
@@ -1379,8 +1477,8 @@ export default function PlanDetailPage() {
               </h3>
               <p className="text-[12px] text-foreground/65 mt-1.5 leading-snug">
                 {lang === 'ar'
-                  ? 'أرسلنا رمزاً مكوناً من 4 أرقام إلى الجوال المسجل في أبشر/المقيم.'
-                  : 'We sent a 4-digit code to the phone registered with Absher.'}
+                  ? <>أرسلنا رمزاً مكوناً من 4 أرقام إلى <span className="font-mono font-bold text-foreground" dir="ltr">+966 {contactPhone}</span></>
+                  : <>We sent a 4-digit code to <span className="font-mono font-bold text-foreground" dir="ltr">+966 {contactPhone}</span></>}
               </p>
 
               <div className="flex justify-center gap-2 mt-5" dir="ltr">
@@ -1615,7 +1713,7 @@ export default function PlanDetailPage() {
                 disabled={!portOtpComplete}
                 onClick={() => {
                   trackEvent('port_number_verified', { donor: donorProvider });
-                  setPurchaseStep('sim-type');
+                  setPurchaseStep('port-contact');
                 }}
                 className="w-full mt-5 font-bold text-[14px]"
               >
@@ -1624,10 +1722,78 @@ export default function PlanDetailPage() {
             </div>
           )}
 
+          {/* ── PORT STEP: contact phone (how SOOB reaches the user) ── */}
+          {purchaseStep === 'port-contact' && (
+            <div className="mt-2">
+              <button onClick={() => setPurchaseStep('port-otp')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
+                <ArrowLeft size={12} className="rtl:rotate-180" />
+                {lang === 'ar' ? 'رجوع' : 'Back'}
+              </button>
+
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center">
+                  <Phone size={16} className="text-foreground/70" />
+                </div>
+                <div>
+                  <h3 className="font-heading font-bold text-base text-foreground leading-tight">
+                    {lang === 'ar' ? 'كيف نتواصل معك؟' : 'How can we reach you?'}
+                  </h3>
+                  <p className="text-[11.5px] text-foreground/60 mt-0.5 leading-snug">
+                    {lang === 'ar'
+                      ? 'قد نحتاج للاتصال بك بخصوص نقل الرقم.'
+                      : 'We may need to contact you about your port request.'}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                  {lang === 'ar' ? 'رقم التواصل' : 'Contact number'}
+                </label>
+                <div className="flex items-stretch rounded-md border border-input bg-card overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:border-ring" dir="ltr">
+                  <span className="flex items-center gap-1.5 bg-secondary border-e border-border px-3 font-mono font-bold text-[13px] text-foreground/85 select-none">
+                    🇸🇦 +966
+                  </span>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={portContactPhone}
+                    onChange={(e) => setPortContactPhone(e.target.value.replace(/\D/g, ''))}
+                    placeholder="05xxxxxxxx"
+                    className="flex-1 border-0 rounded-none bg-transparent font-mono focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+                  />
+                </div>
+                {portContactPhoneIsSameAsPorted ? (
+                  <p className="text-[11px] font-semibold text-destructive mt-1.5">
+                    {lang === 'ar'
+                      ? 'لا يمكن استخدام نفس الرقم المنقول. أدخل رقماً مختلفاً.'
+                      : 'Can\'t be the number you\'re porting. Enter a different number.'}
+                  </p>
+                ) : (
+                  <p className="text-[10.5px] text-foreground/50 mt-1">
+                    {lang === 'ar'
+                      ? `يجب أن يكون رقماً مختلفاً عن ${existingNumber || 'الرقم المنقول'}.`
+                      : `Must be different from ${existingNumber || 'the number being ported'}.`}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                size="lg"
+                disabled={!portContactPhoneValid}
+                onClick={() => setPurchaseStep('sim-type')}
+                className="w-full mt-4 font-bold text-[14px]"
+              >
+                {lang === 'ar' ? 'متابعة' : 'Continue'}
+              </Button>
+            </div>
+          )}
+
           {/* ── STEP 5: SIM or eSIM ── */}
           {purchaseStep === 'sim-type' && (
             <div className="mt-2">
-              <button onClick={() => setPurchaseStep(purchasePath === 'new' ? 'pick-number' : 'port-otp')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
+              <button onClick={() => setPurchaseStep(purchasePath === 'new' ? 'pick-number' : 'port-contact')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
                 <ArrowLeft size={12} className="rtl:rotate-180" />
                 {lang === 'ar' ? 'رجوع' : 'Back'}
               </button>
@@ -1697,39 +1863,245 @@ export default function PlanDetailPage() {
                 {lang === 'ar' ? 'رجوع' : 'Back'}
               </button>
 
+              {/* Delivery address — first for physical SIM, before price details */}
+              {simType === 'sim' && (
+                <div className="mb-4 rounded-xl border-2 border-border bg-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MapPinIcon size={14} className="text-foreground/65" />
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/70">
+                      {lang === 'ar' ? 'عنوان التوصيل' : 'Delivery address'}
+                    </p>
+                  </div>
+
+                  {/* Map — collapsed by default, opens inline on demand */}
+                  <div className="mb-3">
+                    <label className="block text-[10.5px] font-semibold text-foreground/60 mb-1.5 uppercase tracking-wider">
+                      {lang === 'ar' ? 'موقع التوصيل' : 'Pin your location'}
+                    </label>
+
+                    {!deliveryMapOpen && !deliveryPin && (
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryMapOpen(true)}
+                        className="w-full rounded-lg border-2 border-dashed border-border hover:border-foreground/40 hover:bg-secondary/30 py-4 px-4 text-foreground/70 hover:text-foreground inline-flex items-center justify-center gap-2 transition-all"
+                      >
+                        <Map size={16} />
+                        <span className="font-semibold text-[12.5px]">
+                          {lang === 'ar' ? 'افتح الخريطة لتحديد الموقع' : 'Open map to pin location'}
+                        </span>
+                      </button>
+                    )}
+
+                    {!deliveryMapOpen && deliveryPin && (
+                      <div className="rounded-lg border border-border bg-secondary/30 px-3 py-2.5 flex items-center gap-2">
+                        <MapPinIcon size={14} style={{ color: '#FE7151' }} className="shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[11.5px] font-semibold text-foreground">
+                            {lang === 'ar' ? 'الموقع محدد' : 'Location pinned'}
+                          </div>
+                          <div className="text-[10.5px] font-mono text-foreground/55 truncate">
+                            {(24.5 + deliveryPin.y * 0.005).toFixed(4)}° N · {(46.5 + deliveryPin.x * 0.005).toFixed(4)}° E
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setDeliveryMapOpen(true)}
+                          className="text-[11.5px] font-bold text-[#FE7151] hover:opacity-80 underline underline-offset-4 shrink-0"
+                        >
+                          {lang === 'ar' ? 'تعديل' : 'Edit'}
+                        </button>
+                      </div>
+                    )}
+
+                    {deliveryMapOpen && (
+                      <>
+                        <div className="flex items-center justify-end mb-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setDeliveryPin({ x: 50, y: 52 })}
+                            className="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#FE7151] hover:opacity-80"
+                          >
+                            <Crosshair size={11} />
+                            {lang === 'ar' ? 'موقعي الحالي' : 'Use my location'}
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            const r = e.currentTarget.getBoundingClientRect();
+                            const x = ((e.clientX - r.left) / r.width) * 100;
+                            const y = ((e.clientY - r.top) / r.height) * 100;
+                            setDeliveryPin({ x: Math.max(2, Math.min(98, x)), y: Math.max(4, Math.min(96, y)) });
+                          }}
+                          className="relative w-full rounded-lg border border-border overflow-hidden h-[180px] sm:h-[220px] md:h-[260px]"
+                          style={{ background: '#E8ECEF', cursor: 'crosshair' }}
+                          aria-label={lang === 'ar' ? 'اضغط لوضع دبوس الموقع' : 'Tap to drop a pin'}
+                        >
+                          {/* Roads */}
+                          <span className="absolute" style={{ top: '38%', left: '0%', width: '100%', height: 4, background: '#FFFFFF' }} />
+                          <span className="absolute" style={{ top: '70%', left: '0%', width: '100%', height: 3, background: '#FFFFFF' }} />
+                          <span className="absolute" style={{ top: '0%', left: '32%', width: 3, height: '100%', background: '#FFFFFF' }} />
+                          <span className="absolute" style={{ top: '0%', left: '64%', width: 4, height: '100%', background: '#FFFFFF' }} />
+                          {/* Parks */}
+                          <span className="absolute rounded-md" style={{ top: '8%', left: '8%', width: '18%', height: '24%', background: '#C8E6B6' }} />
+                          <span className="absolute rounded-md" style={{ top: '74%', left: '70%', width: '22%', height: '22%', background: '#C8E6B6' }} />
+                          {/* Water */}
+                          <span className="absolute rounded-md" style={{ top: '46%', left: '78%', width: '20%', height: '18%', background: '#A6C8E0' }} />
+                          {/* Building blocks (subtle) */}
+                          {[
+                            { t: '12%', l: '40%', w: 8, h: 6 },
+                            { t: '20%', l: '50%', w: 6, h: 8 },
+                            { t: '46%', l: '12%', w: 9, h: 7 },
+                            { t: '54%', l: '40%', w: 7, h: 6 },
+                            { t: '78%', l: '14%', w: 10, h: 7 },
+                            { t: '80%', l: '40%', w: 8, h: 8 },
+                          ].map((b, i) => (
+                            <span key={i} className="absolute rounded-sm" style={{ top: b.t, left: b.l, width: `${b.w}%`, height: `${b.h}%`, background: '#D7DDE3' }} />
+                          ))}
+
+                          {/* Pin */}
+                          {deliveryPin && (
+                            <span
+                              className="absolute pointer-events-none"
+                              style={{ left: `${deliveryPin.x}%`, top: `${deliveryPin.y}%`, transform: 'translate(-50%, -100%)' }}
+                            >
+                              <svg width="26" height="34" viewBox="0 0 26 34" fill="none">
+                                <path d="M13 33C13 33 24 21.7 24 13C24 6.92 19.08 2 13 2C6.92 2 2 6.92 2 13C2 21.7 13 33 13 33Z" fill="#FE7151" stroke="#16143A" strokeWidth="2" />
+                                <circle cx="13" cy="13" r="4.5" fill="#FFFFFF" />
+                              </svg>
+                            </span>
+                          )}
+
+                          {!deliveryPin && (
+                            <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <span className="rounded-full bg-white/85 backdrop-blur-sm px-3 py-1.5 text-[11px] font-bold text-foreground/75 shadow-sm inline-flex items-center gap-1.5">
+                                <MapPinIcon size={12} />
+                                {lang === 'ar' ? 'اضغط لوضع دبوس الموقع' : 'Tap to drop a pin'}
+                              </span>
+                            </span>
+                          )}
+                        </button>
+                        {deliveryPin && (
+                          <div className="mt-1.5 flex items-center justify-between gap-2">
+                            <span className="text-[10.5px] text-foreground/65 inline-flex items-center gap-1">
+                              <MapPinIcon size={11} style={{ color: '#FE7151' }} />
+                              <span className="font-mono">
+                                {(24.5 + deliveryPin.y * 0.005).toFixed(4)}° N · {(46.5 + deliveryPin.x * 0.005).toFixed(4)}° E
+                              </span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setDeliveryPin(null)}
+                              className="text-[10.5px] font-semibold text-foreground/60 hover:text-foreground underline underline-offset-4"
+                            >
+                              {lang === 'ar' ? 'إعادة تحديد' : 'Reset pin'}
+                            </button>
+                          </div>
+                        )}
+                        <div className="mt-2 flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setDeliveryMapOpen(false)}
+                            className="flex-1 h-9"
+                          >
+                            {deliveryPin ? (lang === 'ar' ? 'تم' : 'Done') : (lang === 'ar' ? 'إغلاق الخريطة' : 'Close map')}
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[10.5px] font-semibold text-foreground/60 mb-1 uppercase tracking-wider">
+                        {lang === 'ar' ? 'المدينة' : 'City'}
+                      </label>
+                      <select
+                        value={deliveryCity}
+                        onChange={(e) => setDeliveryCity(e.target.value)}
+                        className="w-full h-10 rounded-md border border-input bg-card px-3 text-[13px] font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="">{lang === 'ar' ? '— اختر المدينة —' : '— Select city —'}</option>
+                        {[
+                          { en: 'Riyadh',  ar: 'الرياض' },
+                          { en: 'Jeddah',  ar: 'جدة' },
+                          { en: 'Mecca',   ar: 'مكة المكرمة' },
+                          { en: 'Medina',  ar: 'المدينة المنورة' },
+                          { en: 'Dammam',  ar: 'الدمام' },
+                          { en: 'Khobar',  ar: 'الخبر' },
+                          { en: 'Taif',    ar: 'الطائف' },
+                          { en: 'Tabuk',   ar: 'تبوك' },
+                          { en: 'Abha',    ar: 'أبها' },
+                          { en: 'Other',   ar: 'مدينة أخرى' },
+                        ].map(c => (
+                          <option key={c.en} value={c.en}>{lang === 'ar' ? c.ar : c.en}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10.5px] font-semibold text-foreground/60 mb-1 uppercase tracking-wider">
+                        {lang === 'ar' ? 'العنوان التفصيلي' : 'Full address'}
+                        <span className="ms-1 normal-case font-normal text-foreground/45 tracking-normal">
+                          {lang === 'ar' ? '(اختياري)' : '(optional)'}
+                        </span>
+                      </label>
+                      <textarea
+                        value={deliveryAddress}
+                        onChange={(e) => setDeliveryAddress(e.target.value)}
+                        placeholder={lang === 'ar'
+                          ? 'الحي، الشارع، رقم المبنى، الرقم البريدي'
+                          : 'District, street, building no., postal code'}
+                        rows={2}
+                        className="w-full rounded-md border border-input bg-card px-3 py-2 text-[13px] font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                      />
+                      <p className="text-[10.5px] text-foreground/50 mt-1">
+                        {lang === 'ar'
+                          ? 'يساعد المندوب في الوصول بشكل أسرع — لكنه ليس مطلوباً.'
+                          : 'Helps the courier find you faster, but not required.'}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-[10.5px] text-foreground/55 mt-2 inline-flex items-center gap-1">
+                    <Truck size={11} />
+                    {lang === 'ar' ? 'التوصيل خلال 1–3 أيام عمل · مجاني' : 'Delivered in 1–3 working days · free shipping'}
+                  </p>
+                </div>
+              )}
+
               {/* Order summary */}
-              <div className="rounded-xl bg-secondary/50 border border-border p-4 mb-4">
+              <div className="rounded-xl bg-secondary/50 border border-border p-3.5 sm:p-4 mb-4">
                 <div className="flex justify-between items-baseline mb-2">
                   <span className="text-[11px] text-foreground/60 uppercase tracking-wider font-mono">
                     {lang === 'ar' ? 'ملخص الطلب' : 'Order summary'}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-sm mb-1">
-                  <span className="text-foreground/75 truncate">{plan.planName}</span>
-                  <span className="font-bold text-foreground"><SarSymbol className="text-[11px] text-muted-foreground" /> {plan.priceSAR}</span>
+                <div className="flex justify-between items-center gap-2 text-sm mb-1">
+                  <span className="text-foreground/75 truncate min-w-0 flex-1">{plan.planName}</span>
+                  <span className="font-bold text-foreground shrink-0 whitespace-nowrap"><SarSymbol className="text-[11px] text-muted-foreground" /> {plan.priceSAR}</span>
                 </div>
-                <div className="flex justify-between items-center text-[12px] text-foreground/60 mb-1">
-                  <span>{lang === 'ar' ? 'النوع' : 'Type'}</span>
-                  <span className="font-mono text-foreground/80" dir="ltr">
+                <div className="flex justify-between items-center gap-2 text-[12px] text-foreground/60 mb-1">
+                  <span className="shrink-0">{lang === 'ar' ? 'النوع' : 'Type'}</span>
+                  <span className="font-mono text-foreground/80 truncate min-w-0 text-end" dir="ltr">
                     {purchasePath === 'new' && pickedNumber ? `New · ${pickedNumber}` : `Port · ${existingNumber}`}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-[12px] text-foreground/60">
-                  <span>{lang === 'ar' ? 'الشريحة' : 'SIM'}</span>
-                  <span className="text-foreground/80">{simType === 'esim' ? 'eSIM' : 'Physical SIM'}</span>
+                <div className="flex justify-between items-center gap-2 text-[12px] text-foreground/60">
+                  <span className="shrink-0">{lang === 'ar' ? 'الشريحة' : 'SIM'}</span>
+                  <span className="text-foreground/80 shrink-0">{simType === 'esim' ? 'eSIM' : 'Physical SIM'}</span>
                 </div>
                 {discountApplied && (
-                  <div className="flex justify-between items-center text-[12px] mt-2" style={{ color: '#16143A' }}>
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="font-mono font-semibold px-1.5 py-0.5 rounded" style={{ background: '#CFEB74', color: '#16143A' }}>{discountApplied.code}</span>
-                      <span className="text-foreground/60">({lang === 'ar' ? `خصم ${discountApplied.percent}%` : `${discountApplied.percent}% off`})</span>
+                  <div className="flex justify-between items-center gap-2 text-[12px] mt-2 flex-wrap" style={{ color: '#16143A' }}>
+                    <span className="inline-flex items-center gap-1.5 min-w-0 truncate">
+                      <span className="font-mono font-semibold px-1.5 py-0.5 rounded shrink-0" style={{ background: '#CFEB74', color: '#16143A' }}>{discountApplied.code}</span>
+                      <span className="text-foreground/60 truncate">({lang === 'ar' ? `خصم ${discountApplied.percent}%` : `${discountApplied.percent}% off`})</span>
                     </span>
-                    <span className="font-bold" style={{ color: '#16143A' }}>−<SarSymbol className="text-[11px] opacity-70" /> {((plan.priceSAR * discountApplied.percent) / 100).toFixed(2)}</span>
+                    <span className="font-bold shrink-0 whitespace-nowrap" style={{ color: '#16143A' }}>−<SarSymbol className="text-[11px] opacity-70" /> {((plan.priceSAR * discountApplied.percent) / 100).toFixed(2)}</span>
                   </div>
                 )}
-                <div className="border-t border-border mt-3 pt-3 flex justify-between items-baseline">
-                  <span className="text-[12px] font-semibold text-foreground/80">{lang === 'ar' ? 'الإجمالي' : 'Total'}</span>
-                  <span className="font-heading font-bold text-xl text-foreground">
+                <div className="border-t border-border mt-3 pt-3 flex justify-between items-baseline gap-2">
+                  <span className="text-[12px] font-semibold text-foreground/80 shrink-0">{lang === 'ar' ? 'الإجمالي' : 'Total'}</span>
+                  <span className="font-heading font-bold text-xl text-foreground whitespace-nowrap shrink-0">
                     <SarSymbol className="text-xs text-muted-foreground" /> {(plan.priceSAR * (1 - (discountApplied?.percent ?? 0) / 100)).toFixed(2)}
                   </span>
                 </div>
@@ -1818,7 +2190,7 @@ export default function PlanDetailPage() {
 
               <Button
                 size="lg"
-                disabled={!paymentMethod}
+                disabled={!paymentMethod || (simType === 'sim' && (!deliveryCity || !deliveryPin))}
                 onClick={() => {
                   const finalPrice = +(plan.priceSAR * (1 - (discountApplied?.percent ?? 0) / 100)).toFixed(2);
                   trackEvent('plan_purchase_paid', {
@@ -1871,9 +2243,36 @@ export default function PlanDetailPage() {
                   </span>
                 </div>
               )}
-              <Button size="lg" onClick={() => setShowPurchaseModal(false)} className="w-full mt-5 font-bold text-[14px]">
-                {lang === 'ar' ? 'تم' : 'Done'}
+
+              {/* Primary CTA — goes to My Orders so the user can activate / track */}
+              <Button
+                size="lg"
+                onClick={() => {
+                  setShowPurchaseModal(false);
+                  navigate('/orders');
+                }}
+                className="w-full mt-5 font-bold text-[14px] inline-flex items-center justify-center gap-2"
+              >
+                {simType === 'esim' ? (
+                  <>
+                    <Zap size={15} />
+                    {lang === 'ar' ? 'فعّل الـ eSIM في طلباتي' : 'Activate eSIM in My Orders'}
+                  </>
+                ) : (
+                  <>
+                    <Truck size={15} />
+                    {lang === 'ar' ? 'تتبع الشحنة في طلباتي' : 'Track shipment in My Orders'}
+                  </>
+                )}
+                <ArrowRight size={14} className="rtl:rotate-180" />
               </Button>
+              <button
+                type="button"
+                onClick={() => setShowPurchaseModal(false)}
+                className="text-[12px] font-semibold text-foreground/55 hover:text-foreground mt-3 underline underline-offset-4"
+              >
+                {lang === 'ar' ? 'إغلاق' : 'Close'}
+              </button>
             </div>
           )}
         </DialogContent>

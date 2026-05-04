@@ -389,6 +389,9 @@ const HomeAtlasPage = lazy(() => import('./pages/HomeAtlasPage'));
 const PlansPage = lazy(() => import('./pages/PlansPage'));
 const PlanDetailPage = lazy(() => import('./pages/PlanDetailPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const ProfileVariations = lazy(() => import('./pages/ProfileVariations'));
+const ProfileLayouts = lazy(() => import('./pages/ProfileLayouts'));
+const TopupVariants = lazy(() => import('./pages/TopupVariants'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const SavedPlansPage = lazy(() => import('./pages/SavedPlansPage'));
 const OrdersVariations = lazy(() => import('./pages/OrdersVariations'));
@@ -494,6 +497,9 @@ function App() {
                 <Route path="/compare" element={<ComparePage />} />
                 <Route path="/switch" element={<SwitchSavePage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/profile-variants" element={<ProfileVariations />} />
+                <Route path="/profile-layouts" element={<ProfileLayouts />} />
+                <Route path="/topup-variants" element={<TopupVariants />} />
                 <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/saved" element={<SavedPlansPage />} />
                 <Route path="/orders-variants" element={<OrdersVariations />} />

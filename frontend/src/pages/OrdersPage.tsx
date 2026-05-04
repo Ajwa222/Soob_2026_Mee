@@ -15,7 +15,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Package, QrCode, Truck, CheckCircle2, Clock, ArrowLeft,
-  MapPin, Smartphone, Wifi, AlertCircle, Gift, Eye,
+  MapPin, Smartphone, Wifi, AlertCircle, Gift, Eye, Shield, FileText,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -49,20 +49,47 @@ interface Order {
   expiresAt?: string;
 }
 
-const STORAGE_KEY = 'soob-orders-v4';
+const STORAGE_KEY = 'soob-orders-v7';
 
 const MOCK_ORDERS: Order[] = [
+  // Fresh just-purchased eSIM — walks through the ID → Nafath → QR activation flow.
   {
-    id: 'ord-001',
+    id: 'ord-000',
     kind: 'mobile',
     planName: 'STC Jood Plus 80',
     provider: 'STC',
     priceSAR: 80,
-    purchasedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    purchasedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
     simType: 'esim',
     status: 'pending-activation',
+    assignedNumber: '0509998877',
+    qrPayload: 'LPA:1$rsp.stc.com.sa$NEW1-2222-3333-4444',
+  },
+  // Fresh just-delivered physical SIM — walks through the ID → Nafath → MSISDN+ICCID flow.
+  {
+    id: 'ord-000b',
+    kind: 'mobile',
+    planName: 'Zain Shabab 99',
+    provider: 'Zain',
+    priceSAR: 99,
+    purchasedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    simType: 'physical',
+    status: 'delivered',
+    shippedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    trackingNumber: 'SMSA-AR-2026-1991774',
+  },
+  {
+    id: 'ord-001',
+    kind: 'mobile',
+    planName: 'Mobily Connect 60',
+    provider: 'Mobily',
+    priceSAR: 60,
+    purchasedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    simType: 'esim',
+    status: 'activated',
     assignedNumber: '0501234567',
-    qrPayload: 'LPA:1$rsp.stc.com.sa$ABCD-1234-EFGH-5678',
+    iccid: '8966033321987654321',
+    qrPayload: 'LPA:1$rsp.mobily.com.sa$ABCD-1234-EFGH-5678',
   },
   {
     id: 'ord-002',
@@ -81,13 +108,15 @@ const MOCK_ORDERS: Order[] = [
   {
     id: 'ord-003',
     kind: 'mobile',
-    planName: 'Zain Shabab 99',
-    provider: 'Zain',
-    priceSAR: 99,
-    purchasedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    planName: 'STC Najeed 50',
+    provider: 'STC',
+    priceSAR: 50,
+    purchasedAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
     simType: 'physical',
-    status: 'delivered',
-    shippedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    status: 'activated',
+    assignedNumber: '0506677889',
+    iccid: '8966033012345678901',
+    shippedAt: new Date(Date.now() - 33 * 24 * 60 * 60 * 1000).toISOString(),
     trackingNumber: 'SMSA-AR-2026-1881044',
   },
   {
@@ -168,10 +197,11 @@ const MOCK_ORDERS: Order[] = [
     planName: 'Jawwy Data 50',
     provider: 'Jawwy',
     priceSAR: 50,
-    purchasedAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
+    purchasedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
     simType: 'esim',
-    status: 'pending-activation',
+    status: 'activated',
     assignedNumber: '0508888777',
+    iccid: '8966033455123456788',
     qrPayload: 'LPA:1$rsp.jawwy.sa$JAWY-2266-PRMA',
   },
   {
@@ -281,10 +311,11 @@ const MOCK_ORDERS: Order[] = [
     planName: 'Zain eSIM Plus 149',
     provider: 'Zain',
     priceSAR: 149,
-    purchasedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    purchasedAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
     simType: 'esim',
-    status: 'pending-activation',
+    status: 'activated',
     assignedNumber: '0557766554',
+    iccid: '8966033099887766554',
     qrPayload: 'LPA:1$rsp.zain.sa$ZAIN-PLUS-9876',
   },
 ];
@@ -732,7 +763,7 @@ function OrderCard({
   );
 }
 
-// ─── eSIM QR modal ─────────────────────────────────────────────────────
+// ─── eSIM activation modal — ID → Nafath number → QR ──────────────────
 function QrModal({
   open, order, onClose, onMarkActivated, isAr,
 }: {
@@ -740,67 +771,189 @@ function QrModal({
   onMarkActivated: (id: string, num: string, iccid?: string) => void;
   isAr: boolean;
 }) {
+  type Step = 'id' | 'nafath' | 'qr';
+  const [step, setStep] = useState<Step>('id');
+  const [idNumber, setIdNumber] = useState('');
+  // Nafath-style 2-digit challenge — user must pick this in the Nafath app.
+  const [nafathNumber, setNafathNumber] = useState<number>(() => Math.floor(Math.random() * 90) + 10);
+
+  // Reset everything whenever the modal opens.
+  useEffect(() => {
+    if (open) {
+      setStep('id');
+      setIdNumber('');
+      setNafathNumber(Math.floor(Math.random() * 90) + 10);
+    }
+  }, [open]);
+
   if (!order) return null;
   const isVoucher = order.kind === 'voucher';
+  const idValid = /^[12]\d{9}$/.test(idNumber);
+
+  // Vouchers stay simple — no identity step needed for digital codes.
+  if (isVoucher) {
+    return (
+      <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading font-bold text-xl flex items-center gap-2">
+              <QrCode size={20} style={{ color: '#FE7151' }} />
+              {isAr ? 'رمز القسيمة' : 'Your voucher code'}
+            </DialogTitle>
+            <DialogDescription>
+              {isAr ? 'استخدم الرمز التالي عند الاستبدال على موقع المزود.' : 'Use the code below to redeem on the provider\'s site.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center my-3">
+            <div className="w-56 h-56 rounded-2xl bg-white p-4 grid grid-cols-12 grid-rows-12 gap-px border-2 border-foreground" aria-label="Voucher QR">
+              {Array.from({ length: 144 }).map((_, i) => {
+                const seed = (i * 9301 + 49297) % 233280;
+                const on = (seed / 233280) > 0.45;
+                const isCorner = ((i < 36 && i % 12 < 3) || (i < 36 && i % 12 > 8) || (i >= 108 && i % 12 < 3));
+                return <div key={i} className="rounded-[1px]" style={{ background: (isCorner || on) ? '#16143A' : 'transparent' }} />;
+              })}
+            </div>
+          </div>
+          <p className="text-[11px] text-foreground/60 text-center font-mono break-all px-2 mb-2">
+            {order.qrPayload}
+          </p>
+          <Button onClick={onClose} className="w-full font-bold mt-2" style={{ background: '#16143A', color: '#FFFFFF' }}>
+            {isAr ? 'تم' : 'Done'}
+          </Button>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // eSIM activation flow — three steps gated by Saudi identity rules.
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="font-heading font-bold text-xl flex items-center gap-2">
-            <QrCode size={20} style={{ color: '#FE7151' }} />
-            {isVoucher
-              ? (isAr ? 'رمز القسيمة' : 'Your voucher code')
-              : (isAr ? 'تفعيل eSIM' : 'Activate your eSIM')}
+            {step === 'id' && (
+              <>
+                <FileText size={20} style={{ color: '#FE7151' }} />
+                {isAr ? 'تأكيد الهوية' : 'Verify your identity'}
+              </>
+            )}
+            {step === 'nafath' && (
+              <>
+                <Shield size={20} style={{ color: '#16143A' }} />
+                {isAr ? 'تحقق عبر نفاذ' : 'Confirm with Nafath'}
+              </>
+            )}
+            {step === 'qr' && (
+              <>
+                <QrCode size={20} style={{ color: '#FE7151' }} />
+                {isAr ? 'تفعيل eSIM' : 'Activate your eSIM'}
+              </>
+            )}
           </DialogTitle>
           <DialogDescription>
-            {isVoucher
-              ? (isAr ? 'استخدم الرمز التالي عند الاستبدال على موقع المزود.' : 'Use the code below to redeem on the provider\'s site.')
-              : (isAr ? 'افتح إعدادات الجوال > البيانات > أضف خطة، ثم امسح الرمز.' : 'Open Settings → Cellular → Add eSIM, then scan the code below.')}
+            {step === 'id'     && (isAr ? 'أدخل رقم الهوية أو الإقامة لتفعيل eSIM.' : 'Enter your National ID or Iqama to activate the eSIM.')}
+            {step === 'nafath' && (isAr ? 'افتح تطبيق نفاذ واختر الرقم التالي.' : 'Open the Nafath app and tap the matching number.')}
+            {step === 'qr'     && (isAr ? 'افتح إعدادات الجوال > البيانات > أضف خطة، ثم امسح الرمز.' : 'Open Settings → Cellular → Add eSIM, then scan the code below.')}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Mock QR — pure CSS pattern so we don't pull in an extra dep. Replace
-         * with a real <QRCode value={order.qrPayload}/> from a QR library when
-         * the carrier endpoint is wired up. */}
-        <div className="flex justify-center my-3">
-          <div
-            className="w-56 h-56 rounded-2xl bg-white p-4 grid grid-cols-12 grid-rows-12 gap-px border-2 border-foreground"
-            aria-label="eSIM activation QR"
-          >
-            {Array.from({ length: 144 }).map((_, i) => {
-              const seed = (i * 9301 + 49297) % 233280;
-              const on = (seed / 233280) > 0.45;
-              const isCorner = (
-                (i < 36 && i % 12 < 3) ||
-                (i < 36 && i % 12 > 8) ||
-                (i >= 108 && i % 12 < 3)
-              );
-              return <div key={i} className="rounded-[1px]" style={{ background: (isCorner || on) ? '#16143A' : 'transparent' }} />;
-            })}
+        {/* ── STEP 1: ID ── */}
+        {step === 'id' && (
+          <div className="mt-3 space-y-3">
+            <Input
+              inputMode="numeric"
+              maxLength={10}
+              value={idNumber}
+              onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, ''))}
+              placeholder="1xxxxxxxxx / 2xxxxxxxxx"
+              className="bg-card font-mono text-center text-lg tracking-wider"
+            />
+            <p className="text-[11px] text-foreground/55 text-center">
+              {isAr
+                ? '10 أرقام · يبدأ بـ 1 (هوية) أو 2 (إقامة)'
+                : '10 digits · starts with 1 (National ID) or 2 (Iqama)'}
+            </p>
+            <Button onClick={() => setStep('nafath')} disabled={!idValid} className="w-full font-bold">
+              {isAr ? 'متابعة' : 'Continue'}
+            </Button>
           </div>
-        </div>
+        )}
 
-        <p className="text-[11px] text-foreground/60 text-center font-mono break-all px-2 mb-2">
-          {order.qrPayload}
-        </p>
+        {/* ── STEP 2: Nafath challenge number ── */}
+        {step === 'nafath' && (
+          <div className="mt-2">
+            <button onClick={() => setStep('id')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
+              <ArrowLeft size={12} className="rtl:rotate-180" />
+              {isAr ? 'رجوع' : 'Back'}
+            </button>
 
-        {isVoucher ? (
-          <Button
-            onClick={onClose}
-            className="w-full font-bold mt-2"
-            style={{ background: '#16143A', color: '#FFFFFF' }}
-          >
-            {isAr ? 'تم' : 'Done'}
-          </Button>
-        ) : (
-          <Button
-            onClick={() => onMarkActivated(order.id, order.assignedNumber || '', undefined)}
-            className="w-full font-bold mt-2"
-            style={{ background: '#CFEB74', color: '#16143A' }}
-          >
-            <CheckCircle2 size={16} />
-            {isAr ? 'تم المسح، فعّل الآن' : "I've scanned it — activate"}
-          </Button>
+            <div className="flex flex-col items-center my-3">
+              <div className="text-[10.5px] uppercase tracking-widest text-foreground/55 font-mono mb-2">
+                {isAr ? 'اختر هذا الرقم في تطبيق نفاذ' : 'Pick this number in the Nafath app'}
+              </div>
+              <div
+                className="w-32 h-32 rounded-full flex items-center justify-center font-heading font-bold text-6xl tabular-nums shadow-xl"
+                style={{ background: '#16143A', color: '#CFEB74' }}
+              >
+                {nafathNumber}
+              </div>
+              <div className="mt-3 inline-flex items-center gap-2 text-[12px] text-foreground/65">
+                <span className="flex gap-0.5">
+                  {[0,1,2].map(i => (
+                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-foreground/45 animate-pulse" style={{ animationDelay: `${i * 200}ms` }} />
+                  ))}
+                </span>
+                {isAr ? 'بانتظار التأكيد في نفاذ' : 'Waiting for Nafath confirmation'}
+              </div>
+            </div>
+
+            <ol className="rounded-xl bg-secondary/40 border border-border p-3 text-[11.5px] text-foreground/80 leading-relaxed list-decimal ms-5">
+              <li>{isAr ? 'افتح تطبيق نفاذ.' : 'Open the Nafath app.'}</li>
+              <li>{isAr ? 'سيظهر لك ٣ أرقام.' : 'You will see 3 numbers.'}</li>
+              <li>
+                {isAr
+                  ? <>اضغط على <span className="font-mono font-bold text-foreground">{nafathNumber}</span> لتأكيد الهوية.</>
+                  : <>Tap <span className="font-mono font-bold text-foreground">{nafathNumber}</span> to confirm your identity.</>}
+              </li>
+            </ol>
+
+            <Button onClick={() => setStep('qr')} className="w-full font-bold mt-4" style={{ background: '#16143A', color: '#FFFFFF' }}>
+              <CheckCircle2 size={16} />
+              {isAr ? 'تم التأكيد في نفاذ' : 'I confirmed in Nafath'}
+            </Button>
+          </div>
+        )}
+
+        {/* ── STEP 3: QR — auto-shown after Nafath ── */}
+        {step === 'qr' && (
+          <>
+            <div className="flex justify-center my-3">
+              <div
+                className="w-56 h-56 rounded-2xl bg-white p-4 grid grid-cols-12 grid-rows-12 gap-px border-2 border-foreground"
+                aria-label="eSIM activation QR"
+              >
+                {Array.from({ length: 144 }).map((_, i) => {
+                  const seed = (i * 9301 + 49297) % 233280;
+                  const on = (seed / 233280) > 0.45;
+                  const isCorner = ((i < 36 && i % 12 < 3) || (i < 36 && i % 12 > 8) || (i >= 108 && i % 12 < 3));
+                  return <div key={i} className="rounded-[1px]" style={{ background: (isCorner || on) ? '#16143A' : 'transparent' }} />;
+                })}
+              </div>
+            </div>
+
+            <p className="text-[11px] text-foreground/60 text-center font-mono break-all px-2 mb-2">
+              {order.qrPayload}
+            </p>
+
+            <Button
+              onClick={() => onMarkActivated(order.id, order.assignedNumber || '', undefined)}
+              className="w-full font-bold mt-2"
+              style={{ background: '#CFEB74', color: '#16143A' }}
+            >
+              <CheckCircle2 size={16} />
+              {isAr ? 'تم المسح، فعّل الآن' : "I've scanned it — activate"}
+            </Button>
+          </>
         )}
       </DialogContent>
     </Dialog>
@@ -890,18 +1043,31 @@ function PhysicalActivateModal({
   onMarkActivated: (id: string, num: string, iccid?: string) => void;
   isAr: boolean;
 }) {
+  type Step = 'id' | 'nafath' | 'activate';
+  const [step, setStep] = useState<Step>('id');
+  const [idNumber, setIdNumber] = useState('');
+  const [nafathNumber, setNafathNumber] = useState<number>(() => Math.floor(Math.random() * 90) + 10);
   const [msisdn, setMsisdn] = useState('');
   const [iccid, setIccid] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Reset on open/close
+  // Reset state every time the modal opens.
   useEffect(() => {
-    if (!open) { setMsisdn(''); setIccid(''); setError(null); setSubmitting(false); }
+    if (open) {
+      setStep('id');
+      setIdNumber('');
+      setNafathNumber(Math.floor(Math.random() * 90) + 10);
+      setMsisdn('');
+      setIccid('');
+      setError(null);
+      setSubmitting(false);
+    }
   }, [open]);
 
   if (!order) return null;
 
+  const idValid = /^[12]\d{9}$/.test(idNumber);
   const msisdnValid = /^05\d{8}$/.test(msisdn.trim());
   const iccidValid = /^\d{18,20}$/.test(iccid.trim().replace(/\s/g, ''));
 
@@ -910,75 +1076,164 @@ function PhysicalActivateModal({
     if (!msisdnValid) { setError(isAr ? 'رقم الجوال غير صالح. يجب أن يبدأ بـ 05.' : 'Invalid phone. Must start with 05.'); return; }
     if (!iccidValid)  { setError(isAr ? 'رقم ICCID غير صالح (18-20 رقم).' : 'Invalid ICCID (18-20 digits).'); return; }
     setSubmitting(true);
-    // Mock: pretend the carrier API responds in 800ms
     await new Promise(r => setTimeout(r, 800));
     onMarkActivated(order.id, msisdn.trim(), iccid.trim());
   };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md w-[calc(100vw-1.5rem)] sm:w-full max-h-[calc(100dvh-2rem)] overflow-y-auto p-4 sm:p-5">
         <DialogHeader>
           <DialogTitle className="font-heading font-bold text-xl flex items-center gap-2">
-            <Smartphone size={20} style={{ color: '#CFEB74' }} />
-            {isAr ? 'تفعيل الشريحة' : 'Activate your SIM'}
+            {step === 'id' && (
+              <>
+                <FileText size={20} style={{ color: '#FE7151' }} />
+                {isAr ? 'تأكيد الهوية' : 'Verify your identity'}
+              </>
+            )}
+            {step === 'nafath' && (
+              <>
+                <Shield size={20} style={{ color: '#16143A' }} />
+                {isAr ? 'تحقق عبر نفاذ' : 'Confirm with Nafath'}
+              </>
+            )}
+            {step === 'activate' && (
+              <>
+                <Smartphone size={20} style={{ color: '#CFEB74' }} />
+                {isAr ? 'تفعيل الشريحة' : 'Activate your SIM'}
+              </>
+            )}
           </DialogTitle>
           <DialogDescription>
-            {isAr
+            {step === 'id'       && (isAr ? 'أدخل رقم الهوية أو الإقامة لتفعيل الشريحة.' : 'Enter your National ID or Iqama to activate the SIM.')}
+            {step === 'nafath'   && (isAr ? 'افتح تطبيق نفاذ واختر الرقم التالي.' : 'Open the Nafath app and tap the matching number.')}
+            {step === 'activate' && (isAr
               ? 'أدخل رقم MSISDN (الجوال) ورقم ICCID المطبوع على الشريحة.'
-              : 'Enter the MSISDN (phone number) and the ICCID printed on the SIM.'}
+              : 'Enter the MSISDN (phone number) and the ICCID printed on the SIM.')}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="my-3 space-y-3">
-          <div>
-            <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
-              {isAr ? 'رقم الجوال (MSISDN)' : 'Phone number (MSISDN)'}
-            </label>
+        {/* ── STEP 1: ID ── */}
+        {step === 'id' && (
+          <div className="mt-3 space-y-3">
             <Input
-              value={msisdn}
-              onChange={(e) => setMsisdn(e.target.value)}
-              placeholder="05xxxxxxxx"
-              dir="ltr"
               inputMode="numeric"
-              className="font-mono bg-card"
+              maxLength={10}
+              value={idNumber}
+              onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, ''))}
+              placeholder="1xxxxxxxxx / 2xxxxxxxxx"
+              className="bg-card font-mono text-center text-lg tracking-wider"
             />
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
-              ICCID
-            </label>
-            <Input
-              value={iccid}
-              onChange={(e) => setIccid(e.target.value)}
-              placeholder="89-9601-xxxx-xxxx-xxxx"
-              dir="ltr"
-              inputMode="numeric"
-              className="font-mono bg-card"
-            />
-            <p className="text-[10.5px] text-foreground/50 mt-1">
-              {isAr ? 'رقم مكوّن من 18-20 خانة على ظهر الشريحة.' : '18-20 digit number on the back of the SIM card.'}
+            <p className="text-[11px] text-foreground/55 text-center">
+              {isAr
+                ? '10 أرقام · يبدأ بـ 1 (هوية) أو 2 (إقامة)'
+                : '10 digits · starts with 1 (National ID) or 2 (Iqama)'}
             </p>
+            <Button onClick={() => setStep('nafath')} disabled={!idValid} className="w-full font-bold">
+              {isAr ? 'متابعة' : 'Continue'}
+            </Button>
           </div>
+        )}
 
-          {error && (
-            <div className="rounded-lg bg-destructive/10 border border-destructive/30 px-3 py-2 text-[12px] text-destructive font-medium">
-              {error}
+        {/* ── STEP 2: Nafath challenge ── */}
+        {step === 'nafath' && (
+          <div className="mt-2">
+            <button onClick={() => setStep('id')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
+              <ArrowLeft size={12} className="rtl:rotate-180" />
+              {isAr ? 'رجوع' : 'Back'}
+            </button>
+
+            <div className="flex flex-col items-center my-3">
+              <div className="text-[10.5px] uppercase tracking-widest text-foreground/55 font-mono mb-2">
+                {isAr ? 'اختر هذا الرقم في تطبيق نفاذ' : 'Pick this number in the Nafath app'}
+              </div>
+              <div
+                className="w-32 h-32 rounded-full flex items-center justify-center font-heading font-bold text-6xl tabular-nums shadow-xl"
+                style={{ background: '#16143A', color: '#CFEB74' }}
+              >
+                {nafathNumber}
+              </div>
+              <div className="mt-3 inline-flex items-center gap-2 text-[12px] text-foreground/65">
+                <span className="flex gap-0.5">
+                  {[0,1,2].map(i => (
+                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-foreground/45 animate-pulse" style={{ animationDelay: `${i * 200}ms` }} />
+                  ))}
+                </span>
+                {isAr ? 'بانتظار التأكيد في نفاذ' : 'Waiting for Nafath confirmation'}
+              </div>
             </div>
-          )}
-        </div>
 
-        <Button
-          onClick={submit}
-          disabled={submitting}
-          className="w-full font-bold"
-          style={{ background: '#CFEB74', color: '#16143A' }}
-        >
-          {submitting
-            ? <span className="inline-flex items-center gap-2"><span className="w-4 h-4 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" /> {isAr ? 'جاري التفعيل...' : 'Activating...'}</span>
-            : <><CheckCircle2 size={16} /> {isAr ? 'تفعيل' : 'Activate'}</>}
-        </Button>
+            <ol className="rounded-xl bg-secondary/40 border border-border p-3 text-[11.5px] text-foreground/80 leading-relaxed list-decimal ms-5">
+              <li>{isAr ? 'افتح تطبيق نفاذ.' : 'Open the Nafath app.'}</li>
+              <li>{isAr ? 'سيظهر لك ٣ أرقام.' : 'You will see 3 numbers.'}</li>
+              <li>
+                {isAr
+                  ? <>اضغط على <span className="font-mono font-bold text-foreground">{nafathNumber}</span> لتأكيد الهوية.</>
+                  : <>Tap <span className="font-mono font-bold text-foreground">{nafathNumber}</span> to confirm your identity.</>}
+              </li>
+            </ol>
+
+            <Button onClick={() => setStep('activate')} className="w-full font-bold mt-4" style={{ background: '#16143A', color: '#FFFFFF' }}>
+              <CheckCircle2 size={16} />
+              {isAr ? 'تم التأكيد في نفاذ' : 'I confirmed in Nafath'}
+            </Button>
+          </div>
+        )}
+
+        {/* ── STEP 3: MSISDN + ICCID ── */}
+        {step === 'activate' && (
+          <>
+            <div className="my-3 space-y-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                  {isAr ? 'رقم الجوال (MSISDN)' : 'Phone number (MSISDN)'}
+                </label>
+                <Input
+                  value={msisdn}
+                  onChange={(e) => setMsisdn(e.target.value)}
+                  placeholder="05xxxxxxxx"
+                  dir="ltr"
+                  inputMode="numeric"
+                  className="font-mono bg-card"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+                  ICCID
+                </label>
+                <Input
+                  value={iccid}
+                  onChange={(e) => setIccid(e.target.value)}
+                  placeholder="89-9601-xxxx-xxxx-xxxx"
+                  dir="ltr"
+                  inputMode="numeric"
+                  className="font-mono bg-card"
+                />
+                <p className="text-[10.5px] text-foreground/50 mt-1">
+                  {isAr ? 'رقم مكوّن من 18-20 خانة على ظهر الشريحة.' : '18-20 digit number on the back of the SIM card.'}
+                </p>
+              </div>
+
+              {error && (
+                <div className="rounded-lg bg-destructive/10 border border-destructive/30 px-3 py-2 text-[12px] text-destructive font-medium">
+                  {error}
+                </div>
+              )}
+            </div>
+
+            <Button
+              onClick={submit}
+              disabled={submitting}
+              className="w-full font-bold"
+              style={{ background: '#CFEB74', color: '#16143A' }}
+            >
+              {submitting
+                ? <span className="inline-flex items-center gap-2"><span className="w-4 h-4 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" /> {isAr ? 'جاري التفعيل...' : 'Activating...'}</span>
+                : <><CheckCircle2 size={16} /> {isAr ? 'تفعيل' : 'Activate'}</>}
+            </Button>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

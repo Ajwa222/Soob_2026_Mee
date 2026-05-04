@@ -210,7 +210,7 @@ export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, s
   const navigate = useNavigate();
   const e = engagement[String(plan.id)];
   const handleToggleBookmark = React.useCallback((id: number) => {
-    if (!requestBookmark(id)) navigate('/profile');
+    if (!requestBookmark({ kind: 'plan', id: String(id) })) navigate('/profile');
   }, [requestBookmark, navigate]);
   const handleToggleCompare = React.useCallback((p: Plan) => {
     togglePlan(p);
@@ -221,7 +221,7 @@ export const ConnectedPlanCard = React.memo(function ConnectedPlanCard({ plan, s
       style={style}
       compact={compact}
       selected={isSelected(plan.id)}
-      bookmarked={isBookmarked(plan.id)}
+      bookmarked={isBookmarked('plan', plan.id)}
       likes={e?.likes ?? 0}
       dislikes={e?.dislikes ?? 0}
       commentCount={e?.comments ?? 0}
