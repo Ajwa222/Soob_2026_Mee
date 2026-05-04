@@ -1043,7 +1043,8 @@ function PhysicalActivateModal({
   onMarkActivated: (id: string, num: string, iccid?: string) => void;
   isAr: boolean;
 }) {
-  type Step = 'id' | 'nafath' | 'activate';
+  // Order: ID → MSISDN/ICCID (activate form) → Nafath → activation completes.
+  type Step = 'id' | 'activate' | 'nafath';
   const [step, setStep] = useState<Step>('id');
   const [idNumber, setIdNumber] = useState('');
   const [nafathNumber, setNafathNumber] = useState<number>(() => Math.floor(Math.random() * 90) + 10);
@@ -1071,10 +1072,23 @@ function PhysicalActivateModal({
   const msisdnValid = /^05\d{8}$/.test(msisdn.trim());
   const iccidValid = /^\d{18,20}$/.test(iccid.trim().replace(/\s/g, ''));
 
-  const submit = async () => {
+  // Validates the MSISDN/ICCID form. Returns false if invalid (and surfaces an
+  // error). Used both before advancing to Nafath and as a final check.
+  const validateActivation = (): boolean => {
     setError(null);
-    if (!msisdnValid) { setError(isAr ? 'رقم الجوال غير صالح. يجب أن يبدأ بـ 05.' : 'Invalid phone. Must start with 05.'); return; }
-    if (!iccidValid)  { setError(isAr ? 'رقم ICCID غير صالح (18-20 رقم).' : 'Invalid ICCID (18-20 digits).'); return; }
+    if (!msisdnValid) { setError(isAr ? 'رقم الجوال غير صالح. يجب أن يبدأ بـ 05.' : 'Invalid phone. Must start with 05.'); return false; }
+    if (!iccidValid)  { setError(isAr ? 'رقم ICCID غير صالح (18-20 رقم).' : 'Invalid ICCID (18-20 digits).'); return false; }
+    return true;
+  };
+
+  const continueToNafath = () => {
+    if (!validateActivation()) return;
+    setStep('nafath');
+  };
+
+  // Final activation, called after Nafath confirmation.
+  const submit = async () => {
+    if (!validateActivation()) { setStep('activate'); return; }
     setSubmitting(true);
     await new Promise(r => setTimeout(r, 800));
     onMarkActivated(order.id, msisdn.trim(), iccid.trim());
@@ -1106,10 +1120,12 @@ function PhysicalActivateModal({
           </DialogTitle>
           <DialogDescription>
             {step === 'id'       && (isAr ? 'أدخل رقم الهوية أو الإقامة لتفعيل الشريحة.' : 'Enter your National ID or Iqama to activate the SIM.')}
-            {step === 'nafath'   && (isAr ? 'افتح تطبيق نفاذ واختر الرقم التالي.' : 'Open the Nafath app and tap the matching number.')}
             {step === 'activate' && (isAr
               ? 'أدخل رقم MSISDN (الجوال) ورقم ICCID المطبوع على الشريحة.'
               : 'Enter the MSISDN (phone number) and the ICCID printed on the SIM.')}
+            {step === 'nafath'   && (isAr
+              ? 'الخطوة الأخيرة — أكّد عبر نفاذ لتفعيل الشريحة.'
+              : 'Final step — confirm in Nafath to activate the SIM.')}
           </DialogDescription>
         </DialogHeader>
 
@@ -1129,16 +1145,16 @@ function PhysicalActivateModal({
                 ? '10 أرقام · يبدأ بـ 1 (هوية) أو 2 (إقامة)'
                 : '10 digits · starts with 1 (National ID) or 2 (Iqama)'}
             </p>
-            <Button onClick={() => setStep('nafath')} disabled={!idValid} className="w-full font-bold">
+            <Button onClick={() => setStep('activate')} disabled={!idValid} className="w-full font-bold">
               {isAr ? 'متابعة' : 'Continue'}
             </Button>
           </div>
         )}
 
-        {/* ── STEP 2: Nafath challenge ── */}
+        {/* ── STEP 3: Nafath challenge — final verification before activation ── */}
         {step === 'nafath' && (
           <div className="mt-2">
-            <button onClick={() => setStep('id')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
+            <button onClick={() => setStep('activate')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
               <ArrowLeft size={12} className="rtl:rotate-180" />
               {isAr ? 'رجوع' : 'Back'}
             </button>
@@ -1173,16 +1189,26 @@ function PhysicalActivateModal({
               </li>
             </ol>
 
-            <Button onClick={() => setStep('activate')} className="w-full font-bold mt-4" style={{ background: '#16143A', color: '#FFFFFF' }}>
-              <CheckCircle2 size={16} />
-              {isAr ? 'تم التأكيد في نفاذ' : 'I confirmed in Nafath'}
+            <Button
+              onClick={submit}
+              disabled={submitting}
+              className="w-full font-bold mt-4"
+              style={{ background: '#CFEB74', color: '#16143A' }}
+            >
+              {submitting
+                ? <span className="inline-flex items-center gap-2"><span className="w-4 h-4 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" /> {isAr ? 'جاري التفعيل...' : 'Activating...'}</span>
+                : <><CheckCircle2 size={16} /> {isAr ? 'تم التأكيد، فعّل الشريحة' : 'Confirmed — activate SIM'}</>}
             </Button>
           </div>
         )}
 
-        {/* ── STEP 3: MSISDN + ICCID ── */}
+        {/* ── STEP 2: MSISDN + ICCID — entered before Nafath verification ── */}
         {step === 'activate' && (
           <>
+            <button onClick={() => setStep('id')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mt-2 mb-1">
+              <ArrowLeft size={12} className="rtl:rotate-180" />
+              {isAr ? 'رجوع' : 'Back'}
+            </button>
             <div className="my-3 space-y-3">
               <div>
                 <label className="block text-[11px] font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
@@ -1222,15 +1248,9 @@ function PhysicalActivateModal({
               )}
             </div>
 
-            <Button
-              onClick={submit}
-              disabled={submitting}
-              className="w-full font-bold"
-              style={{ background: '#CFEB74', color: '#16143A' }}
-            >
-              {submitting
-                ? <span className="inline-flex items-center gap-2"><span className="w-4 h-4 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" /> {isAr ? 'جاري التفعيل...' : 'Activating...'}</span>
-                : <><CheckCircle2 size={16} /> {isAr ? 'تفعيل' : 'Activate'}</>}
+            <Button onClick={continueToNafath} className="w-full font-bold">
+              <Shield size={16} />
+              {isAr ? 'متابعة عبر نفاذ' : 'Continue with Nafath'}
             </Button>
           </>
         )}
