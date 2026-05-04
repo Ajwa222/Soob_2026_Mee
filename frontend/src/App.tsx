@@ -67,12 +67,9 @@ function pickOnboardingVariant(): OnboardingVariantId {
     }
     return cleaned;
   }
-  const stored = localStorage.getItem('soob-onboarding-variant');
-  if (stored === 'A' || stored === 'B' || stored === 'C' || stored === 'D') return stored;
-  const options: OnboardingVariantId[] = ['A', 'B', 'C', 'D'];
-  const picked = options[Math.floor(Math.random() * options.length)];
-  localStorage.setItem('soob-onboarding-variant', picked);
-  return picked;
+  // Default everyone to Flow A (classic + choice). URL ?ob= still overrides.
+  localStorage.setItem('soob-onboarding-variant', 'A');
+  return 'A';
 }
 
 export function getOnboardingVariant(): OnboardingVariantId {
@@ -108,16 +105,16 @@ const ONBOARDING_THEME_LABELS: Record<OnboardingThemeId, string> = {
 };
 
 function pickOnboardingTheme(): OnboardingThemeId {
-  if (typeof window === 'undefined') return 'B';
+  if (typeof window === 'undefined') return 'A';
   const raw = new URLSearchParams(window.location.search).get('ot') ?? '';
   const cleaned = raw.trim().replace(/['"`]/g, '').toUpperCase();
   if (cleaned === 'A' || cleaned === 'B' || cleaned === 'C') {
     localStorage.setItem('soob-onboarding-theme', cleaned);
     return cleaned;
   }
-  const stored = localStorage.getItem('soob-onboarding-theme');
-  if (stored === 'A' || stored === 'B' || stored === 'C') return stored;
-  return 'B';
+  // Default everyone to Theme A (Atlas Vibe). URL ?ot= still overrides.
+  localStorage.setItem('soob-onboarding-theme', 'A');
+  return 'A';
 }
 
 if (typeof document !== 'undefined') {
