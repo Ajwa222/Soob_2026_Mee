@@ -29,10 +29,20 @@ export const sendAdvisorMessage = async (
   userMessage: string,
 ): Promise<{ reply: string; planIds: number[] }> => {
   const advisorLang: "en" | "ar" = lang === "ar" ? "ar" : "en";
-  return apiFetch<{ reply: string; planIds: number[] }>("/api/advisor/message", {
-    method: "POST",
-    body: JSON.stringify({ lang: advisorLang, history, userMessage }),
-  });
+  try {
+    return await apiFetch<{ reply: string; planIds: number[] }>("/api/advisor/message", {
+      method: "POST",
+      body: JSON.stringify({ lang: advisorLang, history, userMessage }),
+    });
+  } catch (err) {
+    if (import.meta.env.DEV) console.warn('Advisor backend unreachable, returning mock reply:', err);
+    // Mock reply for design previews where the backend isn't deployed.
+    // Returns three popular plan IDs so the chat UI still shows plan cards.
+    const reply = advisorLang === 'ar'
+      ? 'هذه نسخة معاينة بدون خادم — هذه ٣ باقات شائعة بناءً على رسالتك. للحصول على توصيات حقيقية بالذكاء الاصطناعي، شغّل الخادم محلياً.'
+      : "This is a preview build without a backend — here are 3 popular plans based on your message. For real AI recommendations, run the backend locally.";
+    return { reply, planIds: [13, 17, 11] };
+  }
 };
 
 /**
