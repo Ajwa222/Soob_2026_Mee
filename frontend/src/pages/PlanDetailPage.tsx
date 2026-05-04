@@ -1263,10 +1263,10 @@ export default function PlanDetailPage() {
               <span className="shrink-0 text-[10px] font-mono uppercase tracking-wider text-foreground/55 bg-secondary px-2 py-1 rounded-full">
                 {(() => {
                   const newFlow: Partial<Record<PurchaseStep, number>> = {
-                    'choose-path': 1, 'contact-phone': 2, 'identity': 3, 'identity-otp': 4, 'pick-number': 5, 'sim-type': 6, 'payment': 7,
+                    'choose-path': 1, 'sim-type': 2, 'contact-phone': 3, 'identity': 4, 'identity-otp': 5, 'pick-number': 6, 'payment': 7,
                   };
                   const portFlow: Partial<Record<PurchaseStep, number>> = {
-                    'choose-path': 1, 'port-number': 2, 'port-otp': 3, 'port-contact': 4, 'sim-type': 5, 'payment': 6,
+                    'choose-path': 1, 'sim-type': 2, 'port-number': 3, 'port-otp': 4, 'port-contact': 5, 'payment': 6,
                   };
                   if (purchaseStep === 'success') return '✓';
                   const indices = purchasePath === 'port' ? portFlow : newFlow;
@@ -1286,7 +1286,7 @@ export default function PlanDetailPage() {
               </p>
               <div className="flex flex-col gap-2.5">
                 <button
-                  onClick={() => { setPurchasePath('new'); setPurchaseStep('contact-phone'); }}
+                  onClick={() => { setPurchasePath('new'); setPurchaseStep('sim-type'); }}
                   className="group flex items-center gap-3 rounded-xl border-2 border-border bg-card hover:border-[var(--ob-cta)] hover:bg-[var(--ob-cta)]/5 p-4 text-left transition-all"
                 >
                   <div className="w-11 h-11 rounded-xl bg-[#C59AFA] flex items-center justify-center shrink-0">
@@ -1304,7 +1304,7 @@ export default function PlanDetailPage() {
                 </button>
 
                 <button
-                  onClick={() => { setPurchasePath('port'); setPurchaseStep('port-number'); }}
+                  onClick={() => { setPurchasePath('port'); setPurchaseStep('sim-type'); }}
                   className="group flex items-center gap-3 rounded-xl border-2 border-border bg-card hover:border-[var(--ob-cta)] hover:bg-[var(--ob-cta)]/5 p-4 text-left transition-all"
                 >
                   <div className="w-11 h-11 rounded-xl bg-[#DCCFFF] flex items-center justify-center shrink-0">
@@ -1327,7 +1327,7 @@ export default function PlanDetailPage() {
           {/* ── STEP 2: Saudi mobile number (verifies user owns the line) ── */}
           {purchaseStep === 'contact-phone' && (
             <div className="mt-2">
-              <button onClick={() => setPurchaseStep('choose-path')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
+              <button onClick={() => setPurchaseStep('sim-type')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
                 <ArrowLeft size={12} className="rtl:rotate-180" />
                 {lang === 'ar' ? 'رجوع' : 'Back'}
               </button>
@@ -1568,10 +1568,10 @@ export default function PlanDetailPage() {
               <Button
                 size="lg"
                 disabled={!pickedNumber}
-                onClick={() => setPurchaseStep('sim-type')}
+                onClick={() => setPurchaseStep('payment')}
                 className="w-full mt-4 font-bold text-[14px]"
               >
-                {lang === 'ar' ? 'متابعة' : 'Continue'}
+                {lang === 'ar' ? 'متابعة للدفع' : 'Continue to payment'}
               </Button>
             </div>
           )}
@@ -1579,7 +1579,7 @@ export default function PlanDetailPage() {
           {/* ── PORT STEP A: enter existing number + select donor provider ── */}
           {purchaseStep === 'port-number' && (
             <div className="mt-2">
-              <button onClick={() => setPurchaseStep('choose-path')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
+              <button onClick={() => setPurchaseStep('sim-type')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
                 <ArrowLeft size={12} className="rtl:rotate-180" />
                 {lang === 'ar' ? 'رجوع' : 'Back'}
               </button>
@@ -1782,10 +1782,10 @@ export default function PlanDetailPage() {
               <Button
                 size="lg"
                 disabled={!portContactPhoneValid}
-                onClick={() => setPurchaseStep('sim-type')}
+                onClick={() => setPurchaseStep('payment')}
                 className="w-full mt-4 font-bold text-[14px]"
               >
-                {lang === 'ar' ? 'متابعة' : 'Continue'}
+                {lang === 'ar' ? 'متابعة للدفع' : 'Continue to payment'}
               </Button>
             </div>
           )}
@@ -1793,7 +1793,7 @@ export default function PlanDetailPage() {
           {/* ── STEP 5: SIM or eSIM ── */}
           {purchaseStep === 'sim-type' && (
             <div className="mt-2">
-              <button onClick={() => setPurchaseStep(purchasePath === 'new' ? 'pick-number' : 'port-contact')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
+              <button onClick={() => setPurchaseStep('choose-path')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
                 <ArrowLeft size={12} className="rtl:rotate-180" />
                 {lang === 'ar' ? 'رجوع' : 'Back'}
               </button>
@@ -1847,10 +1847,10 @@ export default function PlanDetailPage() {
               <Button
                 size="lg"
                 disabled={!simType}
-                onClick={() => setPurchaseStep('payment')}
+                onClick={() => setPurchaseStep(purchasePath === 'port' ? 'port-number' : 'contact-phone')}
                 className="w-full mt-4 font-bold text-[14px]"
               >
-                {lang === 'ar' ? 'متابعة للدفع' : 'Continue to payment'}
+                {lang === 'ar' ? 'متابعة' : 'Continue'}
               </Button>
             </div>
           )}
@@ -1858,7 +1858,7 @@ export default function PlanDetailPage() {
           {/* ── STEP 6: payment ── */}
           {purchaseStep === 'payment' && (
             <div className="mt-2">
-              <button onClick={() => setPurchaseStep('sim-type')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
+              <button onClick={() => setPurchaseStep(purchasePath === 'port' ? 'port-contact' : 'pick-number')} className="inline-flex items-center gap-1 text-[11px] text-foreground/60 hover:text-foreground mb-3">
                 <ArrowLeft size={12} className="rtl:rotate-180" />
                 {lang === 'ar' ? 'رجوع' : 'Back'}
               </button>
