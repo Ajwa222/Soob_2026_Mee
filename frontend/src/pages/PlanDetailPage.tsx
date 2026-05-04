@@ -2202,6 +2202,51 @@ export default function PlanDetailPage() {
                     discount_percent: discountApplied?.percent ?? 0,
                     final_price: finalPrice,
                   });
+
+                  // Persist the order so it appears in /orders. Storage shape
+                  // matches OrdersPage's Order type and is keyed by soob-orders-v7.
+                  try {
+                    const STORAGE_KEY = 'soob-orders-v7';
+                    const now = new Date();
+                    const isEsim = simType === 'esim';
+                    const orderId = `ord-${now.getTime().toString(36)}`;
+                    const assigned = purchasePath === 'new'
+                      ? (pickedNumber ?? undefined)
+                      : (existingNumber.trim() || undefined);
+                    const baseOrder: Record<string, unknown> = {
+                      id: orderId,
+                      kind: 'mobile',
+                      planName: plan.planName,
+                      provider: plan.provider,
+                      priceSAR: finalPrice,
+                      purchasedAt: now.toISOString(),
+                      simType: isEsim ? 'esim' : 'physical',
+                      status: isEsim ? 'pending-activation' : 'shipped',
+                      assignedNumber: assigned,
+                    };
+                    if (isEsim) {
+                      const code = Math.random().toString(36).slice(2, 6).toUpperCase();
+                      baseOrder.qrPayload = `LPA:1$rsp.${plan.provider.toLowerCase()}.com.sa$NEW-${code}-${orderId.slice(-4).toUpperCase()}`;
+                    } else {
+                      const eta = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+                      baseOrder.shippedAt = now.toISOString();
+                      baseOrder.estimatedDelivery = eta.toISOString();
+                      baseOrder.trackingNumber = `SMSA-AR-${now.getFullYear()}-${Math.floor(1000000 + Math.random() * 9000000)}`;
+                      baseOrder.shippingLocation = deliveryCity
+                        ? `${deliveryCity} sorting facility`
+                        : 'Sorting facility';
+                    }
+                    let existing: unknown[] = [];
+                    try {
+                      const raw = localStorage.getItem(STORAGE_KEY);
+                      existing = raw ? JSON.parse(raw) : [];
+                    } catch { /* ignore */ }
+                    if (!Array.isArray(existing)) existing = [];
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify([baseOrder, ...existing]));
+                  } catch (err) {
+                    if (import.meta.env.DEV) console.warn('Failed to persist order:', err);
+                  }
+
                   setPurchaseStep('success');
                 }}
                 className="w-full font-bold text-[14px]"
