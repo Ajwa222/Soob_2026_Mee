@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('soob-user', JSON.stringify(otpUser));
     localStorage.setItem('soob-has-account', 'true');
     setHasAccount(true);
-    identifyUser(otpUser.uid, { provider: 'otp', name: otpUser.name });
+    try { identifyUser(otpUser); } catch { /* analytics non-critical */ }
   }, []);
 
   // Save phone number to Firestore (for Google users)

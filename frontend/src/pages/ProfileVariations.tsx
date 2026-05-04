@@ -16,6 +16,7 @@ import {
   Wallet, TrendingUp, CreditCard, Bell, Shield, Settings,
   Gift, Wifi, Smartphone, Mail, Phone, Edit3, Sparkles, ArrowRight,
   Calendar, Plus, RotateCcw, Clock, Zap, BarChart3,
+  type LucideIcon,
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -166,7 +167,7 @@ function V1Banking({ isAr }: { isAr: boolean }) {
   );
 }
 
-function Stat({ icon: Icon, value, label, bg, iconColor }: { icon: React.ComponentType<{ size?: number; className?: string }>; value: string; label: string; bg: string; iconColor: string }) {
+function Stat({ icon: Icon, value, label, bg, iconColor }: { icon: LucideIcon; value: string; label: string; bg: string; iconColor: string }) {
   return (
     <div className="rounded-xl px-2 py-2.5 text-center" style={{ background: bg }}>
       <Icon size={14} className="mx-auto mb-0.5" style={{ color: iconColor }} />
@@ -176,7 +177,7 @@ function Stat({ icon: Icon, value, label, bg, iconColor }: { icon: React.Compone
   );
 }
 
-function ActionTile({ icon: Icon, label, bg, fg = '#16143A' }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; bg: string; fg?: string }) {
+function ActionTile({ icon: Icon, label, bg, fg = '#16143A' }: { icon: LucideIcon; label: string; bg: string; fg?: string }) {
   return (
     <button className="shrink-0 w-[88px] flex flex-col items-center gap-1.5 rounded-xl py-3 px-2 transition-transform hover:-translate-y-0.5" style={{ background: bg, color: fg }}>
       <Icon size={20} strokeWidth={2.2} />
@@ -185,7 +186,7 @@ function ActionTile({ icon: Icon, label, bg, fg = '#16143A' }: { icon: React.Com
   );
 }
 
-function Row({ icon: Icon, title, hint, danger }: { icon: React.ComponentType<{ size?: number; className?: string }>; title: string; hint?: string; danger?: boolean }) {
+function Row({ icon: Icon, title, hint, danger }: { icon: LucideIcon; title: string; hint?: string; danger?: boolean }) {
   return (
     <button className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-start ${danger ? 'text-destructive' : ''}`}>
       <Icon size={16} className={danger ? 'text-destructive' : 'text-foreground/55'} />
@@ -412,7 +413,7 @@ function V5Compact({ isAr }: { isAr: boolean }) {
   );
 }
 
-function CompactLink({ icon: Icon, title, hint }: { icon: React.ComponentType<{ size?: number; className?: string }>; title: string; hint?: string }) {
+function CompactLink({ icon: Icon, title, hint }: { icon: LucideIcon; title: string; hint?: string }) {
   return (
     <button className="w-full flex items-center gap-3 px-1 py-3 hover:bg-secondary/30 rounded-md transition-colors text-start">
       <Icon size={15} className="text-foreground/50" />
@@ -561,7 +562,7 @@ function UsageBar({ used, total, color, isAr }: { used: number; total: number; c
   );
 }
 
-function MiniAction({ icon: Icon, label }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string }) {
+function MiniAction({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
     <button className="rounded-lg bg-secondary/60 hover:bg-secondary py-2 inline-flex flex-col items-center gap-1 transition-colors">
       <Icon size={14} className="text-foreground/70" />
@@ -899,7 +900,7 @@ function V9Concierge({ isAr }: { isAr: boolean }) {
   );
 }
 
-function SmartAction({ icon: Icon, label, bg, fg }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; bg: string; fg: string }) {
+function SmartAction({ icon: Icon, label, bg, fg }: { icon: LucideIcon; label: string; bg: string; fg: string }) {
   return (
     <button className="rounded-2xl py-3.5 px-4 inline-flex flex-col items-start gap-1 transition-transform hover:-translate-y-0.5" style={{ background: bg, color: fg }}>
       <Icon size={18} strokeWidth={2.4} />
